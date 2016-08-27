@@ -1,0 +1,241 @@
+body {
+    background-color : #CCD1D4;
+    color: #48484F;
+}
+
+main
+{
+    padding-top: 40px;
+    padding-bottom: 5em;
+    margin: 0 auto;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+}
+
+section {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-pack: justify;
+    -webkit-justify-content: space-between;
+        -ms-flex-pack: justify;
+            justify-content: space-between;
+    padding: 0.5em 0 0.5em 0;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+subsection {
+    width: calc(50% - 2em - 4px);
+    background-color: #F0F2EC;
+    padding: 1em;
+    border-radius: 4px;
+    box-shadow: 0px 2px 0px 2px #C2C7C9;
+}
+
+subsection h1 {
+    margin-top: 0;
+    font-size: 1.7em;
+}
+
+.radio-group {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-flex-wrap: wrap;
+        -ms-flex-wrap: wrap;
+            flex-wrap: wrap;
+    -webkit-box-pack: justify;
+    -webkit-justify-content: space-between;
+        -ms-flex-pack: justify;
+            justify-content: space-between;
+}
+
+.radio-group span {
+    -webkit-box-flex: 1;
+    -webkit-flex: 1 0 auto;
+        -ms-flex: 1 0 auto;
+            flex: 1 0 auto;
+    min-width: 6em;
+    cursor: pointer;
+    text-align: center;
+    padding: 0.5em 0 0.5em 0;
+    margin: 1px;
+    background: white;
+    font-size: 0.6em;
+    letter-spacing: 0.125em;
+}
+
+.radio-group span:hover {
+    background: black;
+    color: white;
+}
+
+.radio-group span.selected {
+    background: #91ff13;
+    color: black;
+}
+
+.chord-sequencer {
+    overflow-x: scroll;
+    overflow-y: hidden;
+    display: block;
+    background-color: #C2C7C9;
+    border-radius: 4px;
+    border: 1px inset #d5e0e5;
+    max-width: 100%;
+    margin: 0px 20px 0px 20px;
+    position: relative;
+    height: 300px;
+}
+
+.chord-sequencer .radio-group {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+    -webkit-flex-direction: column;
+        -ms-flex-direction: column;
+            flex-direction: column;
+}
+
+.chord-sequencer .radio-group span {
+    min-width: 0;
+    width: 100%;
+}
+
+chord {
+    position: absolute;
+    display: inline-block;
+    box-sizing: border-box;
+    background-color: #F0F2EC;
+    padding: 1em;
+    border-radius: 4px;
+    box-shadow: none;
+    height: calc(100% - 2em);
+    top: 1em;
+    z-index: 1001;
+}
+
+chord.playing {
+    -webkit-animation-name: chord-playing;
+            animation-name: chord-playing;
+    -webkit-animation-duration: 0.5s;
+            animation-duration: 0.5s;
+}
+
+@-webkit-keyframes chord-playing {
+  from {
+    background-color: #646562;
+  }
+  
+  to {
+    background-color: #F0F2EC;
+  }
+}
+
+@keyframes chord-playing {
+  from {
+    background-color: #646562;
+  }
+  
+  to {
+    background-color: #F0F2EC;
+  }
+}
+
+chord.background {
+    z-index: 1000;
+    padding: 0;
+}
+
+chord.background:nth-child(8n+1),
+chord.background:nth-child(8n+2),
+chord.background:nth-child(8n+3),
+chord.background:nth-child(8n+4)
+{
+    background-color: hsl(197,6%,69%);
+}
+
+chord.background:nth-child(8n+5),
+chord.background:nth-child(8n+6),
+chord.background:nth-child(8n+7),
+chord.background:nth-child(8n+8)
+{
+    background-color: hsl(197,6%,63%);
+}
+
+.drag-zone {
+    position: absolute;
+    cursor: ew-resize;
+    top: 0;
+    bottom: 0;
+    width: 5px;
+}
+
+.drag-zone-left {
+    left: 0;
+}
+
+.drag-zone-right {
+    right: 0;
+}
+
+#position-indicator {
+    position : absolute;
+    bottom: 0px;
+    -webkit-transform : translateX(-50%);
+            transform : translateX(-50%);
+    color: #000000;
+    z-index: 1002;
+}
+
+#transport {
+    -webkit-box-flex: 1;
+    -webkit-flex: 1 0 auto;
+        -ms-flex: 1 0 auto;
+            flex: 1 0 auto;
+}
+
+#transport > div {
+    display: inline-block;
+    width: 50%;
+}
+
+counter {
+    display: block;
+    margin: 0;
+    font-family: monospace;
+    font-size: 1.5em;
+}
+
+button {
+    border-radius: 2px;
+    margin: 1px;
+}
+
+button:focus {
+    outline: none;
+}
+
+#bpm-control {
+    text-align: right;
+}
+
+#bpm-control span {
+    display: inline-block;
+    min-width: 2.5em;
+    font-weight: bold;
+}
+
+.checkbox {
+    font-size: .75em;
+    font-weight: bold;
+    font-variant: small-caps;
+    vertical-align: baseline;
+}
