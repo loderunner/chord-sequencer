@@ -6,7 +6,7 @@ var stopEvent = function (e) {
 var clickTime = function(x, quantize) {
     
     var chordSequencer = document.getElementById('chord-sequencer');
-    var time = Tone.Time(part.loopEnd);
+    var time = Tone.Time(Tone.Transport.loopEnd);
     var margin = parseFloat(window.getComputedStyle(chordSequencer)['margin-left']);
     x = x - chordSequencer.clientLeft - margin;
     var xRatio = x / (chordSequencer.offsetWidth);
@@ -137,6 +137,26 @@ var updateMode = function() {
         } else {
             el.classList.remove('selected');
         }
+    }
+}
+
+var updateLoop = function() {
+
+    var backgrounds = document.getElementById('chord-background');
+    for (var background of backgrounds.children) {
+        backgrounds.removeChild(background);
+    }
+
+    var numberOf16ths = Tone.Time(Tone.Transport.loopEnd).toTicks() / Tone.Time('16n').toTicks();
+    var viewInTicks = Tone.Time('1m').toTicks();
+    var sixteenthInTicks = Tone.Time('16n').toTicks();
+    for (var i = 0; i < numberOf16ths; i++) {
+        var chordBackground = document.createElement('chord');
+        chordBackground.classList.add('background');
+        var startInTicks = Tone.Time('16n').mult(i).toTicks();
+        chordBackground.style.left = 'calc(100% * ' + startInTicks + ' / ' + viewInTicks + ')';
+        chordBackground.style.width = 'calc(100% * ' + sixteenthInTicks + ' / ' + viewInTicks + ' - 2px)';
+        backgrounds.appendChild(chordBackground);
     }
 }
 

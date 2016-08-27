@@ -7,9 +7,9 @@ var part = new Tone.Part(function(time, event) {
 });
     
 part.start('0m');
-part.stop('1m');
+part.stop('8m');
 part.loopStart = '0m';
-part.loopEnd = '1m';
+part.loopEnd = '8m';
 part.loop = true;
 
 Tone.Transport.bpm.value = 120;

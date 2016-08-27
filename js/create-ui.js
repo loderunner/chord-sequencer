@@ -6,6 +6,10 @@ var createUI = function () {
     chordSection.classList.add('chord-sequencer');
     main.appendChild(chordSection);
 
+    var chordBackground = document.createElement('div');
+    chordBackground.id = 'chord-background';
+    chordSection.appendChild(chordBackground);
+
     chordSection.addEventListener('mousedown', function(e) {
         var time = clickTime(e.pageX, 'floor');
         var chord = createChord(time.toNotation());
@@ -29,18 +33,6 @@ var createUI = function () {
             e.preventDefault();
         }
     });
-
-    var numberOf16ths = Tone.Time(part.loopEnd).toTicks() / Tone.Time('16n').toTicks();
-    var viewInTicks = Tone.Time('1m').toTicks();
-    var sixteenthInTicks = Tone.Time('16n').toTicks();
-    for (var i = 0; i < numberOf16ths; i++) {
-        var chordBackground = document.createElement('chord');
-        chordBackground.classList.add('background');
-        var startInTicks = Tone.Time('16n').mult(i).toTicks();
-        chordBackground.style.left = 'calc(100% * ' + startInTicks + ' / ' + viewInTicks + ')';
-        chordBackground.style.width = 'calc(100% * ' + sixteenthInTicks + ' / ' + viewInTicks + ' - 2px)';
-        chordSection.appendChild(chordBackground);
-    }
 
     var positionIndicator = document.createElement('i');
     positionIndicator.id = 'position-indicator';
@@ -134,6 +126,21 @@ var createUI = function () {
     var bpmControl = document.createElement('div');
     bpmControl.id = 'bpm-control';
     transport.appendChild(bpmControl);
+
+    var loopControl = document.createElement('span');
+    loopControl.id = 'loop-control';
+    loopControl.addEventListener('click', function(e) {
+        var bars = parseInt(Tone.Time(Tone.Transport.loopEnd).toBarsBeatsSixteenths()); 
+        bars *= 2;
+        if (bars <= 8) {
+            Tone.Transport.loopEnd = bars.toString() + 'm';
+        } else {
+            Tone.Transport.loopEnd = '1m';
+        }
+        updateLoop();
+    });
+    updateLoop();
+    bpmControl.appendChild(loopControl);
     var bpmValue = document.createElement('span');
     bpmValue.id = 'bpm-value';
     bpmValue.setAttribute('data-min', 40);
@@ -154,7 +161,6 @@ var createUI = function () {
                 updateBpm();
             }
         });
-        return false;
     });
     document.addEventListener('mouseup', function(e) {
         bpmValue.removeAttribute('dragOrigin');
