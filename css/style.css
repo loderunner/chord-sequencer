@@ -211,7 +211,7 @@ chord.background:nth-child(8n+8)
     align-items: center;
     border-radius: 4px;
     margin: 1px;
-    transition: opacity 1s;
+    transition: opacity .6s;
 }
 
 .scroll-indicator.hidden {

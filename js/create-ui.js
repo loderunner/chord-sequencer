@@ -38,6 +38,10 @@ var createUI = function () {
         }
     });
 
+    chordSection.addEventListener('scroll', function(e) {
+        updateScroll();
+    });
+
     var scrollIndicatorLeft = document.createElement('div');
     scrollIndicatorLeft.classList.add('scroll-indicator');
     scrollIndicatorLeft.classList.add('scroll-indicator-left');
@@ -188,7 +192,5 @@ var createUI = function () {
     bpmControl.appendChild(bpmValue);
     updateBpm();
 
-    // var bpmLabel = document.createElement('span');
-    // bpmLabel.innerHTML = 'BPM';
-    // bpmControl.appendChild(bpmLabel);
+    updateScroll();
 }

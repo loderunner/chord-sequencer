@@ -52,6 +52,28 @@ var endDrag = function(e) {
     document.dragCallback = null;
 }
 
+var updateScroll = function() {
+
+    var chordSequencer = document.getElementById('chord-sequencer');
+    var scrollIndicatorLeft = chordSequencer.parentNode.getElementsByClassName('scroll-indicator-left')[0];
+
+    var scrollLeft = chordSequencer.scrollLeft;
+    var maxScroll = chordSequencer.scrollWidth - chordSequencer.clientWidth;
+
+    if (scrollLeft > 0) {
+        scrollIndicatorLeft.classList.remove('hidden');
+    } else {
+        scrollIndicatorLeft.classList.add('hidden');
+    }
+
+    var scrollIndicatorRight = chordSequencer.parentNode.getElementsByClassName('scroll-indicator-right')[0];
+    if (scrollLeft >= maxScroll) {
+        scrollIndicatorRight.classList.add('hidden');
+    } else {
+        scrollIndicatorRight.classList.remove('hidden');
+    }
+}
+
 const counters = document.getElementsByTagName("counter");
 Tone.Transport.scheduleRepeat(function(time) {
     updateTime(time);
