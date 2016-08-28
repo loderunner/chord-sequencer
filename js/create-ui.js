@@ -1,10 +1,14 @@
 var createUI = function () {
     var main = document.getElementById('main');
 
+    var sequencerContainer = document.createElement('div');
+    sequencerContainer.id = 'sequencer-container';
+    main.appendChild(sequencerContainer);
+
     var chordSection = document.createElement('div');
     chordSection.id = 'chord-sequencer';
     chordSection.classList.add('chord-sequencer');
-    main.appendChild(chordSection);
+    sequencerContainer.appendChild(chordSection);
 
     var chordBackground = document.createElement('div');
     chordBackground.id = 'chord-background';
@@ -33,6 +37,20 @@ var createUI = function () {
             e.preventDefault();
         }
     });
+
+    var scrollIndicatorLeft = document.createElement('div');
+    scrollIndicatorLeft.classList.add('scroll-indicator');
+    scrollIndicatorLeft.classList.add('scroll-indicator-left');
+    scrollIndicatorLeft.classList.add('hidden');
+    scrollIndicatorLeft.innerHTML = '<i class="fa fa-chevron-left fa-4" aria-hidden="true"></i>';
+    sequencerContainer.insertBefore(scrollIndicatorLeft, chordSection);
+
+    var scrollIndicatorRight = document.createElement('div');
+    scrollIndicatorRight.classList.add('scroll-indicator');
+    scrollIndicatorRight.classList.add('scroll-indicator-right');
+    scrollIndicatorRight.classList.add('hidden');
+    scrollIndicatorRight.innerHTML = '<i class="fa fa-chevron-right fa-4" aria-hidden="true"></i>';
+    sequencerContainer.appendChild(scrollIndicatorRight);
 
     var positionIndicator = document.createElement('i');
     positionIndicator.id = 'position-indicator';
@@ -122,7 +140,7 @@ var createUI = function () {
         updateTime();
     });
     timeControl.appendChild(stopButton);
-
+    
     var bpmControl = document.createElement('div');
     bpmControl.id = 'bpm-control';
     transport.appendChild(bpmControl);
@@ -141,7 +159,7 @@ var createUI = function () {
     });
     bpmControl.appendChild(loopControl);
     updateLoop();
-    
+
     var bpmValue = document.createElement('span');
     bpmValue.id = 'bpm-value';
     bpmValue.setAttribute('data-min', 40);
@@ -170,7 +188,7 @@ var createUI = function () {
     bpmControl.appendChild(bpmValue);
     updateBpm();
 
-    var bpmLabel = document.createElement('span');
-    bpmLabel.innerHTML = 'BPM';
-    bpmControl.appendChild(bpmLabel);
+    // var bpmLabel = document.createElement('span');
+    // bpmLabel.innerHTML = 'BPM';
+    // bpmControl.appendChild(bpmLabel);
 }

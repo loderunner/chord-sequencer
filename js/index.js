@@ -167,7 +167,7 @@ var updateLoop = function() {
 
 var updateBpm = function() {
     const bpmControl = document.getElementById('bpm-value');
-    bpmControl.innerHTML = Math.round(Tone.Transport.bpm.value);
+    bpmControl.innerHTML = parseInt(Math.round(Tone.Transport.bpm.value)) + ' bpm';
 }
 
 var chordMouseDown = function(chord, side) {
@@ -303,4 +303,5 @@ var removeChord = function(time) {
     chordElement.parentNode.removeChild(chordElement);
 }
 
-document.addEventListener("DOMContentLoaded", createUI);
+window.addEventListener('load', createUI);
+
