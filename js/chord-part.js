@@ -14,5 +14,5 @@ part.loop = true;
 
 Tone.Transport.bpm.value = 120;
 Tone.Transport.loopStart = "0m";
-Tone.Transport.loopEnd = "2m";
+Tone.Transport.loopEnd = "1m";
 Tone.Transport.loop = true;

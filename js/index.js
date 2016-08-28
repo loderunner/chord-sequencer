@@ -7,8 +7,10 @@ var clickTime = function(x, quantize) {
     
     var chordSequencer = document.getElementById('chord-sequencer');
     var time = Tone.Time(Tone.Transport.loopEnd);
-    var margin = parseFloat(window.getComputedStyle(chordSequencer)['margin-left']);
-    x = x - chordSequencer.clientLeft - margin + chordSequencer.scrollLeft;
+    var rect = chordSequencer.getBoundingClientRect();
+    var style = window.getComputedStyle(chordSequencer);
+    var margin = parseFloat(style['margin-left']);
+    x = x - chordSequencer.clientLeft - margin - rect.left + chordSequencer.scrollLeft;
     var xRatio = x / chordSequencer.scrollWidth;
     time.mult(xRatio);
     if (quantize === 'floor') {
@@ -42,6 +44,10 @@ var beginDrag = function(e, target, callback) {
 var endDrag = function(e) {
     e.stopPropagation();
     e.preventDefault();
+
+    if (document.dragTarget.localName === 'chord') {
+        updateChordAt(document.dragTarget.getAttribute('data-time'), true);
+    }
 
     document.dragTarget.removeAttribute('dragging');
 
@@ -85,8 +91,27 @@ Tone.Transport.scheduleRepeat(function(time) {
 const keys = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
 const modes = ['Major', 'Minor', 'Harmonic', 'Melodic', 'Ionian', 'Dorian', 'Phrygian', 'Lydian', 'Mixolydian', 'Aeolian', 'Locrian'];
 
-var updateChordAt = function(time) {
+var updateChordAt = function(time, erase) {
     var event = part.at(time).value;
+    var eventStart = Tone.Time(time).toTicks();
+    var eventEnd = eventStart + Tone.Time(event.duration).toTicks();
+
+    if (erase) {
+        for (e of part._events) {
+            if (e.value === event) {
+                continue;
+            }
+
+        var start = e.startOffset;
+        var end = start + Tone.Time(e.value.duration).toTicks();
+
+            if (((eventStart <= start) && (eventEnd > start))
+                || ((eventStart > start && (eventStart < end)))) {
+                removeChord(Tone.Time(start.toString() + 'i').toNotation());
+            }
+        }
+    }
+
     var chordElement = document.querySelector('chord[data-time="' + time + '"]');
     
     var viewInTicks = Tone.Time('1m').toTicks();
@@ -238,7 +263,7 @@ var createChord = function(time) {
         
         var xOffset = e.offsetX;
         
-        chord.addEventListener('mousemove', mouseMoveHandler = function(e) {
+        var mouseMoveHandler = function(e) {
             beginDrag(e, chord, function(e) {
                 var time = clickTime(e.pageX - xOffset, true);
 
@@ -249,7 +274,13 @@ var createChord = function(time) {
                 document.dragTarget.setAttribute('data-time', time.toNotation());
                 updateChordAt(time.toNotation());
             });
-            
+
+            chord.removeEventListener('mousemove', mouseMoveHandler);
+        }
+
+        chord.addEventListener('mousemove', mouseMoveHandler);
+
+        chord.addEventListener('mouseup', function(e) {
             chord.removeEventListener('mousemove', mouseMoveHandler);
         });
     });
@@ -325,5 +356,5 @@ var removeChord = function(time) {
     chordElement.parentNode.removeChild(chordElement);
 }
 
-window.addEventListener('load', createUI);
+window.addEventListener('DOMContentLoaded', createUI);
 

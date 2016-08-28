@@ -160,6 +160,7 @@ var createUI = function () {
             Tone.Transport.loopEnd = '1m';
         }
         updateLoop();
+        updateScroll();
     });
     bpmControl.appendChild(loopControl);
     updateLoop();
