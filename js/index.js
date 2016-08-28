@@ -8,8 +8,8 @@ var clickTime = function(x, quantize) {
     var chordSequencer = document.getElementById('chord-sequencer');
     var time = Tone.Time(Tone.Transport.loopEnd);
     var margin = parseFloat(window.getComputedStyle(chordSequencer)['margin-left']);
-    x = x - chordSequencer.clientLeft - margin;
-    var xRatio = x / (chordSequencer.offsetWidth);
+    x = x - chordSequencer.clientLeft - margin + chordSequencer.scrollLeft;
+    var xRatio = x / chordSequencer.scrollWidth;
     time.mult(xRatio);
     if (quantize === 'floor') {
         time.sub('32n');
@@ -107,7 +107,7 @@ var updateTime = function(time) {
     
     var positionIndicator = document.getElementById('position-indicator');
     var positionInTicks = Tone.Time(pos).toTicks();
-    var loopLength = Tone.Time(part.loopEnd).toTicks();
+    var loopLength = Tone.Time(Tone.Transport.loopEnd).toTicks();
     positionIndicator.style.left = (positionIndicator.parentNode.scrollWidth * positionInTicks / loopLength).toString() + 'px';
 }
 
