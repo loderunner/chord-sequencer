@@ -139,8 +139,9 @@ var createUI = function () {
         }
         updateLoop();
     });
-    updateLoop();
     bpmControl.appendChild(loopControl);
+    updateLoop();
+    
     var bpmValue = document.createElement('span');
     bpmValue.id = 'bpm-value';
     bpmValue.setAttribute('data-min', 40);

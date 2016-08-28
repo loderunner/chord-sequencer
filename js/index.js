@@ -143,11 +143,13 @@ var updateMode = function() {
 var updateLoop = function() {
 
     var backgrounds = document.getElementById('chord-background');
-    for (var background of backgrounds.children) {
-        backgrounds.removeChild(background);
+    while (backgrounds.firstChild) {
+        backgrounds.removeChild(backgrounds.firstChild);
     }
 
-    var numberOf16ths = Tone.Time(Tone.Transport.loopEnd).toTicks() / Tone.Time('16n').toTicks();
+    var loopLength = Tone.Time(Tone.Transport.loopEnd);
+
+    var numberOf16ths = loopLength.toTicks() / Tone.Time('16n').toTicks();
     var viewInTicks = Tone.Time('1m').toTicks();
     var sixteenthInTicks = Tone.Time('16n').toTicks();
     for (var i = 0; i < numberOf16ths; i++) {
@@ -158,6 +160,9 @@ var updateLoop = function() {
         chordBackground.style.width = 'calc(100% * ' + sixteenthInTicks + ' / ' + viewInTicks + ' - 2px)';
         backgrounds.appendChild(chordBackground);
     }
+
+    var loopControl = document.getElementById('loop-control');
+    loopControl.innerHTML = parseInt(loopLength.toBarsBeatsSixteenths()) + ' bars';
 }
 
 var updateBpm = function() {
