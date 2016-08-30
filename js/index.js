@@ -32,6 +32,8 @@ var beginDrag = function(e, target, callback) {
     document.dragTarget = target;
     document.dragCallback = callback;
 
+    target.classList.add('dragging');
+
     document.addEventListener('mousemove', document.dragCallback, true);
     document.addEventListener('mouseup', endDrag, true);
     document.addEventListener('click', clickHandler = function(e) {
@@ -50,6 +52,7 @@ var endDrag = function(e) {
     }
 
     document.dragTarget.removeAttribute('dragging');
+    document.dragTarget.classList.remove('dragging');
 
     document.removeEventListener('mousemove', document.dragCallback, true);
     document.removeEventListener('mouseup', endDrag, true);

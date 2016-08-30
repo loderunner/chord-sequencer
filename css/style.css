@@ -127,6 +127,11 @@ chord {
     z-index: 1001;
 }
 
+chord.dragging {
+    z-index: 1500;
+    opacity: 0.5;
+}
+
 chord.playing {
     -webkit-animation-name: chord-playing;
             animation-name: chord-playing;
