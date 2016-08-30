@@ -1,3 +1,5 @@
+var Tone = require('./lib/Tone.min.js');
+
 var stopEvent = function (e) {
     e.stopPropagation();
     e.preventDefault();
@@ -90,9 +92,6 @@ Tone.Transport.scheduleRepeat(function(time) {
 Tone.Transport.scheduleRepeat(function(time) {
     updateChordTime(time);
 }, "16n");
-
-const keys = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
-const modes = ['Major', 'Minor', 'Harmonic', 'Melodic', 'Ionian', 'Dorian', 'Phrygian', 'Lydian', 'Mixolydian', 'Aeolian', 'Locrian'];
 
 var updateChordAt = function(time, erase) {
     var event = part.at(time).value;
@@ -360,4 +359,3 @@ var removeChord = function(time) {
 }
 
 window.addEventListener('DOMContentLoaded', createUI);
-
