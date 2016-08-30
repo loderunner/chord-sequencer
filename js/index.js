@@ -1,4 +1,6 @@
-var Tone = require('./lib/Tone.min.js');
+const MainModel = require('model/main.js');
+
+var Tone = require('tone');
 
 var stopEvent = function (e) {
     e.stopPropagation();
