@@ -14281,7 +14281,7 @@
 	 * @module ChordList
 	 * @class
 	 *
-	 * A `ChordList` is a `Collection`of `Chord`s. `Chord`s are sorted by their start
+	 * A `ChordList` is a `Collection`of {@link Chord}s. `Chord`s are sorted by their start
 	 * time.
 	 *
 	 * @extends Backbone.Collection
@@ -14289,7 +14289,9 @@
 	module.exports = Backbone.Collection.extend({
 	    model : Chord,
 	    /**
-	     * Compares two `Chord`s and returns `-1` if the first chord has a lower start
+	     * @method comparator
+	     *
+	     * @desc Compares two `Chord`s and returns `-1` if the first chord has a lower start
 	     * time, `1` if the right chord has a lower start time, and `0` if start times
 	     * are identical. Keeps the collection sorted by start time.
 	     */
@@ -14312,7 +14314,7 @@
 	 *
 	 * A `Chord` encapsulates a complete song.
 	 *
-	 * @property {string}       step        - The degree (or step) of the root note of the chord in the scale. Defaults to 1.
+	 * @property {string}       step        - The degree (or step) of the root note of the chord in the scale in roman numerals. Defaults to `'I`'.
 	 * @property {boolean}      seventh     - `true` if the chord contains a seventh note. Defaults to `false`.
 	 * @property {string}       start       - The start time of the chord in the sequence, in Tone.js time notation. Defaults to `'0m'`.
 	 * @property {string}       duration    - The duration of the chord, in Tone.js time notation. Defaults to `'16n'`.
@@ -14321,7 +14323,10 @@
 	 */
 	module.exports = Backbone.Model.extend({
 	    defaults : {
-
+	        step : 'I',
+	        seventh : false,
+	        start : '0m',
+	        duration : '16n'
 	    }
 	});
 

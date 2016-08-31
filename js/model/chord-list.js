@@ -7,7 +7,7 @@ const Chord = require('model/chord.js');
  * @module ChordList
  * @class
  *
- * A `ChordList` is a `Collection`of `Chord`s. `Chord`s are sorted by their start
+ * A `ChordList` is a `Collection`of {@link Chord}s. `Chord`s are sorted by their start
  * time.
  *
  * @extends Backbone.Collection
@@ -15,7 +15,9 @@ const Chord = require('model/chord.js');
 module.exports = Backbone.Collection.extend({
     model : Chord,
     /**
-     * Compares two `Chord`s and returns `-1` if the first chord has a lower start
+     * @method comparator
+     *
+     * @desc Compares two `Chord`s and returns `-1` if the first chord has a lower start
      * time, `1` if the right chord has a lower start time, and `0` if start times
      * are identical. Keeps the collection sorted by start time.
      */
