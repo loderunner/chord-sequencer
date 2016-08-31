@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Home</title>
+    <title>JSDoc: Source: chord-list.js</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,36 +17,44 @@
 
 <div id="main">
 
-    <h1 class="page-title">Home</h1>
+    <h1 class="page-title">Source: chord-list.js</h1>
 
     
 
 
 
     
-
-
-    <h3> </h3>
-
-
-
-
-
-
-
-
-
-
-    
-
-
-
-
     <section>
-        <article><h1>chord-sequencer</h1><p>A <a href="http://tonejs.org">Tone.js</a>-based chord sequencer.</p></article>
+        <article>
+            <pre class="prettyprint source linenums"><code>const Backbone = require('backbone');
+const Tone = require('tone');
+
+const Chord = require('model/chord.js');
+
+/**
+ * @module ChordList
+ * @class
+ *
+ * A `ChordList` is a `Collection`of `Chord`s. `Chord`s are sorted by their start
+ * time.
+ *
+ * @extends Backbone.Collection
+ */
+module.exports = Backbone.Collection.extend({
+    model : Chord,
+    /**
+     * Compares two `Chord`s and returns `-1` if the first chord has a lower start
+     * time, `1` if the right chord has a lower start time, and `0` if start times
+     * are identical. Keeps the collection sorted by start time.
+     */
+    comparator : function(left, right) {
+        const leftTime = Tone.Time(left.get('start')).toTicks();
+        const rightTime = Tone.Time(right.get('start')).toTicks();
+        return Math.sign(leftTime - rightTime);
+    }
+});</code></pre>
+        </article>
     </section>
-
-
 
 
 

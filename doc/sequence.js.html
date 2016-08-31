@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Source: song.js</title>
+    <title>JSDoc: Source: sequence.js</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Source: song.js</h1>
+    <h1 class="page-title">Source: sequence.js</h1>
 
     
 
@@ -28,25 +28,33 @@
         <article>
             <pre class="prettyprint source linenums"><code>const Backbone = require('backbone-nested-models');
 
-const Sequence = require('model/sequence.js');
-
+const ChordList = require('model/chord-list.js');
 
 /**
- * @module Song
+ * @module Sequence
  * @class
- * 
- * This describes an entire project.
  *
- * @property {Sequence} Sequence    - The musical data of the song.
+ * A `Sequence` encapsulates a complete song. It contains global attributes, like song key or tempo. It also contains
+ * a `Collection` of {@link Chord} events.
+ *
+ * @property {string}       key         - The (tonal) key of the song. Defaults to `'C'`.
+ * @property {string}       mode        - The mode of the scale. Defaults to `'Major'`.
+ * @property {number}       tempo       - The tempo of the song in BPM. Defaults to 120.
+ * @property {string}       loopLength  - The length of the current loop in Tone.js musical time notation. Defaults to `'1m'`.
+ * @property {ChordList}    chordList   - The actual list of {@link Chord} events in the sequence.
  *
  * @extends Backbone.Model
  */
 module.exports = Backbone.Model.extend({
     relations : {
-        'sequence' : Sequence
+        'chordList' : ChordList
     },
     defaults : {
-        sequence : function() { return new Sequence; }
+        key : 'C',
+        mode : 'Major',
+        tempo : 120,
+        loopLength : '1m',
+        chordList : function() { return new ChordList; }
     }
 });</code></pre>
         </article>

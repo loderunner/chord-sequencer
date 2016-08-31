@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Home</title>
+    <title>JSDoc: Source: chord.js</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,36 +17,37 @@
 
 <div id="main">
 
-    <h1 class="page-title">Home</h1>
+    <h1 class="page-title">Source: chord.js</h1>
 
     
 
 
 
     
-
-
-    <h3> </h3>
-
-
-
-
-
-
-
-
-
-
-    
-
-
-
-
     <section>
-        <article><h1>chord-sequencer</h1><p>A <a href="http://tonejs.org">Tone.js</a>-based chord sequencer.</p></article>
+        <article>
+            <pre class="prettyprint source linenums"><code>const Backbone = require('backbone-nested-models');
+
+/**
+ * @module Chord
+ * @class
+ *
+ * A `Chord` encapsulates a complete song.
+ *
+ * @property {string}       step        - The degree (or step) of the root note of the chord in the scale. Defaults to 1.
+ * @property {boolean}      seventh     - `true` if the chord contains a seventh note. Defaults to `false`.
+ * @property {string}       start       - The start time of the chord in the sequence, in Tone.js time notation. Defaults to `'0m'`.
+ * @property {string}       duration    - The duration of the chord, in Tone.js time notation. Defaults to `'16n'`.
+ *
+ * @extends Backbone.Model
+ */
+module.exports = Backbone.Model.extend({
+    defaults : {
+
+    }
+});</code></pre>
+        </article>
     </section>
-
-
 
 
 
