@@ -35188,12 +35188,31 @@
 
 	const ChordList = __webpack_require__(8);
 
+	/**
+	 * @module Sequence
+	 * @class
+	 *
+	 * A `Sequence` encapsulates a complete song. It contains global attributes, like song key or tempo. It also contains
+	 * a `Collection` of {@link Chord} events.
+	 *
+	 * @property {string}       key         - The (tonal) key of the song. Defaults to `'C'`.
+	 * @property {string}       mode        - The mode of the scale. Defaults to `'Major'`.
+	 * @property {number}       tempo       - The tempo of the song in BPM. Defaults to 120.
+	 * @property {string}       loopLength  - The length of the current loop in Tone.js musical time notation. Defaults to `'1m'`.
+	 * @property {ChordList}    chordList   - The actual list of {@link Chord} events in the sequence.
+	 *
+	 * @extends Backbone.Model
+	 */
 	module.exports = Backbone.Model.extend({
 	    relations : {
 	        'chordList' : ChordList
 	    },
 	    defaults : {
-	        
+	        key : 'C',
+	        mode : 'Major',
+	        tempo : 120,
+	        loopLength : '1m',
+	        chordList : function() { return new ChordList; }
 	    }
 	});
 
@@ -35205,6 +35224,21 @@
 
 	const Chord = __webpack_require__(9);
 
+	/**
+	 * @module Sequence
+	 * @class
+	 *
+	 * A `Sequence` encapsulates a complete song. It contains global attributes, like song key or tempo. It also contains
+	 * a `Collection` of {@link Chord} events.
+	 *
+	 * @property {string}       key         - The (tonal) key of the song. Defaults to `'C'`.
+	 * @property {string}       mode        - The mode of the scale. Defaults to `'Major'`.
+	 * @property {number}       tempo       - The tempo of the song in BPM. Defaults to 120.
+	 * @property {string}       loopLength  - The length of the current loop in Tone.js musical time notation. Defaults to `'1m'`.
+	 * @property {ChordList}    chordList   - The actual list of {@link Chord} events in the sequence.
+	 *
+	 * @extends Backbone.Collection
+	 */
 	module.exports = Backbone.Collection.extend({
 	    model : Chord
 	});
@@ -35215,7 +35249,23 @@
 
 	const Backbone = __webpack_require__(6);
 
+	/**
+	 * @module Chord
+	 * @class
+	 *
+	 * A `Chord` encapsulates a complete song.
+	 *
+	 * @property {string}       step        - The degree (or step) of the root note of the chord in the scale. Defaults to 1.
+	 * @property {boolean}      seventh     - `true` if the chord contains a seventh note. Defaults to `false`.
+	 * @property {string}       start       - The start time of the chord in the sequence, in Tone.js time notation. Defaults to `'0m'`.
+	 * @property {string}       duration    - The duration of the chord, in Tone.js time notation. Defaults to `'16n'`.
+	 *
+	 * @extends Backbone.Model
+	 */
 	module.exports = Backbone.Model.extend({
+	    defaults : {
+
+	    }
 	});
 
 /***/ },
@@ -35233,10 +35283,7 @@
 	 * 
 	 * This describes an entire project.
 	 *
-	 * @property {string}   key         - The (tonal) key of the song. Defaults to `'C'`.
-	 * @property {string}   mode        - The mode of the scale. Defaults to `'Major'`.
-	 * @property {number}   tempo       - The tempo of the song in BPM. Defaults to 120.
-	 * @property {string}   loopLength  - The length of the current loop in Tone.js musical time notation. Defaults to `'1m'`.
+	 * @property {Sequence} Sequence    - The musical data of the song.
 	 *
 	 * @extends Backbone.Model
 	 */
@@ -35245,10 +35292,6 @@
 	        'sequence' : Sequence
 	    },
 	    defaults : {
-	        key : 'C',
-	        mode : 'Major',
-	        tempo : 120,
-	        loopLength : '1m',
 	        sequence : function() { return new Sequence; }
 	    }
 	});
