@@ -44,7 +44,7 @@
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-	const Song = __webpack_require__(10);
+	const Song = __webpack_require__(1);
 	var song = new Song({
 	    sequence : {
 	        key : 'C',
@@ -81,7 +81,7 @@
 	});
 
 
-	var Tone = __webpack_require__(5);
+	var Tone = __webpack_require__(9);
 
 	var stopEvent = function (e) {
 	    e.stopPropagation();
@@ -445,8 +445,234 @@
 
 
 /***/ },
-/* 1 */,
+/* 1 */
+/***/ function(module, exports, __webpack_require__) {
+
+	const Backbone = __webpack_require__(2);
+
+	const Sequence = __webpack_require__(6);
+
+
+	/**
+	 * @module Song
+	 * @class
+	 * 
+	 * This describes an entire project.
+	 *
+	 * @property {Sequence} Sequence    - The musical data of the song.
+	 *
+	 * @extends Backbone.Model
+	 */
+	module.exports = Backbone.Model.extend({
+	    relations : {
+	        'sequence' : Sequence
+	    },
+	    defaults : {
+	        sequence : function() { return new Sequence; }
+	    }
+	});
+
+/***/ },
 /* 2 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Backbone Nested Models
+	 * Author: Bret Little
+	 * Version: 2.0.4
+	 *
+	 * Nested model support in Backbone.js
+	 *
+	 **/
+
+	// support amd and common js
+	(function (root, factory) {
+	  if (true) {
+			// CommonJS
+			module.exports = factory(__webpack_require__(3), __webpack_require__(4));
+		} else if (typeof define === 'function' && define.amd) {
+			// AMD
+			define(['backbone', 'underscore'], function (b, u) {
+				return (root.returnExportsGlobal = factory(b, u));
+			});
+		} else {
+			// Global Variables
+			root.returnExportsGlobal = factory(root.Backbone, root._);
+		}
+	}(this, function (Backbone, _) {
+
+	    var Model = Backbone.Model,
+	        Collection = Backbone.Collection;
+
+	    Backbone.Model.prototype.setRelation = function(attr, val, options) {
+	        var relation = this.attributes[attr],
+	            id = this.idAttribute || "id",
+	            modelToSet, modelsToAdd = [], modelsToRemove = [];
+
+	        if(options.unset && relation) delete relation.parent;
+
+	        if(this.relations && _.has(this.relations, attr)) {
+
+	            // If the relation already exists, we don't want to replace it, rather
+	            // update the data within it whether it is a collection or model
+	            if(relation && relation instanceof Collection) {
+
+	                // `val` can come in as a Collection, Array, or single Model.
+	                // Ensure that it is an Array for use with `collection.set()`.
+	                if(val instanceof Collection || val instanceof Array) {
+	                    val = val.models || val;
+	                } else {
+	                    val = [val];
+	                }
+
+	                relation.set(val, options);
+
+	                return relation;
+	            }
+
+	            if(relation && relation instanceof Model) {
+
+	                // `val` can come in as a Model or attributes hash.
+	                // Ensure that it is an attributes hash for use with `model.set()`.
+	                if (val instanceof Model) {
+	                    val = val.toJSON()
+	                }
+
+	                relation.set(val, options);
+
+	                return relation;
+	            }
+
+	            options._parent = this;
+
+	            if (val instanceof Collection || val instanceof Model) {
+	                val = val.toJSON();
+	            }
+	            val = new this.relations[attr](val, options);
+	            val.parent = this;
+	        }
+
+	        return val;
+	    };
+
+	    Backbone.Model.prototype.set = function(key, val, options) {
+	        var attr, attrs, unset, changes, silent, changing, prev, current;
+	        if (key == null) return this;
+
+	        // Handle both `"key", value` and `{key: value}` -style arguments.
+	        if (typeof key === 'object') {
+	            attrs = key;
+	            options = val;
+	        } else {
+	            (attrs = {})[key] = val;
+	        }
+
+	        options || (options = {});
+
+	        // Run validation.
+	        if (!this._validate(attrs, options)) return false;
+
+	        // Extract attributes and options.
+	        unset           = options.unset;
+	        silent          = options.silent;
+	        changes         = [];
+	        changing        = this._changing;
+	        this._changing  = true;
+
+	        if (!changing) {
+	            this._previousAttributes = _.clone(this.attributes);
+	            this.changed = {};
+	        }
+	        current = this.attributes, prev = this._previousAttributes;
+
+	        // Check for changes of `id`.
+	        if (this.idAttribute in attrs) this.id = attrs[this.idAttribute];
+
+	        // For each `set` attribute, update or delete the current value.
+	        for (attr in attrs) {
+	            val = attrs[attr];
+
+	            // Inject in the relational lookup
+	            val = this.setRelation(attr, val, options);
+
+	            if (!_.isEqual(current[attr], val)) changes.push(attr);
+	            if (!_.isEqual(prev[attr], val)) {
+	                this.changed[attr] = val;
+	            } else {
+	                delete this.changed[attr];
+	            }
+	            unset ? delete current[attr] : current[attr] = val;
+	        }
+
+	        // Trigger all relevant attribute changes.
+	        if (!silent) {
+	            if (changes.length) this._pending = true;
+	            for (var i = 0, l = changes.length; i < l; i++) {
+	                this.trigger('change:' + changes[i], this, current[changes[i]], options);
+	            }
+	        }
+
+	        if (changing) return this;
+	        if (!silent) {
+	            while (this._pending) {
+	                this._pending = false;
+	                this.trigger('change', this, options);
+	            }
+	        }
+	        this._pending = false;
+	        this._changing = false;
+	        return this;
+	    };
+
+	    Backbone.Model.prototype.toJSON = function(options) {
+	      var attrs = _.clone(this.attributes);
+
+	      _.each(this.relations, function(rel, key) {
+	        if (_.has(attrs, key)) {
+	          attrs[key] = attrs[key].toJSON();
+	        } else {
+	            attrs[key] = (new rel()).toJSON();
+	        }
+	      });
+
+	      return attrs;
+	    };
+
+	    Backbone.Model.prototype.clone = function(options) {
+	        return new this.constructor(this.toJSON());
+	    };
+
+	    Backbone.Collection.prototype.resetRelations = function(options) {
+	        _.each(this.models, function(model) {
+	            _.each(model.relations, function(rel, key) {
+	                if(model.get(key) instanceof Backbone.Collection) {
+	                    model.get(key).trigger('reset', model, options);
+	                }
+	            });
+	        })
+	    };
+
+	    Backbone.Collection.prototype.reset = function(models, options) {
+	      options || (options = {});
+	      for (var i = 0, l = this.models.length; i < l; i++) {
+	        this._removeReference(this.models[i]);
+	      }
+	      options.previousModels = this.models;
+	      this._reset();
+	      this.add(models, _.extend({silent: true}, options));
+	      if (!options.silent) {
+	        this.trigger('reset', this, options);
+	        this.resetRelations(options);
+	      }
+	      return this;
+	    };
+
+	    return Backbone;
+	}));
+
+
+/***/ },
+/* 3 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(global) {//     Backbone.js 1.3.3
@@ -465,7 +691,7 @@
 
 	  // Set up Backbone appropriately for the environment. Start with AMD.
 	  if (true) {
-	    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(3), __webpack_require__(4), exports], __WEBPACK_AMD_DEFINE_RESULT__ = function(_, $, exports) {
+	    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(4), __webpack_require__(5), exports], __WEBPACK_AMD_DEFINE_RESULT__ = function(_, $, exports) {
 	      // Export global even in AMD case in case this script is loaded with
 	      // others that may still expect a global Backbone.
 	      root.Backbone = factory(root, exports, _, $);
@@ -2373,7 +2599,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 3 */
+/* 4 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;//     Underscore.js 1.8.3
@@ -3927,7 +4153,7 @@
 
 
 /***/ },
-/* 4 */
+/* 5 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*eslint-disable no-unused-vars*/
@@ -14007,7 +14233,95 @@
 
 
 /***/ },
-/* 5 */
+/* 6 */
+/***/ function(module, exports, __webpack_require__) {
+
+	const Backbone = __webpack_require__(2);
+
+	const ChordList = __webpack_require__(7);
+
+	/**
+	 * @module Sequence
+	 * @class
+	 *
+	 * A `Sequence` encapsulates a complete song. It contains global attributes, like song key or tempo. It also contains
+	 * a `Collection` of {@link Chord} events.
+	 *
+	 * @property {string}       key         - The (tonal) key of the song. Defaults to `'C'`.
+	 * @property {string}       mode        - The mode of the scale. Defaults to `'Major'`.
+	 * @property {number}       tempo       - The tempo of the song in BPM. Defaults to 120.
+	 * @property {string}       loopLength  - The length of the current loop in Tone.js musical time notation. Defaults to `'1m'`.
+	 * @property {ChordList}    chordList   - The actual list of {@link Chord} events in the sequence.
+	 *
+	 * @extends Backbone.Model
+	 */
+	module.exports = Backbone.Model.extend({
+	    relations : {
+	        'chordList' : ChordList
+	    },
+	    defaults : {
+	        key : 'C',
+	        mode : 'Major',
+	        tempo : 120,
+	        loopLength : '1m',
+	        chordList : function() { return new ChordList; }
+	    }
+	});
+
+/***/ },
+/* 7 */
+/***/ function(module, exports, __webpack_require__) {
+
+	const Backbone = __webpack_require__(3);
+	const Tone = __webpack_require__(9);
+
+	const Chord = __webpack_require__(8);
+
+	/**
+	 * @module ChordList
+	 * @class
+	 *
+	 * A `ChordList` is a `Collection`of `Chord`s. `Chord`s are sorted by their start
+	 * time.
+	 *
+	 * @extends Backbone.Collection
+	 */
+	module.exports = Backbone.Collection.extend({
+	    model : Chord,
+	    comparator : function(left, right) {
+	        const leftTime = Tone.Time(left.get('start')).toTicks();
+	        const rightTime = Tone.Time(right.get('start')).toTicks();
+	        return Math.sign(leftTime - rightTime);
+	    }
+	});
+
+/***/ },
+/* 8 */
+/***/ function(module, exports, __webpack_require__) {
+
+	const Backbone = __webpack_require__(2);
+
+	/**
+	 * @module Chord
+	 * @class
+	 *
+	 * A `Chord` encapsulates a complete song.
+	 *
+	 * @property {string}       step        - The degree (or step) of the root note of the chord in the scale. Defaults to 1.
+	 * @property {boolean}      seventh     - `true` if the chord contains a seventh note. Defaults to `false`.
+	 * @property {string}       start       - The start time of the chord in the sequence, in Tone.js time notation. Defaults to `'0m'`.
+	 * @property {string}       duration    - The duration of the chord, in Tone.js time notation. Defaults to `'16n'`.
+	 *
+	 * @extends Backbone.Model
+	 */
+	module.exports = Backbone.Model.extend({
+	    defaults : {
+
+	    }
+	});
+
+/***/ },
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_RESULT__;(function(root, factory){
@@ -34980,321 +35294,6 @@
 
 		return Tone;
 	}));
-
-/***/ },
-/* 6 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * Backbone Nested Models
-	 * Author: Bret Little
-	 * Version: 2.0.4
-	 *
-	 * Nested model support in Backbone.js
-	 *
-	 **/
-
-	// support amd and common js
-	(function (root, factory) {
-	  if (true) {
-			// CommonJS
-			module.exports = factory(__webpack_require__(2), __webpack_require__(3));
-		} else if (typeof define === 'function' && define.amd) {
-			// AMD
-			define(['backbone', 'underscore'], function (b, u) {
-				return (root.returnExportsGlobal = factory(b, u));
-			});
-		} else {
-			// Global Variables
-			root.returnExportsGlobal = factory(root.Backbone, root._);
-		}
-	}(this, function (Backbone, _) {
-
-	    var Model = Backbone.Model,
-	        Collection = Backbone.Collection;
-
-	    Backbone.Model.prototype.setRelation = function(attr, val, options) {
-	        var relation = this.attributes[attr],
-	            id = this.idAttribute || "id",
-	            modelToSet, modelsToAdd = [], modelsToRemove = [];
-
-	        if(options.unset && relation) delete relation.parent;
-
-	        if(this.relations && _.has(this.relations, attr)) {
-
-	            // If the relation already exists, we don't want to replace it, rather
-	            // update the data within it whether it is a collection or model
-	            if(relation && relation instanceof Collection) {
-
-	                // `val` can come in as a Collection, Array, or single Model.
-	                // Ensure that it is an Array for use with `collection.set()`.
-	                if(val instanceof Collection || val instanceof Array) {
-	                    val = val.models || val;
-	                } else {
-	                    val = [val];
-	                }
-
-	                relation.set(val, options);
-
-	                return relation;
-	            }
-
-	            if(relation && relation instanceof Model) {
-
-	                // `val` can come in as a Model or attributes hash.
-	                // Ensure that it is an attributes hash for use with `model.set()`.
-	                if (val instanceof Model) {
-	                    val = val.toJSON()
-	                }
-
-	                relation.set(val, options);
-
-	                return relation;
-	            }
-
-	            options._parent = this;
-
-	            if (val instanceof Collection || val instanceof Model) {
-	                val = val.toJSON();
-	            }
-	            val = new this.relations[attr](val, options);
-	            val.parent = this;
-	        }
-
-	        return val;
-	    };
-
-	    Backbone.Model.prototype.set = function(key, val, options) {
-	        var attr, attrs, unset, changes, silent, changing, prev, current;
-	        if (key == null) return this;
-
-	        // Handle both `"key", value` and `{key: value}` -style arguments.
-	        if (typeof key === 'object') {
-	            attrs = key;
-	            options = val;
-	        } else {
-	            (attrs = {})[key] = val;
-	        }
-
-	        options || (options = {});
-
-	        // Run validation.
-	        if (!this._validate(attrs, options)) return false;
-
-	        // Extract attributes and options.
-	        unset           = options.unset;
-	        silent          = options.silent;
-	        changes         = [];
-	        changing        = this._changing;
-	        this._changing  = true;
-
-	        if (!changing) {
-	            this._previousAttributes = _.clone(this.attributes);
-	            this.changed = {};
-	        }
-	        current = this.attributes, prev = this._previousAttributes;
-
-	        // Check for changes of `id`.
-	        if (this.idAttribute in attrs) this.id = attrs[this.idAttribute];
-
-	        // For each `set` attribute, update or delete the current value.
-	        for (attr in attrs) {
-	            val = attrs[attr];
-
-	            // Inject in the relational lookup
-	            val = this.setRelation(attr, val, options);
-
-	            if (!_.isEqual(current[attr], val)) changes.push(attr);
-	            if (!_.isEqual(prev[attr], val)) {
-	                this.changed[attr] = val;
-	            } else {
-	                delete this.changed[attr];
-	            }
-	            unset ? delete current[attr] : current[attr] = val;
-	        }
-
-	        // Trigger all relevant attribute changes.
-	        if (!silent) {
-	            if (changes.length) this._pending = true;
-	            for (var i = 0, l = changes.length; i < l; i++) {
-	                this.trigger('change:' + changes[i], this, current[changes[i]], options);
-	            }
-	        }
-
-	        if (changing) return this;
-	        if (!silent) {
-	            while (this._pending) {
-	                this._pending = false;
-	                this.trigger('change', this, options);
-	            }
-	        }
-	        this._pending = false;
-	        this._changing = false;
-	        return this;
-	    };
-
-	    Backbone.Model.prototype.toJSON = function(options) {
-	      var attrs = _.clone(this.attributes);
-
-	      _.each(this.relations, function(rel, key) {
-	        if (_.has(attrs, key)) {
-	          attrs[key] = attrs[key].toJSON();
-	        } else {
-	            attrs[key] = (new rel()).toJSON();
-	        }
-	      });
-
-	      return attrs;
-	    };
-
-	    Backbone.Model.prototype.clone = function(options) {
-	        return new this.constructor(this.toJSON());
-	    };
-
-	    Backbone.Collection.prototype.resetRelations = function(options) {
-	        _.each(this.models, function(model) {
-	            _.each(model.relations, function(rel, key) {
-	                if(model.get(key) instanceof Backbone.Collection) {
-	                    model.get(key).trigger('reset', model, options);
-	                }
-	            });
-	        })
-	    };
-
-	    Backbone.Collection.prototype.reset = function(models, options) {
-	      options || (options = {});
-	      for (var i = 0, l = this.models.length; i < l; i++) {
-	        this._removeReference(this.models[i]);
-	      }
-	      options.previousModels = this.models;
-	      this._reset();
-	      this.add(models, _.extend({silent: true}, options));
-	      if (!options.silent) {
-	        this.trigger('reset', this, options);
-	        this.resetRelations(options);
-	      }
-	      return this;
-	    };
-
-	    return Backbone;
-	}));
-
-
-/***/ },
-/* 7 */
-/***/ function(module, exports, __webpack_require__) {
-
-	const Backbone = __webpack_require__(6);
-
-	const ChordList = __webpack_require__(8);
-
-	/**
-	 * @module Sequence
-	 * @class
-	 *
-	 * A `Sequence` encapsulates a complete song. It contains global attributes, like song key or tempo. It also contains
-	 * a `Collection` of {@link Chord} events.
-	 *
-	 * @property {string}       key         - The (tonal) key of the song. Defaults to `'C'`.
-	 * @property {string}       mode        - The mode of the scale. Defaults to `'Major'`.
-	 * @property {number}       tempo       - The tempo of the song in BPM. Defaults to 120.
-	 * @property {string}       loopLength  - The length of the current loop in Tone.js musical time notation. Defaults to `'1m'`.
-	 * @property {ChordList}    chordList   - The actual list of {@link Chord} events in the sequence.
-	 *
-	 * @extends Backbone.Model
-	 */
-	module.exports = Backbone.Model.extend({
-	    relations : {
-	        'chordList' : ChordList
-	    },
-	    defaults : {
-	        key : 'C',
-	        mode : 'Major',
-	        tempo : 120,
-	        loopLength : '1m',
-	        chordList : function() { return new ChordList; }
-	    }
-	});
-
-/***/ },
-/* 8 */
-/***/ function(module, exports, __webpack_require__) {
-
-	const Backbone = __webpack_require__(6);
-
-	const Chord = __webpack_require__(9);
-
-	/**
-	 * @module Sequence
-	 * @class
-	 *
-	 * A `Sequence` encapsulates a complete song. It contains global attributes, like song key or tempo. It also contains
-	 * a `Collection` of {@link Chord} events.
-	 *
-	 * @property {string}       key         - The (tonal) key of the song. Defaults to `'C'`.
-	 * @property {string}       mode        - The mode of the scale. Defaults to `'Major'`.
-	 * @property {number}       tempo       - The tempo of the song in BPM. Defaults to 120.
-	 * @property {string}       loopLength  - The length of the current loop in Tone.js musical time notation. Defaults to `'1m'`.
-	 * @property {ChordList}    chordList   - The actual list of {@link Chord} events in the sequence.
-	 *
-	 * @extends Backbone.Collection
-	 */
-	module.exports = Backbone.Collection.extend({
-	    model : Chord
-	});
-
-/***/ },
-/* 9 */
-/***/ function(module, exports, __webpack_require__) {
-
-	const Backbone = __webpack_require__(6);
-
-	/**
-	 * @module Chord
-	 * @class
-	 *
-	 * A `Chord` encapsulates a complete song.
-	 *
-	 * @property {string}       step        - The degree (or step) of the root note of the chord in the scale. Defaults to 1.
-	 * @property {boolean}      seventh     - `true` if the chord contains a seventh note. Defaults to `false`.
-	 * @property {string}       start       - The start time of the chord in the sequence, in Tone.js time notation. Defaults to `'0m'`.
-	 * @property {string}       duration    - The duration of the chord, in Tone.js time notation. Defaults to `'16n'`.
-	 *
-	 * @extends Backbone.Model
-	 */
-	module.exports = Backbone.Model.extend({
-	    defaults : {
-
-	    }
-	});
-
-/***/ },
-/* 10 */
-/***/ function(module, exports, __webpack_require__) {
-
-	const Backbone = __webpack_require__(6);
-
-	const Sequence = __webpack_require__(7);
-
-
-	/**
-	 * @module Song
-	 * @class
-	 * 
-	 * This describes an entire project.
-	 *
-	 * @property {Sequence} Sequence    - The musical data of the song.
-	 *
-	 * @extends Backbone.Model
-	 */
-	module.exports = Backbone.Model.extend({
-	    relations : {
-	        'sequence' : Sequence
-	    },
-	    defaults : {
-	        sequence : function() { return new Sequence; }
-	    }
-	});
 
 /***/ }
 /******/ ]);
