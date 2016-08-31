@@ -1,4 +1,39 @@
-const MainModel = require('model/main.js');
+const Song = require('model/song.js');
+var song = new Song({
+    sequence : {
+        key : 'C',
+        mode : 'Major',
+        tempo : 120,
+        loopLength : '4m',
+        chordList : [
+            {
+                step : 'I',
+                seventh : false,
+                start : '0m',
+                duration : '1m'
+            },
+            {
+                step : 'V',
+                seventh : false,
+                start : '1m',
+                duration : '1m'
+            },
+            {
+                step : 'VI',
+                seventh : false,
+                start : '2m',
+                duration : '1m'
+            },
+            {
+                step : 'IV',
+                seventh : false,
+                start : '3m',
+                duration : '1m'
+            }
+        ]
+    }
+});
+
 
 var Tone = require('tone');
 
