@@ -9,7 +9,8 @@ const Sequence = require('model/sequence.js');
  * 
  * This describes an entire project.
  *
- * @property {Sequence} Sequence    - The musical data of the song.
+ * @property {string}   title       - The title of the song. Defaults to `'New Song'`
+ * @property {Sequence} sequence    - The musical data of the song.
  *
  * @extends Backbone.Model
  */
@@ -18,6 +19,7 @@ module.exports = Backbone.Model.extend({
         'sequence' : Sequence
     },
     defaults : {
+        title : 'New Song',
         sequence : function() { return new Sequence; }
     }
 });

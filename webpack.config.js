@@ -7,5 +7,7 @@ module.exports = {
     },
     resolve: {
         root: __dirname + '/js'
-    }
+    },
+
+    devtool : "#source-map"
 };
