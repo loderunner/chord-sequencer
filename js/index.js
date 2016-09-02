@@ -12,10 +12,10 @@ const songView = new SongView({
     model : song
 });
 
-$('#main').append(songView.$el);
+$('body').append(songView.$el);
 
 song.set({
-    title : 'toto',
+    title : 'New Song',
     sequence : {
         key : 'C',
         mode : 'Major',

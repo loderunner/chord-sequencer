@@ -58,10 +58,10 @@
 	    model : song
 	});
 	
-	$('#main').append(songView.$el);
+	$('body').append(songView.$el);
 	
 	song.set({
-	    title : 'toto',
+	    title : 'New Song',
 	    sequence : {
 	        key : 'C',
 	        mode : 'Major',
@@ -10201,7 +10201,7 @@
 	        'sequence' : Sequence
 	    },
 	    defaults : {
-	        title : 'New Song',
+	        title : '',
 	        sequence : function() { return new Sequence; }
 	    }
 	});
@@ -34975,10 +34975,17 @@
 	        this.listenTo(this.model, "change", this.render);
 	    },
 	
-	    template : _.template('<h1><%= title %></h1>'),
+	    template : _.template('<h1 class="title"><%= title %></h1>'),
 	
 	    render : function() {
-	        this.$el.append(this.template(this.model.attributes));
+	        if (this.$el.children().length === 0) {
+	            this.$el.append(this.template(this.model.toJSON()));
+	        } else {
+	            if (this.model.hasChanged('title')) {
+	                this.$('.title').text(this.model.get('title'));
+	            }
+	        }
+	
 	        return this;
 	    }
 	});

@@ -19,7 +19,7 @@ module.exports = Backbone.Model.extend({
         'sequence' : Sequence
     },
     defaults : {
-        title : 'New Song',
+        title : '',
         sequence : function() { return new Sequence; }
     }
 });

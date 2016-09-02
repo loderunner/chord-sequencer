@@ -10,10 +10,17 @@ module.exports = Backbone.View.extend({
         this.listenTo(this.model, "change", this.render);
     },
 
-    template : _.template('<h1><%= title %></h1>'),
+    template : _.template('<h1 class="title"><%= title %></h1>'),
 
     render : function() {
-        this.$el.append(this.template(this.model.attributes));
+        if (this.$el.children().length === 0) {
+            this.$el.append(this.template(this.model.toJSON()));
+        } else {
+            if (this.model.hasChanged('title')) {
+                this.$('.title').text(this.model.get('title'));
+            }
+        }
+
         return this;
     }
 });

@@ -3,14 +3,10 @@ body {
     color: #48484F;
 }
 
-main
-{
-    padding-top: 40px;
-    padding-bottom: 5em;
+.song {
+    padding: 0.5em 0 0.5em 0;
+    max-width: 900px;
     margin: 0 auto;
-    -moz-user-select: none;
-    -webkit-user-select: none;
-    -ms-user-select: none;
 }
 
 section {
