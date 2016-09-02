@@ -14,10 +14,4 @@ const Backbone = require('backbone-nested-models');
  * @extends Backbone.Model
  */
 module.exports = Backbone.Model.extend({
-    defaults : {
-        step : 'I',
-        seventh : false,
-        start : '0m',
-        duration : '16n'
-    }
 });

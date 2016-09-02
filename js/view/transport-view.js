@@ -12,7 +12,8 @@ module.exports = Backbone.View.extend({
     },
 
     create : function() {
-
+        const html = require('html!view/html/transport.html');
+        this.$el.append(html);
     },
 
     render : function() {

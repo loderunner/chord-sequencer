@@ -23,11 +23,13 @@ module.exports = Backbone.View.extend({
     },
 
     create : function() {
-        this.$el.append('<h1 class="title"></h1><input class="edit">');
+        const html = require('html!view/html/song.html');
+        this.$el.append(html);
+
         this.$title = this.$('.title');
         this.$edit = this.$('.edit');
 
-        var container = this.$el.append('<div class="row-container"></div>').children('.row-container');
+        const container = this.$('.row-container');
         const keyView = new KeyView({ model : this.model.get('sequence') });
         container.append(keyView.$el);
         const modeView = new ModeView({ model : this.model.get('sequence') });

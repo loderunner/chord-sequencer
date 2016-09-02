@@ -34946,12 +34946,6 @@
 	 * @extends Backbone.Model
 	 */
 	module.exports = Backbone.Model.extend({
-	    defaults : {
-	        step : 'I',
-	        seventh : false,
-	        start : '0m',
-	        duration : '16n'
-	    }
 	});
 
 /***/ },
@@ -34963,8 +34957,8 @@
 	const Backbone = __webpack_require__(3);
 	
 	const KeyView = __webpack_require__(11);
-	const ModeView = __webpack_require__(12);
-	const TransportView = __webpack_require__(13);
+	const ModeView = __webpack_require__(13);
+	const TransportView = __webpack_require__(14);
 	
 	module.exports = Backbone.View.extend({
 	    tagName : 'div',
@@ -34983,11 +34977,13 @@
 	    },
 	
 	    create : function() {
-	        this.$el.append('<h1 class="title"></h1><input class="edit">');
+	        const html = __webpack_require__(16);
+	        this.$el.append(html);
+	
 	        this.$title = this.$('.title');
 	        this.$edit = this.$('.edit');
 	
-	        var container = this.$el.append('<div class="row-container"></div>').children('.row-container');
+	        const container = this.$('.row-container');
 	        const keyView = new KeyView({ model : this.model.get('sequence') });
 	        container.append(keyView.$el);
 	        const modeView = new ModeView({ model : this.model.get('sequence') });
@@ -35048,7 +35044,7 @@
 	const $ = __webpack_require__(1);
 	const _ = __webpack_require__(5);
 	const Backbone = __webpack_require__(3);
-	const Tonality = __webpack_require__(14);
+	const Tonality = __webpack_require__(12);
 	
 	module.exports = Backbone.View.extend({
 	    tagName : 'section',
@@ -35090,10 +35086,22 @@
 /* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
+	const Tone = __webpack_require__(8);
+	
+	module.exports = {
+	    tone : Tone,
+	    keys : ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'],
+	    modes : ['Major', 'Minor', 'Harmonic', 'Melodic', 'Ionian', 'Dorian', 'Phrygian', 'Lydian', 'Mixolydian', 'Aeolian', 'Locrian']
+	}
+
+/***/ },
+/* 13 */
+/***/ function(module, exports, __webpack_require__) {
+
 	const $ = __webpack_require__(1);
 	const _ = __webpack_require__(5);
 	const Backbone = __webpack_require__(3);
-	const Tonality = __webpack_require__(14);
+	const Tonality = __webpack_require__(12);
 	
 	module.exports = Backbone.View.extend({
 	    tagName : 'section',
@@ -35132,7 +35140,7 @@
 	});
 
 /***/ },
-/* 13 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
 	const $ = __webpack_require__(1);
@@ -35149,7 +35157,8 @@
 	    },
 	
 	    create : function() {
-	
+	        const html = __webpack_require__(15);
+	        this.$el.append(html);
 	    },
 	
 	    render : function() {
@@ -35166,16 +35175,16 @@
 	});
 
 /***/ },
-/* 14 */
-/***/ function(module, exports, __webpack_require__) {
+/* 15 */
+/***/ function(module, exports) {
 
-	const Tone = __webpack_require__(8);
-	
-	module.exports = {
-	    tone : Tone,
-	    keys : ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'],
-	    modes : ['Major', 'Minor', 'Harmonic', 'Melodic', 'Ionian', 'Dorian', 'Phrygian', 'Lydian', 'Mixolydian', 'Aeolian', 'Locrian']
-	}
+	module.exports = "<subsection class=\"view-control disabled\">\n</subsection>\n<subsection class=\"transport-control\">\n</subsection>\n<subsection class=\"loop-control\">\n</subsection>";
+
+/***/ },
+/* 16 */
+/***/ function(module, exports) {
+
+	module.exports = "<h1 class=\"title\"></h1>\n<input class=\"edit\">\n<div class=\"row-container\"></div>";
 
 /***/ }
 /******/ ]);
