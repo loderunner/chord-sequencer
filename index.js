@@ -35059,6 +35059,10 @@
 	        this.create();
 	    },
 	
+	    events : {
+	        'click .radio-group>span' : 'clickRadio'
+	    },
+	
 	    create : function() {
 	        this.$el.append('<h2 class="subtitle">Key</h2><div class="radio-group"></div>');
 	        this.$radioGroup = this.$('.radio-group');
@@ -35067,14 +35071,18 @@
 	        }
 	    },
 	
-	    render : function(force) {
-	        if (this.model.hasChanged('key') || force) {
+	    render : function() {
+	        if (this.model.hasChanged('key')) {
 	            const key = this.model.get('key');
 	            this.$radioGroup.children('.selected').removeClass('selected');
 	            this.$radioGroup.children('[data-value=' + key + ']').addClass('selected');
 	        }
 	
 	        return this;
+	    },
+	
+	    clickRadio : function(e) {
+	        this.model.set('key', $(e.currentTarget).attr('data-value'));
 	    }
 	});
 
