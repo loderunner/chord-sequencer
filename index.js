@@ -10201,7 +10201,6 @@
 	        'sequence' : Sequence
 	    },
 	    defaults : {
-	        title : '',
 	        sequence : function() { return new Sequence; }
 	    }
 	});
@@ -13914,10 +13913,6 @@
 	        'chordList' : ChordList
 	    },
 	    defaults : {
-	        key : 'C',
-	        mode : 'Major',
-	        tempo : 120,
-	        loopLength : '1m',
 	        chordList : function() { return new ChordList; }
 	    }
 	});
@@ -35053,6 +35048,7 @@
 	const $ = __webpack_require__(1);
 	const _ = __webpack_require__(5);
 	const Backbone = __webpack_require__(3);
+	const Tonality = __webpack_require__(14);
 	
 	module.exports = Backbone.View.extend({
 	    tagName : 'section',
@@ -35064,11 +35060,18 @@
 	    },
 	
 	    create : function() {
-	        this.$el.append('<h2 class="subtitle">Key</h2>');
+	        this.$el.append('<h2 class="subtitle">Key</h2><div class="radio-group"></div>');
+	        this.$radioGroup = this.$('.radio-group');
+	        for (key of Tonality.keys) {
+	            this.$radioGroup.append('<span data-value="' + key + '"">' + key + '</span>');
+	        }
 	    },
 	
-	    render : function() {
-	        if (this.model.hasChanged('key')) {
+	    render : function(force) {
+	        if (this.model.hasChanged('key') || force) {
+	            const key = this.model.get('key');
+	            this.$radioGroup.children('.selected').removeClass('selected');
+	            this.$radioGroup.children('[data-value=' + key + ']').addClass('selected');
 	        }
 	
 	        return this;
@@ -35137,6 +35140,18 @@
 	        return this;
 	    }
 	});
+
+/***/ },
+/* 14 */
+/***/ function(module, exports, __webpack_require__) {
+
+	const Tone = __webpack_require__(8);
+	
+	module.exports = {
+	    tone : Tone,
+	    keys : ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'],
+	    modes : ['Major', 'Minor', 'Harmonic', 'Melodic', 'Ionian', 'Dorian', 'Phrygian', 'Lydian', 'Mixolydian', 'Aeolian', 'Locrian']
+	}
 
 /***/ }
 /******/ ]);

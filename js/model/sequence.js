@@ -22,10 +22,6 @@ module.exports = Backbone.Model.extend({
         'chordList' : ChordList
     },
     defaults : {
-        key : 'C',
-        mode : 'Major',
-        tempo : 120,
-        loopLength : '1m',
         chordList : function() { return new ChordList; }
     }
 });

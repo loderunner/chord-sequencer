@@ -1,6 +1,7 @@
 body {
     background-color : #CCD1D4;
     color: #48484F;
+    padding: 0 25px;
 }
 
 .song {
@@ -14,8 +15,8 @@ body {
 .song h1,
 .song input {
     font-size: 2em;
-    margin: 0;
     font-weight: bold;
+    margin: 0.6em 0;
 }
 
 .song .edit {
@@ -47,8 +48,12 @@ section {
     margin: 6px 0;
 }
 
+section h2 {
+    margin-top: 0;
+}
+
 .row-container section {
-    flex-grow: 1;
+    flex: 1;
     margin: 6px 3px;
 }
 
@@ -60,29 +65,18 @@ section {
     margin-right: 0;
 }
 
-section h2 {
-    margin: 0;
+.radio-group {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
 }
 
-.radio-group {
-    display: -webkit-box;
-    display: -webkit-flex;
-    display: -ms-flexbox;
-    display: flex;
-    -webkit-flex-wrap: wrap;
-        -ms-flex-wrap: wrap;
-            flex-wrap: wrap;
-    -webkit-box-pack: justify;
-    -webkit-justify-content: space-between;
-        -ms-flex-pack: justify;
-            justify-content: space-between;
+.radio-group.step {
+    flex-direction: column;
 }
 
 .radio-group span {
-    -webkit-box-flex: 1;
-    -webkit-flex: 1 0 auto;
-        -ms-flex: 1 0 auto;
-            flex: 1 0 auto;
+    flex: 1 0 auto;
     min-width: 6em;
     cursor: pointer;
     text-align: center;
