@@ -5,8 +5,10 @@ body {
 
 .song {
     padding: 0.5em 0 0.5em 0;
-    max-width: 900px;
     margin: 0 auto;
+    max-width: 900px;
+    display: flex;
+    flex-direction: column;
 }
 
 .song h1,
@@ -32,31 +34,34 @@ body {
     display: block;
 }
 
-section {
-    display: -webkit-box;
-    display: -webkit-flex;
-    display: -ms-flexbox;
+.row-container {
     display: flex;
-    -webkit-box-pack: justify;
-    -webkit-justify-content: space-between;
-        -ms-flex-pack: justify;
-            justify-content: space-between;
-    padding: 0.5em 0 0.5em 0;
-    max-width: 900px;
-    margin: 0 auto;
+    justify-content: space-between;
 }
 
-subsection {
-    width: calc(50% - 2em - 4px);
+section {
     background-color: #F0F2EC;
-    padding: 1em;
     border-radius: 4px;
     box-shadow: 0px 2px 0px 2px #C2C7C9;
+    padding: 0.5em;
+    margin: 6px 0;
 }
 
-subsection h1 {
-    margin-top: 0;
-    font-size: 1.7em;
+.row-container section {
+    flex-grow: 1;
+    margin: 6px 3px;
+}
+
+.row-container section:first-child{
+    margin-left: 0;
+}
+
+.row-container section:last-child{
+    margin-right: 0;
+}
+
+section h2 {
+    margin: 0;
 }
 
 .radio-group {

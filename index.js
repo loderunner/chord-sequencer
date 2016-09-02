@@ -34967,12 +34967,17 @@
 	const _ = __webpack_require__(5);
 	const Backbone = __webpack_require__(3);
 	
+	const KeyView = __webpack_require__(11);
+	const ModeView = __webpack_require__(12);
+	const TransportView = __webpack_require__(13);
+	
 	module.exports = Backbone.View.extend({
 	    tagName : 'div',
 	    className : 'song',
 	
 	    initialize : function() {
 	        this.listenTo(this.model, "change", this.render);
+	        this.create();
 	    },
 	
 	    events : {
@@ -34982,17 +34987,26 @@
 	        'keyDown .edit' : 'keyDownEdit'
 	    },
 	
-	    template : _.template('<h1 class="title"><%= title %></h1><input class="edit" value="<%= title %>">'),
+	    create : function() {
+	        this.$el.append('<h1 class="title"></h1><input class="edit">');
+	        this.$title = this.$('.title');
+	        this.$edit = this.$('.edit');
+	
+	        var container = this.$el.append('<div class="row-container"></div>').children('.row-container');
+	        const keyView = new KeyView({ model : this.model.get('sequence') });
+	        container.append(keyView.$el);
+	        const modeView = new ModeView({ model : this.model.get('sequence') });
+	        container.append(modeView.$el);
+	        this.$el.append(container);
+	
+	        const transportView = new TransportView({ model : this.model.get('sequence') });
+	        this.$el.append(transportView.$el);
+	    },
 	
 	    render : function() {
-	        if (this.$el.children().length === 0) {
-	            this.$el.append(this.template(this.model.toJSON()));
-	            this.$title = this.$('.title');
-	            this.$edit = this.$('.edit');
-	        } else {
-	            if (this.model.hasChanged('title')) {
-	                this.$title.text(this.model.get('title'));
-	            }
+	        if (this.model.hasChanged('title')) {
+	            this.$title.text(this.model.get('title'));
+	            this.$edit.attr('value', this.model.get('title'));
 	        }
 	
 	        return this;
@@ -35029,6 +35043,98 @@
 	        if (e.key === 'Escape') {
 	            this.closeEdit(false);
 	        }
+	    }
+	});
+
+/***/ },
+/* 11 */
+/***/ function(module, exports, __webpack_require__) {
+
+	const $ = __webpack_require__(1);
+	const _ = __webpack_require__(5);
+	const Backbone = __webpack_require__(3);
+	
+	module.exports = Backbone.View.extend({
+	    tagName : 'section',
+	    className : 'key',
+	
+	    initialize : function() {
+	        this.listenTo(this.model, "change", this.render);
+	        this.create();
+	    },
+	
+	    create : function() {
+	        this.$el.append('<h2 class="subtitle">Key</h2>');
+	    },
+	
+	    render : function() {
+	        if (this.model.hasChanged('key')) {
+	        }
+	
+	        return this;
+	    }
+	});
+
+/***/ },
+/* 12 */
+/***/ function(module, exports, __webpack_require__) {
+
+	const $ = __webpack_require__(1);
+	const _ = __webpack_require__(5);
+	const Backbone = __webpack_require__(3);
+	
+	module.exports = Backbone.View.extend({
+	    tagName : 'section',
+	    className : 'mode',
+	
+	    initialize : function() {
+	        this.listenTo(this.model, "change", this.render);
+	        this.create();
+	    },
+	
+	    create : function() {
+	        this.$el.append('<h2 class="subtitle">Mode</h2>');
+	    },
+	
+	    render : function() {
+	        if (this.model.hasChanged('mode')) {
+	        }
+	
+	        return this;
+	    }
+	});
+
+/***/ },
+/* 13 */
+/***/ function(module, exports, __webpack_require__) {
+
+	const $ = __webpack_require__(1);
+	const _ = __webpack_require__(5);
+	const Backbone = __webpack_require__(3);
+	
+	module.exports = Backbone.View.extend({
+	    tagName : 'section',
+	    className : 'transport',
+	
+	    initialize : function() {
+	        this.listenTo(this.model, "change", this.render);
+	        this.create();
+	    },
+	
+	    create : function() {
+	
+	    },
+	
+	    render : function() {
+	
+	        // Update changed values
+	        if (this.model.hasChanged('tempo')) {
+	        }
+	
+	        if (this.model.hasChanged('loopLength')) {
+	        }
+	
+	        return this;
 	    }
 	});
 

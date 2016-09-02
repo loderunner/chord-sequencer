@@ -2,12 +2,17 @@ const $ = require('jquery');
 const _ = require('underscore');
 const Backbone = require('backbone-nested-models');
 
+const KeyView = require('view/key-view.js');
+const ModeView = require('view/mode-view.js');
+const TransportView = require('view/transport-view.js');
+
 module.exports = Backbone.View.extend({
     tagName : 'div',
     className : 'song',
 
     initialize : function() {
         this.listenTo(this.model, "change", this.render);
+        this.create();
     },
 
     events : {
@@ -17,17 +22,26 @@ module.exports = Backbone.View.extend({
         'keyDown .edit' : 'keyDownEdit'
     },
 
-    template : _.template('<h1 class="title"><%= title %></h1><input class="edit" value="<%= title %>">'),
+    create : function() {
+        this.$el.append('<h1 class="title"></h1><input class="edit">');
+        this.$title = this.$('.title');
+        this.$edit = this.$('.edit');
+
+        var container = this.$el.append('<div class="row-container"></div>').children('.row-container');
+        const keyView = new KeyView({ model : this.model.get('sequence') });
+        container.append(keyView.$el);
+        const modeView = new ModeView({ model : this.model.get('sequence') });
+        container.append(modeView.$el);
+        this.$el.append(container);
+
+        const transportView = new TransportView({ model : this.model.get('sequence') });
+        this.$el.append(transportView.$el);
+    },
 
     render : function() {
-        if (this.$el.children().length === 0) {
-            this.$el.append(this.template(this.model.toJSON()));
-            this.$title = this.$('.title');
-            this.$edit = this.$('.edit');
-        } else {
-            if (this.model.hasChanged('title')) {
-                this.$title.text(this.model.get('title'));
-            }
+        if (this.model.hasChanged('title')) {
+            this.$title.text(this.model.get('title'));
+            this.$edit.attr('value', this.model.get('title'));
         }
 
         return this;
