@@ -9,6 +9,29 @@ body {
     margin: 0 auto;
 }
 
+.song h1,
+.song input {
+    font-size: 2em;
+    margin: 0;
+    font-weight: bold;
+}
+
+.song .edit {
+    display: none;
+    background-color: rgba(255, 255, 255, 0);
+    border: 0;
+    outline: none;
+    padding: 0;
+}
+
+.song.editing .title {
+    display: none;
+}
+
+.song.editing .edit {
+    display: block;
+}
+
 section {
     display: -webkit-box;
     display: -webkit-flex;
