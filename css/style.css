@@ -96,7 +96,7 @@ section h2 {
     justify-content: flex-end;
 }
 
-.transport subsection .control div {
+.transport subsection .control>div {
     padding: 0 0.25em;
 }
 
