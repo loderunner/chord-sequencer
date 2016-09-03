@@ -65,6 +65,31 @@ section h2 {
     margin-right: 0;
 }
 
+.transport {
+    display: flex;
+    font-weight: bold;
+    font-variant: small-caps;
+}
+
+.transport subsection {
+    flex: 1;
+}
+
+.transport subsection .control {
+    margin: 0;
+    padding: 0.25em;
+    display: flex;
+}
+
+.transport subsection .control div {
+    flex: 1 0 auto;
+}
+
+.transport subsection .control div.label {
+    width: 50px;
+    flex: 0 1 auto;
+}
+
 .radio-group {
     display: flex;
     flex-wrap: wrap;
@@ -296,13 +321,15 @@ button:focus {
     position: relative;
 }
 
-.dropdown-menu span,
-.dropdown-menu li {
-
+.dropdown-menu div {
+    position: absolute;
 }
 
 .dropdown-menu ul {
+    position: absolute;
     display: none;
+    margin: 0;
+    padding: 0;
 }
 
 .footer {
