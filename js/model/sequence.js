@@ -21,6 +21,7 @@ module.exports = Backbone.Model.extend({
     relations : {
         'chordList' : ChordList
     },
+
     defaults : {
         chordList : function() { return new ChordList; }
     }

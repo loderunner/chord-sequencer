@@ -15,7 +15,7 @@
     <div class="control">
         <div class="label">Zoom</div>
         <div class="dropdown-menu">
-            <div class="value">1 bar</div>
+            <div><span class="value">1 bar</span><span class="fa fa-caret-down"></span></div>
             <ul>
             <li class="menu-item" data-value="1">1 bar</li>
             <li class="menu-item" data-value="2">2 bars</li>
@@ -26,6 +26,24 @@
     </div>
 </subsection>
 <subsection class="transport-control">
+    <div><button id="button-start"><i class="fa fa-play" aria-hidden="true"></i></button><button id="button-stop"><i class="fa fa-stop" aria-hidden="true"></i></button></div>
+    <div class="counter">00:00:00</div>
 </subsection>
 <subsection class="loop-control">
+    <div class="control">
+        <div><span class="value">120</span><span> BPM</span></div>
+        <div class="label">Tempo</div>
+    </div>
+    <div class="control">
+        <div class="dropdown-menu">
+            <div><span class="fa fa-caret-down"></span><span class="value">1 bar</span></div>
+            <ul>
+            <li class="menu-item" data-value="1">1 bar</li>
+            <li class="menu-item" data-value="2">2 bars</li>
+            <li class="menu-item" data-value="4">4 bars</li>
+            <li class="menu-item" data-value="8">8 bars</li>
+            </ul>
+        </div>
+        <div class="label">Loop length</div>
+    </div>
 </subsection>

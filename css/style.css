@@ -79,21 +79,45 @@ section h2 {
     flex: 1;
 }
 
+.transport subsection.transport-control {
+    text-align : center;
+}
+
 .transport subsection .control {
-    position: relative;
-    margin: 0;
     padding: 0.25em;
     display: flex;
-    align-items: flex-end;
+}
+
+.transport subsection.view-control .control {
+    justify-content: flex-start;
+}
+
+.transport subsection.loop-control .control {
+    justify-content: flex-end;
 }
 
 .transport subsection .control div {
-    width: 200px;
-    display: flex;
+    padding: 0 0.25em;
 }
 
 .transport subsection .control div.label {
-    width: 50px;
+    width: 120px;
+}
+
+.transport subsection.loop-control .control div {
+    text-align: right;
+}
+
+.transport subsection.loop-control .control div.label {
+    text-align: left;
+}
+
+.transport subsection.view-control .control div.label {
+    text-align: right;
+}
+
+.transport .counter {
+    font-family: courier-prime, monospace;
 }
 
 .disabled {
@@ -101,6 +125,7 @@ section h2 {
     -webkit-filter: grayscale(100%);
             filter: grayscale(100%);
 }
+
 
 .radio-group {
     display: flex;
@@ -334,6 +359,7 @@ button:focus {
 }
 
 .dropdown-menu div {
+    position: relative;
 }
 
 .dropdown-menu ul {
