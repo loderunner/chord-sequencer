@@ -2,6 +2,10 @@ body {
     background-color : #CCD1D4;
     color: #48484F;
     padding: 0 25px;
+    -webkit-user-select: none;    
+       -moz-user-select: none;
+        -ms-user-select: none;
+            user-select: none;
 }
 
 .song {
@@ -76,18 +80,26 @@ section h2 {
 }
 
 .transport subsection .control {
+    position: relative;
     margin: 0;
     padding: 0.25em;
     display: flex;
+    align-items: flex-end;
 }
 
 .transport subsection .control div {
-    flex: 1 0 auto;
+    width: 200px;
+    display: flex;
 }
 
 .transport subsection .control div.label {
     width: 50px;
-    flex: 0 1 auto;
+}
+
+.disabled {
+    opacity: 0.5;
+    -webkit-filter: grayscale(100%);
+            filter: grayscale(100%);
 }
 
 .radio-group {
@@ -322,14 +334,22 @@ button:focus {
 }
 
 .dropdown-menu div {
-    position: absolute;
 }
 
 .dropdown-menu ul {
     position: absolute;
     display: none;
-    margin: 0;
+    margin-top: calc(1em + 2px);
     padding: 0;
+    z-index: 3000;
+}
+
+.dropdown-menu ul li {
+    display: block;
+    background-color: white;
+    margin: 1px 0;
+    padding: 0.2em 0.5em;
+    text-align: center;
 }
 
 .footer {
