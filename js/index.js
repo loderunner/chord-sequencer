@@ -49,3 +49,5 @@ song.set({
         ]
     }
 });
+
+window.song = song;

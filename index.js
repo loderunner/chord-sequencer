@@ -95,6 +95,8 @@
 	        ]
 	    }
 	});
+	
+	window.song = song;
 
 /***/ },
 /* 1 */
@@ -35089,15 +35091,10 @@
 	const _ = __webpack_require__(5);
 	const Backbone = __webpack_require__(3);
 	
-	const Tone = __webpack_require__(8);
-	
 	const Tonality = {
-	    tone : Tone,
 	    keys : ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'],
 	    modes : ['Major', 'Minor', 'Harmonic', 'Melodic', 'Ionian', 'Dorian', 'Phrygian', 'Lydian', 'Mixolydian', 'Aeolian', 'Locrian']
 	}
-	
-	_.extend(Tonality, Backbone.Events);
 	
 	module.exports = Tonality;
 
@@ -35153,6 +35150,7 @@
 	const $ = __webpack_require__(1);
 	const _ = __webpack_require__(5);
 	const Backbone = __webpack_require__(3);
+	const Tone = __webpack_require__(8);
 	
 	module.exports = Backbone.View.extend({
 	    tagName : 'section',
@@ -35166,15 +35164,24 @@
 	    create : function() {
 	        const html = __webpack_require__(15);
 	        this.$el.append(html);
+	        this.$viewControl = this.$('.view-control');
+	        this.$transportControl = this.$('.transport-control');
+	        this.$loopControl = this.$('.loop-control');
 	    },
 	
 	    render : function() {
 	
 	        // Update changed values
 	        if (this.model.hasChanged('tempo')) {
+	            this.$loopControl.find('.tempo .value').text(this.model.get('tempo'));
 	        }
 	
 	        if (this.model.hasChanged('loopLength')) {
+	            var loopLength = Tone.Time(this.model.get('loopLength')).toBarsBeatsSixteenths();
+	            loopLength = loopLength.split(':')[0];
+	            this.$loopControl.find('.loop-length .value').text(loopLength
+	                                                               + ' bar' 
+	                                                               + ((parseInt(loopLength) > 1) ? 's' : ''));
 	        }
 	
 	        return this;
@@ -35185,7 +35192,7 @@
 /* 15 */
 /***/ function(module, exports) {
 
-	module.exports = "<subsection class=\"view-control disabled\">\n    <div class=\"control\">\n        <div class=\"label\">Grid</div>\n        <div class=\"dropdown-menu\">\n            <div><span class=\"value\">16</span><span class=\"fa fa-caret-down\"></span></div>\n            <ul>\n            <li class=\"menu-item\" data-value=\"16\">16</li>\n            <li class=\"menu-item\" data-value=\"8\">8</li>\n            <li class=\"menu-item\" data-value=\"4\">4</li>\n            <li class=\"menu-item\" data-value=\"2\">2</li>\n            <li class=\"menu-item\" data-value=\"1\">1</li>\n            </ul>\n        </div>\n    </div>\n    <div class=\"control\">\n        <div class=\"label\">Zoom</div>\n        <div class=\"dropdown-menu\">\n            <div><span class=\"value\">1 bar</span><span class=\"fa fa-caret-down\"></span></div>\n            <ul>\n            <li class=\"menu-item\" data-value=\"1\">1 bar</li>\n            <li class=\"menu-item\" data-value=\"2\">2 bars</li>\n            <li class=\"menu-item\" data-value=\"4\">4 bars</li>\n            <li class=\"menu-item\" data-value=\"8\">8 bars</li>\n            </ul>\n        </div>\n    </div>\n</subsection>\n<subsection class=\"transport-control\">\n    <div><button id=\"button-start\"><i class=\"fa fa-play\" aria-hidden=\"true\"></i></button><button id=\"button-stop\"><i class=\"fa fa-stop\" aria-hidden=\"true\"></i></button></div>\n    <div class=\"counter\">00:00:00</div>\n</subsection>\n<subsection class=\"loop-control\">\n    <div class=\"control\">\n        <div><span class=\"value\">120</span><span> BPM</span></div>\n        <div class=\"label\">Tempo</div>\n    </div>\n    <div class=\"control\">\n        <div class=\"dropdown-menu\">\n            <div><span class=\"fa fa-caret-down\"></span><span class=\"value\">1 bar</span></div>\n            <ul>\n            <li class=\"menu-item\" data-value=\"1\">1 bar</li>\n            <li class=\"menu-item\" data-value=\"2\">2 bars</li>\n            <li class=\"menu-item\" data-value=\"4\">4 bars</li>\n            <li class=\"menu-item\" data-value=\"8\">8 bars</li>\n            </ul>\n        </div>\n        <div class=\"label\">Loop length</div>\n    </div>\n</subsection>";
+	module.exports = "<subsection class=\"view-control disabled\">\n    <div class=\"grid control\">\n        <div class=\"label\">Grid</div>\n        <div class=\"dropdown-menu\">\n            <div><span class=\"value\">16</span><span class=\"fa fa-caret-down\"></span></div>\n            <ul>\n            <li class=\"menu-item\" data-value=\"16n\">16</li>\n            <li class=\"menu-item\" data-value=\"8n\">8</li>\n            <li class=\"menu-item\" data-value=\"4n\">4</li>\n            <li class=\"menu-item\" data-value=\"2n\">2</li>\n            <li class=\"menu-item\" data-value=\"1n\">1</li>\n            </ul>\n        </div>\n    </div>\n    <div class=\"zoom control\">\n        <div class=\"label\">Zoom</div>\n        <div class=\"dropdown-menu\">\n            <div><span class=\"value\">1 bar</span><span class=\"fa fa-caret-down\"></span></div>\n            <ul>\n            <li class=\"menu-item\" data-value=\"1m\">1 bar</li>\n            <li class=\"menu-item\" data-value=\"2m\">2 bars</li>\n            <li class=\"menu-item\" data-value=\"4m\">4 bars</li>\n            <li class=\"menu-item\" data-value=\"8m\">8 bars</li>\n            </ul>\n        </div>\n    </div>\n</subsection>\n<subsection class=\"transport-control\">\n    <div class=\"play-control\"><button class=\"start\"><i class=\"fa fa-play\"></i></button><button class=\"stop\"><i class=\"fa fa-stop\"></i></button></div>\n    <div class=\"counter\">00:00:00</div>\n</subsection>\n<subsection class=\"loop-control\">\n    <div class=\"tempo control\">\n        <div><span class=\"value\">120</span><span> BPM</span></div>\n        <div class=\"label\">Tempo</div>\n    </div>\n    <div class=\"loop-length control\">\n        <div class=\"dropdown-menu\">\n            <div><span class=\"fa fa-caret-down\"></span><span class=\"value\">1 bar</span></div>\n            <ul>\n            <li class=\"menu-item\" data-value=\"1m\">1 bar</li>\n            <li class=\"menu-item\" data-value=\"2m\">2 bars</li>\n            <li class=\"menu-item\" data-value=\"4m\">4 bars</li>\n            <li class=\"menu-item\" data-value=\"8m\">8 bars</li>\n            </ul>\n        </div>\n        <div class=\"label\">Loop length</div>\n    </div>\n</subsection>";
 
 /***/ },
 /* 16 */
