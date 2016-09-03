@@ -18,6 +18,16 @@ module.exports = Backbone.View.extend({
         this.$viewControl = this.$('.view-control');
         this.$transportControl = this.$('.transport-control');
         this.$loopControl = this.$('.loop-control');
+
+        var self = this;
+        Tone.Transport.scheduleRepeat(function(time) {
+            self.updateTime(time);
+        }, "1i");
+    },
+
+    events : {
+        'click button.play' : 'play',
+        'click button.stop' : 'stop',
     },
 
     render : function() {
@@ -36,5 +46,21 @@ module.exports = Backbone.View.extend({
         }
 
         return this;
+    },
+
+    play : function() {
+        Tone.Transport.start();
+    },
+
+    stop : function() {
+        Tone.Transport.stop();
+    },
+
+    updateTime : function(time) {
+        const barsBeatsSixteenths = _.map(Tone.Transport.position.split(':'), function(n) {
+            n = parseInt(n);
+            return ((n < 10) ? '0' : '') + n.toString();
+        });
+        this.$transportControl.find('.counter').text(barsBeatsSixteenths.join(':'));
     }
 });
