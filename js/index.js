@@ -12,7 +12,7 @@ const songView = new SongView({
     model : song
 });
 
-$('body').append(songView.$el);
+$('body').prepend(songView.$el);
 
 song.set({
     title : 'New Song',

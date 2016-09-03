@@ -34,10 +34,9 @@ module.exports = Backbone.View.extend({
         container.append(keyView.$el);
         const modeView = new ModeView({ model : this.model.get('sequence') });
         container.append(modeView.$el);
-        this.$el.append(container);
 
         const transportView = new TransportView({ model : this.model.get('sequence') });
-        this.$el.append(transportView.$el);
+        container.after(transportView.$el);
     },
 
     render : function() {

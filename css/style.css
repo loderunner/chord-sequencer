@@ -291,3 +291,18 @@ button:focus {
     font-variant: small-caps;
     vertical-align: baseline;
 }
+
+.footer {
+    padding: 2em 0;
+    text-align: center;
+    font-size: x-small;
+    color: #a0aab0;
+}
+
+.footer a {
+    color: #a0aab0;
+}
+
+.footer a:hover {
+    color: #48484f;
+}

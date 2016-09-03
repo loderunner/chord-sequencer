@@ -58,7 +58,7 @@
 	    model : song
 	});
 	
-	$('body').append(songView.$el);
+	$('body').prepend(songView.$el);
 	
 	song.set({
 	    title : 'New Song',
@@ -34988,10 +34988,9 @@
 	        container.append(keyView.$el);
 	        const modeView = new ModeView({ model : this.model.get('sequence') });
 	        container.append(modeView.$el);
-	        this.$el.append(container);
 	
 	        const transportView = new TransportView({ model : this.model.get('sequence') });
-	        this.$el.append(transportView.$el);
+	        container.after(transportView.$el);
 	    },
 	
 	    render : function() {
@@ -35178,13 +35177,13 @@
 /* 15 */
 /***/ function(module, exports) {
 
-	module.exports = "<subsection class=\"view-control disabled\">\n</subsection>\n<subsection class=\"transport-control\">\n</subsection>\n<subsection class=\"loop-control\">\n</subsection>";
+	module.exports = "<subsection class=\"view-control disabled\">\n    <span>Grid</span>\n    <div class=\"dropdown-menu\">\n        <span>16</span>\n        <ul>\n        <li class=\"menu-item\">16</li>\n        <li class=\"menu-item\">8</li>\n        <li class=\"menu-item\">4</li>\n        <li class=\"menu-item\">2</li>\n        <li class=\"menu-item\">1</li>\n        </ul>\n    </div>\n</subsection>\n<subsection class=\"transport-control\">\n</subsection>\n<subsection class=\"loop-control\">\n</subsection>";
 
 /***/ },
 /* 16 */
 /***/ function(module, exports) {
 
-	module.exports = "<h1 class=\"title\"></h1>\n<input class=\"edit\">\n<div class=\"row-container\"></div>";
+	module.exports = "<h1 class=\"title\"></h1>\n<input class=\"edit\">\n<div class=\"row-container\"></div>\n<div class=\"footer\">\n    Created by <a href=\"https://github.com/loderunner\">loderunner</a> &mdash; Powered by <a href=\"https://backbonejs.org/\">Backbone</a>, <a href=\"https://github.com/blittle/backbone-nested-models\">Backbone Nested Models</a> &amp; <a href=\"https://tonejs.org\">Tone.js</a>\n</div>";
 
 /***/ }
 /******/ ]);
