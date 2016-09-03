@@ -35177,7 +35177,7 @@
 /* 15 */
 /***/ function(module, exports) {
 
-	module.exports = "<subsection class=\"view-control disabled\">\n    <span>Grid</span>\n    <div class=\"dropdown-menu\">\n        <span>16</span>\n        <ul>\n        <li class=\"menu-item\">16</li>\n        <li class=\"menu-item\">8</li>\n        <li class=\"menu-item\">4</li>\n        <li class=\"menu-item\">2</li>\n        <li class=\"menu-item\">1</li>\n        </ul>\n    </div>\n</subsection>\n<subsection class=\"transport-control\">\n</subsection>\n<subsection class=\"loop-control\">\n</subsection>";
+	module.exports = "<subsection class=\"view-control disabled\">\n    <span>Grid</span>\n    <span class=\"dropdown-menu\">\n        <span>16</span>\n        <ul>\n        <li class=\"menu-item\">16</li>\n        <li class=\"menu-item\">8</li>\n        <li class=\"menu-item\">4</li>\n        <li class=\"menu-item\">2</li>\n        <li class=\"menu-item\">1</li>\n        </ul>\n    </span>\n</subsection>\n<subsection class=\"transport-control\">\n</subsection>\n<subsection class=\"loop-control\">\n</subsection>";
 
 /***/ },
 /* 16 */

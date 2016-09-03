@@ -292,6 +292,19 @@ button:focus {
     vertical-align: baseline;
 }
 
+.dropdown-menu {
+    position: relative;
+}
+
+.dropdown-menu span,
+.dropdown-menu li {
+
+}
+
+.dropdown-menu ul {
+    display: none;
+}
+
 .footer {
     padding: 2em 0;
     text-align: center;
@@ -300,9 +313,11 @@ button:focus {
 }
 
 .footer a {
-    color: #a0aab0;
+    color: #48484f;
+    opacity: 0.5;
+    text-shadow: 1px 1px 0.5px #a0aab0;
 }
 
 .footer a:hover {
-    color: #48484f;
+    opacity: 1;
 }
