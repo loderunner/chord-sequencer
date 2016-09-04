@@ -86,6 +86,7 @@ section h2 {
 .transport subsection .control {
     padding: 0.25em;
     display: flex;
+    align-items: baseline;
 }
 
 .transport subsection.view-control .control {
@@ -102,6 +103,15 @@ section h2 {
 
 .transport subsection .control div.label {
     width: 100px;
+}
+
+.transport subsection .control div {
+    display: flex;
+}
+
+.transport subsection .control span {
+    margin: 1px;
+    padding: 5px;
 }
 
 .transport subsection.loop-control .control div {
@@ -126,6 +136,9 @@ section h2 {
             filter: grayscale(100%);
 }
 
+.draggable {
+    cursor: pointer;
+}
 
 .radio-group {
     display: flex;
@@ -356,10 +369,14 @@ button:focus {
 
 .dropdown-menu {
     position: relative;
+    cursor: pointer;
 }
 
-.dropdown-menu div {
-    position: relative;
+.dropdown-menu span,
+.dropdown-menu li {
+    margin: 1px;
+    padding: 5px;
+    background: white;
 }
 
 .dropdown-menu ul {
