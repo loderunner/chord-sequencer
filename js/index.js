@@ -1,12 +1,14 @@
 const $ = require('jquery');
 
 const Song = require('model/song.js');
-
 const SongView = require('view/song-view.js');
+const Audio = require('audio/controller.js');
 
 
 
 var song = new Song();
+
+const audio = new Audio(song);
 
 const songView = new SongView({
     model : song

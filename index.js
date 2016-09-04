@@ -47,12 +47,14 @@
 	const $ = __webpack_require__(1);
 	
 	const Song = __webpack_require__(2);
-	
 	const SongView = __webpack_require__(10);
+	const Audio = __webpack_require__(18);
 	
 	
 	
 	var song = new Song();
+	
+	const audio = new Audio(song);
 	
 	const songView = new SongView({
 	    model : song
@@ -35190,8 +35192,6 @@
 	    },
 	
 	    updateTempo : function() {
-	        Tone.Transport.bpm.value = this.model.get('tempo');
-	
 	        this.$loopControl.find('.tempo.value').text(this.model.get('tempo').toString() + ' bpm');
 	    },
 	
@@ -35300,6 +35300,51 @@
 /***/ function(module, exports) {
 
 	module.exports = "<h1 class=\"title\"></h1>\n<input class=\"edit\">\n<div class=\"row-container\"></div>\n<div class=\"footer\">\n    Created by <a href=\"https://github.com/loderunner\">loderunner</a> &mdash; Powered by <a href=\"https://backbonejs.org/\">Backbone</a>, <a href=\"https://github.com/blittle/backbone-nested-models\">Backbone Nested Models</a> &amp; <a href=\"https://tonejs.org\">Tone.js</a>\n</div>";
+
+/***/ },
+/* 18 */
+/***/ function(module, exports, __webpack_require__) {
+
+	const _ = __webpack_require__(5);
+	const Backbone = __webpack_require__(3);
+	const Tone = __webpack_require__(8);
+	
+	function AudioController(song) {
+	    _.extend(this, Backbone.Events);
+	
+	    this.synth = new Tone.PolySynth(8, Tone.Synth).toMaster();
+	
+	    const self = this;
+	    this.part = new Tone.Part(function(time, event) {
+	        self.synth.triggerAttackRelease('C3', '8n', time);
+	    }, ['0m', '4n', '2 * 4n', '3 * 4n']);
+	    this.part.start('0m');
+	    this.part.stop('8m');
+	    // part.loopStart = '0m';
+	    // part.loopEnd = '8m';
+	    // part.loop = true;
+	
+	    Tone.Transport.loopStart = "0m";
+	    Tone.Transport.loop = true;
+	
+	    this.song = song;
+	
+	    this.listenTo(song.get('sequence'), 'change', this.updateSequence);
+	
+	    return this;
+	}
+	
+	AudioController.prototype.updateSequence = function(sequence) {
+	    console.log(sequence);
+	    if (sequence.hasChanged('tempo')) {
+	        Tone.Transport.bpm.value = sequence.get('tempo');
+	    }
+	    if (sequence.hasChanged('loopLength')) {
+	        Tone.Transport.loopEnd = sequence.get('loopLength');
+	    }
+	}
+	
+	module.exports = AudioController;
 
 /***/ }
 /******/ ]);

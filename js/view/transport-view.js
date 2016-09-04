@@ -41,8 +41,6 @@ module.exports = Backbone.View.extend({
     },
 
     updateTempo : function() {
-        Tone.Transport.bpm.value = this.model.get('tempo');
-
         this.$loopControl.find('.tempo.value').text(this.model.get('tempo').toString() + ' bpm');
     },
 
