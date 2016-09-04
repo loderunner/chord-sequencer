@@ -109,9 +109,12 @@ section h2 {
     display: flex;
 }
 
-.transport subsection .control span {
+.transport subsection .control span,
+.transport subsection .control li {
     margin: 1px;
     padding: 5px;
+    background-color: white;
+    border: 1px solid #CCD1D4;
 }
 
 .transport subsection.loop-control .control div {
@@ -370,13 +373,6 @@ button:focus {
 .dropdown-menu {
     position: relative;
     cursor: pointer;
-}
-
-.dropdown-menu span,
-.dropdown-menu li {
-    margin: 1px;
-    padding: 5px;
-    background: white;
 }
 
 .dropdown-menu ul {
