@@ -33,7 +33,8 @@ module.exports = Backbone.View.extend({
     events : {
         'click button.play' : 'clickPlay',
         'click button.stop' : 'clickStop',
-        'draggable-drag .tempo .value' : 'dragTempo'
+        'draggable-drag .tempo .value' : 'dragTempo',
+        'click .dropdown-menu' : 'clickDropdownMenu'
     },
 
     updateTempo : function() {
@@ -72,5 +73,16 @@ module.exports = Backbone.View.extend({
         const bpmMin = parseInt($tempoEl.attr('data-min'));
         const bpmMax = parseInt($tempoEl.attr('data-max'));
         this.model.set('tempo', Math.min(bpmMax, Math.max(bpmMin, Math.round(tempo - e.originalEvent.moveY))));
+    },
+
+    clickDropdownMenu : function(e) {
+        const $menu = $(e.currentTarget);
+        if ($menu.hasClass('open')) {
+            $menu.removeClass('open');
+        } else {
+            e.stopPropagation();
+            $menu.addClass('open');
+            $(document).one('click', function(e) { $menu.removeClass('open'); })
+        }
     }
 });
