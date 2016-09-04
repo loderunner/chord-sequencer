@@ -35159,7 +35159,8 @@
 	    className : 'transport',
 	
 	    initialize : function() {
-	        this.listenTo(this.model, "change", this.render);
+	        this.listenTo(this.model, "change:tempo", this.updateTempo);
+	        this.listenTo(this.model, "change:loopLength", this.updateLoopLength);
 	        this.create();
 	    },
 	
@@ -35184,22 +35185,18 @@
 	        'draggable-drag .tempo .value' : 'dragTempo'
 	    },
 	
-	    render : function() {
+	    updateTempo : function() {
+	        Tone.Transport.bpm.value = this.model.get('tempo');
 	
-	        // Update changed values
-	        if (this.model.hasChanged('tempo')) {
-	            this.$loopControl.find('.tempo .value').text(this.model.get('tempo'));
-	        }
+	        this.$loopControl.find('.tempo .value').text(this.model.get('tempo'));
+	    },
 	
-	        if (this.model.hasChanged('loopLength')) {
-	            var loopLength = Tone.Time(this.model.get('loopLength')).toBarsBeatsSixteenths();
-	            loopLength = loopLength.split(':')[0];
-	            this.$loopControl.find('.loop-length .value').text(loopLength
-	                                                               + ' bar' 
-	                                                               + ((parseInt(loopLength) > 1) ? 's' : ''));
-	        }
-	
-	        return this;
+	    updateLoopLength : function() {
+	        var loopLength = Tone.Time(this.model.get('loopLength')).toBarsBeatsSixteenths();
+	        loopLength = loopLength.split(':')[0];
+	        this.$loopControl.find('.loop-length .value').text(loopLength
+	                                                           + ' bar' 
+	                                                           + ((parseInt(loopLength) > 1) ? 's' : ''));
 	    },
 	
 	    updateTime : function(time) {
