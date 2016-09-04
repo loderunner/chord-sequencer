@@ -22,7 +22,7 @@ module.exports = Backbone.View.extend({
         this.$transportControl = this.$('.transport-control');
         this.$loopControl = this.$('.loop-control');
 
-        Draggable(this.$loopControl.find('.tempo .value')[0]);
+        Draggable(this.$loopControl.find('.tempo.value')[0]);
 
         var self = this;
         Tone.Transport.scheduleRepeat(function(time) {
@@ -33,14 +33,17 @@ module.exports = Backbone.View.extend({
     events : {
         'click button.play' : 'clickPlay',
         'click button.stop' : 'clickStop',
-        'draggable-drag .tempo .value' : 'dragTempo',
-        'click .dropdown-menu' : 'clickDropdownMenu'
+        'draggable-drag .tempo.value' : 'dragTempo',
+        'click .dropdown-menu' : 'clickDropdownMenu',
+        // 'click .dropdown-menu.zoom ul li' : 'clickZoomItem',
+        // 'click .dropdown-menu.grid ul li' : 'clickGridItem',
+        'click .dropdown-menu.loop-length ul li' : 'clickLoopLengthItem'
     },
 
     updateTempo : function() {
         Tone.Transport.bpm.value = this.model.get('tempo');
 
-        this.$loopControl.find('.tempo .value').text(this.model.get('tempo').toString() + ' bpm');
+        this.$loopControl.find('.tempo.value').text(this.model.get('tempo').toString() + ' bpm');
     },
 
     updateLoopLength : function() {
@@ -69,7 +72,7 @@ module.exports = Backbone.View.extend({
 
     dragTempo : function(e) {
         const tempo = this.model.get('tempo');
-        const $tempoEl = this.$loopControl.find('.tempo .value');
+        const $tempoEl = this.$loopControl.find('.tempo.value');
         const bpmMin = parseInt($tempoEl.attr('data-min'));
         const bpmMax = parseInt($tempoEl.attr('data-max'));
         this.model.set('tempo', Math.min(bpmMax, Math.max(bpmMin, Math.round(tempo - e.originalEvent.moveY))));
@@ -84,5 +87,9 @@ module.exports = Backbone.View.extend({
             $menu.addClass('open');
             $(document).one('click', function(e) { $menu.removeClass('open'); })
         }
+    },
+
+    clickLoopLengthItem : function(e) {
+        this.model.set('loopLength', e.currentTarget.getAttribute('data-value'));
     }
 });

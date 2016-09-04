@@ -35171,7 +35171,7 @@
 	        this.$transportControl = this.$('.transport-control');
 	        this.$loopControl = this.$('.loop-control');
 	
-	        Draggable(this.$loopControl.find('.tempo .value')[0]);
+	        Draggable(this.$loopControl.find('.tempo.value')[0]);
 	
 	        var self = this;
 	        Tone.Transport.scheduleRepeat(function(time) {
@@ -35182,14 +35182,17 @@
 	    events : {
 	        'click button.play' : 'clickPlay',
 	        'click button.stop' : 'clickStop',
-	        'draggable-drag .tempo .value' : 'dragTempo',
-	        'click .dropdown-menu' : 'clickDropdownMenu'
+	        'draggable-drag .tempo.value' : 'dragTempo',
+	        'click .dropdown-menu' : 'clickDropdownMenu',
+	        // 'click .dropdown-menu.zoom ul li' : 'clickZoomItem',
+	        // 'click .dropdown-menu.grid ul li' : 'clickGridItem',
+	        'click .dropdown-menu.loop-length ul li' : 'clickLoopLengthItem'
 	    },
 	
 	    updateTempo : function() {
 	        Tone.Transport.bpm.value = this.model.get('tempo');
 	
-	        this.$loopControl.find('.tempo .value').text(this.model.get('tempo').toString() + ' bpm');
+	        this.$loopControl.find('.tempo.value').text(this.model.get('tempo').toString() + ' bpm');
 	    },
 	
 	    updateLoopLength : function() {
@@ -35218,7 +35221,7 @@
 	
 	    dragTempo : function(e) {
 	        const tempo = this.model.get('tempo');
-	        const $tempoEl = this.$loopControl.find('.tempo .value');
+	        const $tempoEl = this.$loopControl.find('.tempo.value');
 	        const bpmMin = parseInt($tempoEl.attr('data-min'));
 	        const bpmMax = parseInt($tempoEl.attr('data-max'));
 	        this.model.set('tempo', Math.min(bpmMax, Math.max(bpmMin, Math.round(tempo - e.originalEvent.moveY))));
@@ -35233,6 +35236,10 @@
 	            $menu.addClass('open');
 	            $(document).one('click', function(e) { $menu.removeClass('open'); })
 	        }
+	    },
+	
+	    clickLoopLengthItem : function(e) {
+	        this.model.set('loopLength', e.currentTarget.getAttribute('data-value'));
 	    }
 	});
 
@@ -35286,7 +35293,7 @@
 /* 16 */
 /***/ function(module, exports) {
 
-	module.exports = "<subsection class=\"view-control disabled\">\n    <div class=\"grid control\">\n        <div class=\"label\">Grid</div>\n        <div class=\"dropdown-menu\">\n            <div><span class=\"value\">16</span><span class=\"fa fa-caret-down\"></span></div>\n            <ul>\n            <li class=\"menu-item\" data-value=\"16n\">16</li>\n            <li class=\"menu-item\" data-value=\"8n\">8</li>\n            <li class=\"menu-item\" data-value=\"4n\">4</li>\n            <li class=\"menu-item\" data-value=\"2n\">2</li>\n            <li class=\"menu-item\" data-value=\"1n\">1</li>\n            </ul>\n        </div>\n    </div>\n    <div class=\"zoom control\">\n        <div class=\"label\">Zoom</div>\n        <div class=\"dropdown-menu\">\n            <div><span class=\"value\">1 bar</span><span class=\"fa fa-caret-down\"></span></div>\n            <ul>\n            <li class=\"menu-item\" data-value=\"1m\">1 bar</li>\n            <li class=\"menu-item\" data-value=\"2m\">2 bars</li>\n            <li class=\"menu-item\" data-value=\"4m\">4 bars</li>\n            <li class=\"menu-item\" data-value=\"8m\">8 bars</li>\n            </ul>\n        </div>\n    </div>\n</subsection>\n<subsection class=\"transport-control\">\n    <div class=\"play-control\"><button class=\"play\"><i class=\"fa fa-play\"></i></button><button class=\"stop\"><i class=\"fa fa-stop\"></i></button></div>\n    <div class=\"counter\">00:00:00</div>\n</subsection>\n<subsection class=\"loop-control\">\n    <div class=\"tempo control\">\n        <div><span class=\"value\" data-min=\"40\" data-max=\"250\">120 bpm</span></div>\n        <div class=\"label\">Tempo</div>\n    </div>\n    <div class=\"loop-length control\">\n        <div class=\"dropdown-menu\">\n            <div><span class=\"fa fa-caret-down\"></span><span class=\"value\">1 bar</span></div>\n            <ul>\n            <li class=\"menu-item\" data-value=\"1m\">1 bar</li>\n            <li class=\"menu-item\" data-value=\"2m\">2 bars</li>\n            <li class=\"menu-item\" data-value=\"4m\">4 bars</li>\n            <li class=\"menu-item\" data-value=\"8m\">8 bars</li>\n            </ul>\n        </div>\n        <div class=\"label\">Loop length</div>\n    </div>\n</subsection>";
+	module.exports = "<subsection class=\"view-control disabled\">\n    <div class=\"control\">\n        <div class=\"label\">Grid</div>\n        <div class=\"grid dropdown-menu\">\n            <div><span class=\"value\">16</span><span class=\"fa fa-caret-down\"></span></div>\n            <ul>\n            <li class=\"menu-item\" data-value=\"16n\">16</li>\n            <li class=\"menu-item\" data-value=\"8n\">8</li>\n            <li class=\"menu-item\" data-value=\"4n\">4</li>\n            <li class=\"menu-item\" data-value=\"2n\">2</li>\n            <li class=\"menu-item\" data-value=\"1n\">1</li>\n            </ul>\n        </div>\n    </div>\n    <div class=\"control\">\n        <div class=\"label\">Zoom</div>\n        <div class=\"zoom dropdown-menu\">\n            <div><span class=\"value\">1 bar</span><span class=\"fa fa-caret-down\"></span></div>\n            <ul>\n            <li class=\"menu-item\" data-value=\"1m\">1 bar</li>\n            <li class=\"menu-item\" data-value=\"2m\">2 bars</li>\n            <li class=\"menu-item\" data-value=\"4m\">4 bars</li>\n            <li class=\"menu-item\" data-value=\"8m\">8 bars</li>\n            </ul>\n        </div>\n    </div>\n</subsection>\n<subsection class=\"transport-control\">\n    <div class=\"play-control\"><button class=\"play\"><i class=\"fa fa-play\"></i></button><button class=\"stop\"><i class=\"fa fa-stop\"></i></button></div>\n    <div class=\"counter\">00:00:00</div>\n</subsection>\n<subsection class=\"loop-control\">\n    <div class=\"control\">\n        <div><span class=\"tempo value\" data-min=\"40\" data-max=\"250\">120 bpm</span></div>\n        <div class=\"label\">Tempo</div>\n    </div>\n    <div class=\"control\">\n        <div class=\"loop-length dropdown-menu\">\n            <div><span class=\"fa fa-caret-down\"></span><span class=\"value\">1 bar</span></div>\n            <ul>\n            <li class=\"menu-item\" data-value=\"1m\">1 bar</li>\n            <li class=\"menu-item\" data-value=\"2m\">2 bars</li>\n            <li class=\"menu-item\" data-value=\"4m\">4 bars</li>\n            <li class=\"menu-item\" data-value=\"8m\">8 bars</li>\n            </ul>\n        </div>\n        <div class=\"label\">Loop length</div>\n    </div>\n</subsection>";
 
 /***/ },
 /* 17 */
