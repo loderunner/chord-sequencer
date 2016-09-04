@@ -127,6 +127,7 @@ section h2 {
 
 .transport subsection.view-control .control div.label {
     text-align: right;
+    justify-content: flex-end;
 }
 
 .transport .counter {
