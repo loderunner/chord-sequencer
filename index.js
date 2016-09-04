@@ -34980,7 +34980,7 @@
 	    },
 	
 	    create : function() {
-	        const html = __webpack_require__(16);
+	        const html = __webpack_require__(17);
 	        this.$el.append(html);
 	
 	        this.$title = this.$('.title');
@@ -35152,6 +35152,8 @@
 	const Backbone = __webpack_require__(3);
 	const Tone = __webpack_require__(8);
 	
+	const Draggable = __webpack_require__(15);
+	
 	module.exports = Backbone.View.extend({
 	    tagName : 'section',
 	    className : 'transport',
@@ -35162,11 +35164,13 @@
 	    },
 	
 	    create : function() {
-	        const html = __webpack_require__(15);
+	        const html = __webpack_require__(16);
 	        this.$el.append(html);
 	        this.$viewControl = this.$('.view-control');
 	        this.$transportControl = this.$('.transport-control');
 	        this.$loopControl = this.$('.loop-control');
+	
+	        Draggable(this.$loopControl.find('.tempo .value')[0]);
 	
 	        var self = this;
 	        Tone.Transport.scheduleRepeat(function(time) {
@@ -35175,8 +35179,9 @@
 	    },
 	
 	    events : {
-	        'click button.play' : 'play',
-	        'click button.stop' : 'stop',
+	        'click button.play' : 'clickPlay',
+	        'click button.stop' : 'clickStop',
+	        'draggable-drag .tempo .value' : 'dragTempo'
 	    },
 	
 	    render : function() {
@@ -35197,20 +35202,28 @@
 	        return this;
 	    },
 	
-	    play : function() {
-	        Tone.Transport.start();
-	    },
-	
-	    stop : function() {
-	        Tone.Transport.stop();
-	    },
-	
 	    updateTime : function(time) {
 	        const barsBeatsSixteenths = _.map(Tone.Transport.position.split(':'), function(n) {
 	            n = parseInt(n);
 	            return ((n < 10) ? '0' : '') + n.toString();
 	        });
 	        this.$transportControl.find('.counter').text(barsBeatsSixteenths.join(':'));
+	    },
+	
+	    clickPlay : function() {
+	        Tone.Transport.start();
+	    },
+	
+	    clickStop : function() {
+	        Tone.Transport.stop();
+	    },
+	
+	    dragTempo : function(e) {
+	        const tempo = this.model.get('tempo');
+	        const $tempoEl = this.$loopControl.find('.tempo .value');
+	        const bpmMin = parseInt($tempoEl.attr('data-min'));
+	        const bpmMax = parseInt($tempoEl.attr('data-max'));
+	        this.model.set('tempo', Math.min(bpmMax, Math.max(bpmMin, Math.round(tempo - e.originalEvent.moveY))));
 	    }
 	});
 
@@ -35218,10 +35231,56 @@
 /* 15 */
 /***/ function(module, exports) {
 
-	module.exports = "<subsection class=\"view-control disabled\">\n    <div class=\"grid control\">\n        <div class=\"label\">Grid</div>\n        <div class=\"dropdown-menu\">\n            <div><span class=\"value\">16</span><span class=\"fa fa-caret-down\"></span></div>\n            <ul>\n            <li class=\"menu-item\" data-value=\"16n\">16</li>\n            <li class=\"menu-item\" data-value=\"8n\">8</li>\n            <li class=\"menu-item\" data-value=\"4n\">4</li>\n            <li class=\"menu-item\" data-value=\"2n\">2</li>\n            <li class=\"menu-item\" data-value=\"1n\">1</li>\n            </ul>\n        </div>\n    </div>\n    <div class=\"zoom control\">\n        <div class=\"label\">Zoom</div>\n        <div class=\"dropdown-menu\">\n            <div><span class=\"value\">1 bar</span><span class=\"fa fa-caret-down\"></span></div>\n            <ul>\n            <li class=\"menu-item\" data-value=\"1m\">1 bar</li>\n            <li class=\"menu-item\" data-value=\"2m\">2 bars</li>\n            <li class=\"menu-item\" data-value=\"4m\">4 bars</li>\n            <li class=\"menu-item\" data-value=\"8m\">8 bars</li>\n            </ul>\n        </div>\n    </div>\n</subsection>\n<subsection class=\"transport-control\">\n    <div class=\"play-control\"><button class=\"play\"><i class=\"fa fa-play\"></i></button><button class=\"stop\"><i class=\"fa fa-stop\"></i></button></div>\n    <div class=\"counter\">00:00:00</div>\n</subsection>\n<subsection class=\"loop-control\">\n    <div class=\"tempo control\">\n        <div><span class=\"value\">120</span><span> bpm</span></div>\n        <div class=\"label\">Tempo</div>\n    </div>\n    <div class=\"loop-length control\">\n        <div class=\"dropdown-menu\">\n            <div><span class=\"fa fa-caret-down\"></span><span class=\"value\">1 bar</span></div>\n            <ul>\n            <li class=\"menu-item\" data-value=\"1m\">1 bar</li>\n            <li class=\"menu-item\" data-value=\"2m\">2 bars</li>\n            <li class=\"menu-item\" data-value=\"4m\">4 bars</li>\n            <li class=\"menu-item\" data-value=\"8m\">8 bars</li>\n            </ul>\n        </div>\n        <div class=\"label\">Loop length</div>\n    </div>\n</subsection>";
+	const onMouseDown = function(e) {
+	    e.stopPropagation();
+	    e.preventDefault();
+	
+	    this.dragOriginX = e.pageX;
+	    this.dragOriginY = e.pageY;
+	    this.previousX = e.pageX;
+	    this.previousY = e.pageY;
+	    this.callback = onMouseMove.bind(this);
+	    document.addEventListener('mousemove', this.callback, {capture : true});
+	    document.addEventListener('mouseup', onMouseUp.bind(this), {capture : true, once : true});
+	}
+	
+	const onMouseMove = function(e) {
+	    e.stopPropagation();
+	    e.preventDefault();
+	
+	    var dragEvent = new CustomEvent('draggable-drag', {bubbles : true});
+	    dragEvent.deltaX = e.pageX - this.dragOriginX;
+	    dragEvent.deltaY = e.pageY - this.dragOriginY;
+	    dragEvent.moveX = e.pageX - this.previousX;
+	    dragEvent.moveY = e.pageY - this.previousY;
+	    this.dispatchEvent(dragEvent);
+	
+	    this.previousX = e.pageX;
+	    this.previousY = e.pageY;
+	}
+	
+	const onMouseUp = function(e) {
+	    e.stopPropagation();
+	    e.preventDefault();
+	
+	    this.dragOriginX = 0;
+	    this.dragOriginY = 0;
+	    document.removeEventListener('mousemove', this.callback, {capture : true});
+	}
+	
+	module.exports = function(target) {
+	    target.classList.add('draggable');
+	    target.addEventListener('mousedown', onMouseDown.bind(target));
+	}
 
 /***/ },
 /* 16 */
+/***/ function(module, exports) {
+
+	module.exports = "<subsection class=\"view-control disabled\">\n    <div class=\"grid control\">\n        <div class=\"label\">Grid</div>\n        <div class=\"dropdown-menu\">\n            <div><span class=\"value\">16</span><span class=\"fa fa-caret-down\"></span></div>\n            <ul>\n            <li class=\"menu-item\" data-value=\"16n\">16</li>\n            <li class=\"menu-item\" data-value=\"8n\">8</li>\n            <li class=\"menu-item\" data-value=\"4n\">4</li>\n            <li class=\"menu-item\" data-value=\"2n\">2</li>\n            <li class=\"menu-item\" data-value=\"1n\">1</li>\n            </ul>\n        </div>\n    </div>\n    <div class=\"zoom control\">\n        <div class=\"label\">Zoom</div>\n        <div class=\"dropdown-menu\">\n            <div><span class=\"value\">1 bar</span><span class=\"fa fa-caret-down\"></span></div>\n            <ul>\n            <li class=\"menu-item\" data-value=\"1m\">1 bar</li>\n            <li class=\"menu-item\" data-value=\"2m\">2 bars</li>\n            <li class=\"menu-item\" data-value=\"4m\">4 bars</li>\n            <li class=\"menu-item\" data-value=\"8m\">8 bars</li>\n            </ul>\n        </div>\n    </div>\n</subsection>\n<subsection class=\"transport-control\">\n    <div class=\"play-control\"><button class=\"play\"><i class=\"fa fa-play\"></i></button><button class=\"stop\"><i class=\"fa fa-stop\"></i></button></div>\n    <div class=\"counter\">00:00:00</div>\n</subsection>\n<subsection class=\"loop-control\">\n    <div class=\"tempo control\">\n        <div><span class=\"value\" data-min=\"40\" data-max=\"250\">120</span><span> bpm</span></div>\n        <div class=\"label\">Tempo</div>\n    </div>\n    <div class=\"loop-length control\">\n        <div class=\"dropdown-menu\">\n            <div><span class=\"fa fa-caret-down\"></span><span class=\"value\">1 bar</span></div>\n            <ul>\n            <li class=\"menu-item\" data-value=\"1m\">1 bar</li>\n            <li class=\"menu-item\" data-value=\"2m\">2 bars</li>\n            <li class=\"menu-item\" data-value=\"4m\">4 bars</li>\n            <li class=\"menu-item\" data-value=\"8m\">8 bars</li>\n            </ul>\n        </div>\n        <div class=\"label\">Loop length</div>\n    </div>\n</subsection>";
+
+/***/ },
+/* 17 */
 /***/ function(module, exports) {
 
 	module.exports = "<h1 class=\"title\"></h1>\n<input class=\"edit\">\n<div class=\"row-container\"></div>\n<div class=\"footer\">\n    Created by <a href=\"https://github.com/loderunner\">loderunner</a> &mdash; Powered by <a href=\"https://backbonejs.org/\">Backbone</a>, <a href=\"https://github.com/blittle/backbone-nested-models\">Backbone Nested Models</a> &amp; <a href=\"https://tonejs.org\">Tone.js</a>\n</div>";

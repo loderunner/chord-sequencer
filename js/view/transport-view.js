@@ -3,6 +3,8 @@ const _ = require('underscore');
 const Backbone = require('backbone-nested-models');
 const Tone = require('tone');
 
+const Draggable = require('view/draggable.js');
+
 module.exports = Backbone.View.extend({
     tagName : 'section',
     className : 'transport',
@@ -19,6 +21,8 @@ module.exports = Backbone.View.extend({
         this.$transportControl = this.$('.transport-control');
         this.$loopControl = this.$('.loop-control');
 
+        Draggable(this.$loopControl.find('.tempo .value')[0]);
+
         var self = this;
         Tone.Transport.scheduleRepeat(function(time) {
             self.updateTime(time);
@@ -26,8 +30,9 @@ module.exports = Backbone.View.extend({
     },
 
     events : {
-        'click button.play' : 'play',
-        'click button.stop' : 'stop',
+        'click button.play' : 'clickPlay',
+        'click button.stop' : 'clickStop',
+        'draggable-drag .tempo .value' : 'dragTempo'
     },
 
     render : function() {
@@ -48,19 +53,27 @@ module.exports = Backbone.View.extend({
         return this;
     },
 
-    play : function() {
-        Tone.Transport.start();
-    },
-
-    stop : function() {
-        Tone.Transport.stop();
-    },
-
     updateTime : function(time) {
         const barsBeatsSixteenths = _.map(Tone.Transport.position.split(':'), function(n) {
             n = parseInt(n);
             return ((n < 10) ? '0' : '') + n.toString();
         });
         this.$transportControl.find('.counter').text(barsBeatsSixteenths.join(':'));
+    },
+
+    clickPlay : function() {
+        Tone.Transport.start();
+    },
+
+    clickStop : function() {
+        Tone.Transport.stop();
+    },
+
+    dragTempo : function(e) {
+        const tempo = this.model.get('tempo');
+        const $tempoEl = this.$loopControl.find('.tempo .value');
+        const bpmMin = parseInt($tempoEl.attr('data-min'));
+        const bpmMax = parseInt($tempoEl.attr('data-max'));
+        this.model.set('tempo', Math.min(bpmMax, Math.max(bpmMin, Math.round(tempo - e.originalEvent.moveY))));
     }
 });
