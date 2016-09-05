@@ -10,16 +10,10 @@ module.exports = Backbone.View.extend({
     tagName : 'div',
     className : 'song',
 
+    // Lifecycle
     initialize : function() {
-        this.listenTo(this.model, "change", this.render);
+        this.listenTo(this.model, "change:title", this.updateTitle);
         this.create();
-    },
-
-    events : {
-        'click .title' : 'clickTitle',
-        'blur .edit' : 'blurEdit',
-        'keypress .edit' : 'keyPressEdit',
-        'keyDown .edit' : 'keyDownEdit'
     },
 
     create : function() {
@@ -39,13 +33,18 @@ module.exports = Backbone.View.extend({
         container.after(transportView.$el);
     },
 
-    render : function() {
-        if (this.model.hasChanged('title')) {
-            this.$title.text(this.model.get('title'));
-            this.$edit.attr('value', this.model.get('title'));
-        }
+    // Model events
+    updateTitle : function() {
+        this.$title.text(this.model.get('title'));
+        this.$edit.attr('value', this.model.get('title'));
+    },
 
-        return this;
+    // UI events
+    events : {
+        'click .title' : 'clickTitle',
+        'blur .edit' : 'blurEdit',
+        'keypress .edit' : 'keyPressEdit',
+        'keyDown .edit' : 'keyDownEdit'
     },
 
     clickTitle : function() {

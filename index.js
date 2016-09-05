@@ -34969,16 +34969,10 @@
 	    tagName : 'div',
 	    className : 'song',
 	
+	    // Lifecycle
 	    initialize : function() {
-	        this.listenTo(this.model, "change", this.render);
+	        this.listenTo(this.model, "change:title", this.updateTitle);
 	        this.create();
-	    },
-	
-	    events : {
-	        'click .title' : 'clickTitle',
-	        'blur .edit' : 'blurEdit',
-	        'keypress .edit' : 'keyPressEdit',
-	        'keyDown .edit' : 'keyDownEdit'
 	    },
 	
 	    create : function() {
@@ -34998,13 +34992,18 @@
 	        container.after(transportView.$el);
 	    },
 	
-	    render : function() {
-	        if (this.model.hasChanged('title')) {
-	            this.$title.text(this.model.get('title'));
-	            this.$edit.attr('value', this.model.get('title'));
-	        }
+	    // Model events
+	    updateTitle : function() {
+	        this.$title.text(this.model.get('title'));
+	        this.$edit.attr('value', this.model.get('title'));
+	    },
 	
-	        return this;
+	    // UI events
+	    events : {
+	        'click .title' : 'clickTitle',
+	        'blur .edit' : 'blurEdit',
+	        'keypress .edit' : 'keyPressEdit',
+	        'keyDown .edit' : 'keyDownEdit'
 	    },
 	
 	    clickTitle : function() {
@@ -35054,13 +35053,10 @@
 	    tagName : 'section',
 	    className : 'key',
 	
+	    // Lifecycle
 	    initialize : function() {
-	        this.listenTo(this.model, "change", this.render);
+	        this.listenTo(this.model, "change:key", this.updateKey);
 	        this.create();
-	    },
-	
-	    events : {
-	        'click .radio-group>span' : 'clickRadio'
 	    },
 	
 	    create : function() {
@@ -35071,14 +35067,16 @@
 	        }
 	    },
 	
-	    render : function() {
-	        if (this.model.hasChanged('key')) {
-	            const key = this.model.get('key');
-	            this.$radioGroup.children('.selected').removeClass('selected');
-	            this.$radioGroup.children('[data-value=' + key + ']').addClass('selected');
-	        }
+	    // Model events
+	    updateKey : function() {
+	        const key = this.model.get('key');
+	        this.$radioGroup.children('.selected').removeClass('selected');
+	        this.$radioGroup.children('[data-value=' + key + ']').addClass('selected');
+	    },
 	
-	        return this;
+	    // UI events
+	    events : {
+	        'click .radio-group>span' : 'clickRadio'
 	    },
 	
 	    clickRadio : function(e) {
@@ -35113,13 +35111,10 @@
 	    tagName : 'section',
 	    className : 'mode',
 	
+	    // Lifecycle
 	    initialize : function() {
-	        this.listenTo(this.model, "change", this.render);
+	        this.listenTo(this.model, "change:mode", this.updateMode);
 	        this.create();
-	    },
-	
-	    events : {
-	        'click .radio-group>span' : 'clickRadio'
 	    },
 	
 	    create : function() {
@@ -35130,14 +35125,16 @@
 	        }
 	    },
 	
-	    render : function() {
-	        if (this.model.hasChanged('mode')) {
-	            const mode = this.model.get('mode');
-	            this.$radioGroup.children('.selected').removeClass('selected');
-	            this.$radioGroup.children('[data-value=' + mode + ']').addClass('selected');
-	        }
+	    // Model events
+	    updateMode : function() {
+	        const mode = this.model.get('mode');
+	        this.$radioGroup.children('.selected').removeClass('selected');
+	        this.$radioGroup.children('[data-value=' + mode + ']').addClass('selected');
+	    },
 	
-	        return this;
+	    // UI events
+	    events : {
+	        'click .radio-group>span' : 'clickRadio'
 	    },
 	
 	    clickRadio : function(e) {
@@ -35161,6 +35158,7 @@
 	    tagName : 'section',
 	    className : 'transport',
 	
+	    // Lifecycle
 	    initialize : function() {
 	        this.listenTo(this.model, "change:tempo", this.updateTempo);
 	        this.listenTo(this.model, "change:loopLength", this.updateLoopLength);
@@ -35185,16 +35183,7 @@
 	        }, "1i");
 	    },
 	
-	    events : {
-	        'click button.play' : 'clickPlay',
-	        'click button.stop' : 'clickStop',
-	        'draggable-drag .tempo.value' : 'dragTempo',
-	        'click .dropdown-menu' : 'clickDropdownMenu',
-	        'select .dropdown-menu.zoom' : 'selectZoom',
-	        'select .dropdown-menu.grid' : 'selectGrid',
-	        'select .dropdown-menu.loop-length' : 'selectLoopLength'
-	    },
-	
+	    // Model events
 	    updateTempo : function() {
 	        this.$loopControl.find('.tempo.value').text(this.model.get('tempo').toString() + ' bpm');
 	    },
@@ -35213,6 +35202,17 @@
 	            return ((n < 10) ? '0' : '') + n.toString();
 	        });
 	        this.$transportControl.find('.counter').text(barsBeatsSixteenths.join(':'));
+	    },
+	
+	    // UI events
+	    events : {
+	        'click button.play' : 'clickPlay',
+	        'click button.stop' : 'clickStop',
+	        'draggable-drag .tempo.value' : 'dragTempo',
+	        'click .dropdown-menu' : 'clickDropdownMenu',
+	        'select .dropdown-menu.zoom' : 'selectZoom',
+	        'select .dropdown-menu.grid' : 'selectGrid',
+	        'select .dropdown-menu.loop-length' : 'selectLoopLength'
 	    },
 	
 	    clickPlay : function() {
@@ -35325,23 +35325,24 @@
 	    // part.loop = true;
 	
 	    Tone.Transport.loopStart = "0m";
+	    Tone.Transport.loopEnd = "8m";
 	    Tone.Transport.loop = true;
 	
 	    this.song = song;
 	
-	    this.listenTo(song.get('sequence'), 'change', this.updateSequence);
+	    this.listenTo(song.get('sequence'), 'change:tempo', this.updateTempo);
+	    this.listenTo(song.get('sequence'), 'change:loopLength', this.updateLoopLength);
 	
 	    return this;
 	}
 	
-	AudioController.prototype.updateSequence = function(sequence) {
-	    console.log(sequence);
-	    if (sequence.hasChanged('tempo')) {
-	        Tone.Transport.bpm.value = sequence.get('tempo');
-	    }
-	    if (sequence.hasChanged('loopLength')) {
-	        Tone.Transport.loopEnd = sequence.get('loopLength');
-	    }
+	AudioController.prototype.updateTempo = function(sequence) {
+	    Tone.Transport.bpm.value = sequence.get('tempo');
+	}
+	
+	
+	AudioController.prototype.updateLoopLength = function(sequence) {
+	    Tone.Transport.loopEnd = sequence.get('loopLength');
 	}
 	
 	module.exports = AudioController;

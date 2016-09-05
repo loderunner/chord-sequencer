@@ -18,23 +18,24 @@ function AudioController(song) {
     // part.loop = true;
 
     Tone.Transport.loopStart = "0m";
+    Tone.Transport.loopEnd = "8m";
     Tone.Transport.loop = true;
 
     this.song = song;
 
-    this.listenTo(song.get('sequence'), 'change', this.updateSequence);
+    this.listenTo(song.get('sequence'), 'change:tempo', this.updateTempo);
+    this.listenTo(song.get('sequence'), 'change:loopLength', this.updateLoopLength);
 
     return this;
 }
 
-AudioController.prototype.updateSequence = function(sequence) {
-    console.log(sequence);
-    if (sequence.hasChanged('tempo')) {
-        Tone.Transport.bpm.value = sequence.get('tempo');
-    }
-    if (sequence.hasChanged('loopLength')) {
-        Tone.Transport.loopEnd = sequence.get('loopLength');
-    }
+AudioController.prototype.updateTempo = function(sequence) {
+    Tone.Transport.bpm.value = sequence.get('tempo');
+}
+
+
+AudioController.prototype.updateLoopLength = function(sequence) {
+    Tone.Transport.loopEnd = sequence.get('loopLength');
 }
 
 module.exports = AudioController;

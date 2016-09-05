@@ -10,6 +10,7 @@ module.exports = Backbone.View.extend({
     tagName : 'section',
     className : 'transport',
 
+    // Lifecycle
     initialize : function() {
         this.listenTo(this.model, "change:tempo", this.updateTempo);
         this.listenTo(this.model, "change:loopLength", this.updateLoopLength);
@@ -34,16 +35,7 @@ module.exports = Backbone.View.extend({
         }, "1i");
     },
 
-    events : {
-        'click button.play' : 'clickPlay',
-        'click button.stop' : 'clickStop',
-        'draggable-drag .tempo.value' : 'dragTempo',
-        'click .dropdown-menu' : 'clickDropdownMenu',
-        'select .dropdown-menu.zoom' : 'selectZoom',
-        'select .dropdown-menu.grid' : 'selectGrid',
-        'select .dropdown-menu.loop-length' : 'selectLoopLength'
-    },
-
+    // Model events
     updateTempo : function() {
         this.$loopControl.find('.tempo.value').text(this.model.get('tempo').toString() + ' bpm');
     },
@@ -62,6 +54,17 @@ module.exports = Backbone.View.extend({
             return ((n < 10) ? '0' : '') + n.toString();
         });
         this.$transportControl.find('.counter').text(barsBeatsSixteenths.join(':'));
+    },
+
+    // UI events
+    events : {
+        'click button.play' : 'clickPlay',
+        'click button.stop' : 'clickStop',
+        'draggable-drag .tempo.value' : 'dragTempo',
+        'click .dropdown-menu' : 'clickDropdownMenu',
+        'select .dropdown-menu.zoom' : 'selectZoom',
+        'select .dropdown-menu.grid' : 'selectGrid',
+        'select .dropdown-menu.loop-length' : 'selectLoopLength'
     },
 
     clickPlay : function() {

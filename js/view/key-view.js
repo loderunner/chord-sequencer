@@ -7,13 +7,10 @@ module.exports = Backbone.View.extend({
     tagName : 'section',
     className : 'key',
 
+    // Lifecycle
     initialize : function() {
-        this.listenTo(this.model, "change", this.render);
+        this.listenTo(this.model, "change:key", this.updateKey);
         this.create();
-    },
-
-    events : {
-        'click .radio-group>span' : 'clickRadio'
     },
 
     create : function() {
@@ -24,14 +21,16 @@ module.exports = Backbone.View.extend({
         }
     },
 
-    render : function() {
-        if (this.model.hasChanged('key')) {
-            const key = this.model.get('key');
-            this.$radioGroup.children('.selected').removeClass('selected');
-            this.$radioGroup.children('[data-value=' + key + ']').addClass('selected');
-        }
+    // Model events
+    updateKey : function() {
+        const key = this.model.get('key');
+        this.$radioGroup.children('.selected').removeClass('selected');
+        this.$radioGroup.children('[data-value=' + key + ']').addClass('selected');
+    },
 
-        return this;
+    // UI events
+    events : {
+        'click .radio-group>span' : 'clickRadio'
     },
 
     clickRadio : function(e) {
