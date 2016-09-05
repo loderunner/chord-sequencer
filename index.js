@@ -35299,7 +35299,7 @@
 /* 17 */
 /***/ function(module, exports) {
 
-	module.exports = "<h1 class=\"title\"></h1>\n<input class=\"edit\">\n<div class=\"row-container\"></div>\n<div class=\"footer\">\n    Created by <a href=\"https://github.com/loderunner\">loderunner</a> &mdash; Powered by <a href=\"https://backbonejs.org/\">Backbone</a>, <a href=\"https://github.com/blittle/backbone-nested-models\">Backbone Nested Models</a> &amp; <a href=\"https://tonejs.org\">Tone.js</a>\n</div>";
+	module.exports = "<h1 class=\"title\"></h1>\n<input class=\"edit\">\n<div class=\"row-container\"></div>";
 
 /***/ },
 /* 18 */
