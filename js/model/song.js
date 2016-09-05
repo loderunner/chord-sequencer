@@ -19,6 +19,6 @@ module.exports = Backbone.Model.extend({
         'sequence' : Sequence
     },
     defaults : {
-        sequence : function() { return new Sequence; }
+        sequence : {}
     }
 });

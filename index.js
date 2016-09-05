@@ -10205,7 +10205,7 @@
 	        'sequence' : Sequence
 	    },
 	    defaults : {
-	        sequence : function() { return new Sequence; }
+	        sequence : {}
 	    }
 	});
 
