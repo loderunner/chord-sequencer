@@ -185,9 +185,10 @@ section h2 {
     color: black;
 }
 
-#sequencer-container {
+.sequencer-container {
     display: flex;
     padding: 0 5px;
+    width: 100%;
 }
 
 .chord-sequencer {

@@ -2,6 +2,7 @@ const $ = require('jquery');
 const _ = require('underscore');
 const Backbone = require('backbone-nested-models');
 
+const SequencerView = require('view/sequencer-view.js');
 const KeyView = require('view/key-view.js');
 const ModeView = require('view/mode-view.js');
 const TransportView = require('view/transport-view.js');
@@ -23,13 +24,18 @@ module.exports = Backbone.View.extend({
         this.$title = this.$('.title');
         this.$edit = this.$('.edit');
 
+        const sequence = this.model.get('sequence');
+
         const container = this.$('.row-container');
-        const keyView = new KeyView({ model : this.model.get('sequence') });
+        const keyView = new KeyView({ model : sequence });
         container.append(keyView.$el);
-        const modeView = new ModeView({ model : this.model.get('sequence') });
+        const modeView = new ModeView({ model : sequence });
         container.append(modeView.$el);
 
-        const transportView = new TransportView({ model : this.model.get('sequence') });
+        const sequencerView = new SequencerView({ model : sequence });
+        container.before(sequencerView.$el);
+
+        const transportView = new TransportView({ model : sequence });
         container.after(transportView.$el);
     },
 

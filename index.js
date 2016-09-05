@@ -13918,7 +13918,7 @@
 	    },
 	
 	    defaults : {
-	        chordList : function() { return new ChordList; }
+	        chordList : []
 	    }
 	});
 
@@ -34961,6 +34961,7 @@
 	const _ = __webpack_require__(5);
 	const Backbone = __webpack_require__(3);
 	
+	const SequencerView = __webpack_require__(20);
 	const KeyView = __webpack_require__(11);
 	const ModeView = __webpack_require__(13);
 	const TransportView = __webpack_require__(14);
@@ -34982,13 +34983,18 @@
 	        this.$title = this.$('.title');
 	        this.$edit = this.$('.edit');
 	
+	        const sequence = this.model.get('sequence');
+	
 	        const container = this.$('.row-container');
-	        const keyView = new KeyView({ model : this.model.get('sequence') });
+	        const keyView = new KeyView({ model : sequence });
 	        container.append(keyView.$el);
-	        const modeView = new ModeView({ model : this.model.get('sequence') });
+	        const modeView = new ModeView({ model : sequence });
 	        container.append(modeView.$el);
 	
-	        const transportView = new TransportView({ model : this.model.get('sequence') });
+	        const sequencerView = new SequencerView({ model : sequence });
+	        container.before(sequencerView.$el);
+	
+	        const transportView = new TransportView({ model : sequence });
 	        container.after(transportView.$el);
 	    },
 	
@@ -35380,6 +35386,59 @@
 	        item.addEventListener('click', onClickItem);
 	    }
 	}
+
+/***/ },
+/* 20 */
+/***/ function(module, exports, __webpack_require__) {
+
+	const $ = __webpack_require__(1);
+	const _ = __webpack_require__(5);
+	const Backbone = __webpack_require__(3);
+	
+	module.exports = Backbone.View.extend({
+	    tagName : 'div',
+	    className : 'sequencer-container',
+	
+	    // Lifecycle
+	    initialize : function() {
+	        const chordList = this.model.get('chordList');
+	        this.listenTo(this.model, "change:loopLength", this.updateLoopLength);
+	        this.listenTo(chordList, "add", this.addChord);
+	        this.listenTo(chordList, "remove", this.removeChord);
+	        this.listenTo(chordList, "change", this.updateChord);
+	        this.create();
+	    },
+	
+	    create : function() {
+	        const html = __webpack_require__(21);
+	        this.$el.append(html);
+	    },
+	
+	    // Model events
+	    updateLoopLength : function(sequence) {
+	    },
+	
+	    updateChordList : function(sequence) {
+	    },
+	
+	    addChord : function(chord, chordList) {
+	        console.log(chordList, chord);
+	    },
+	
+	    removeChord : function(chord, chordList) {
+	        console.log(chordList, chord);
+	    },
+	
+	    updateChord : function(chord, chordList) {
+	        console.log(chordList, chord);
+	    }
+	});
+
+/***/ },
+/* 21 */
+/***/ function(module, exports) {
+
+	module.exports = "<div class=\"scroll-indicator scroll-indicator-left hidden\">\n  <i class=\"fa fa-chevron-left fa-4\" aria-hidden=\"true\"></i>\n</div>\n<div class=\"chord-sequencer\">\n  <div id=\"chord-background\">\n  </div>\n  <i class=\"position-indicator\" class=\"fa fa-caret-up fa-lg\"\n  aria-hidden=\"true\"></i>\n</div>\n<div class=\"scroll-indicator scroll-indicator-right hidden\">\n  <i class=\"fa fa-chevron-right fa-4\" aria-hidden=\"true\"></i>\n</div>\n";
 
 /***/ }
 /******/ ]);

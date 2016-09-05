@@ -23,6 +23,6 @@ module.exports = Backbone.Model.extend({
     },
 
     defaults : {
-        chordList : function() { return new ChordList; }
+        chordList : []
     }
 });
