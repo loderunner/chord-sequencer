@@ -35155,6 +35155,7 @@
 	const Tone = __webpack_require__(8);
 	
 	const Draggable = __webpack_require__(15);
+	const DropdownMenu = __webpack_require__(19);
 	
 	module.exports = Backbone.View.extend({
 	    tagName : 'section',
@@ -35174,6 +35175,9 @@
 	        this.$loopControl = this.$('.loop-control');
 	
 	        Draggable(this.$loopControl.find('.tempo.value')[0]);
+	        for (menu of this.$el.find('.dropdown-menu')) {
+	            DropdownMenu(menu);
+	        };
 	
 	        var self = this;
 	        Tone.Transport.scheduleRepeat(function(time) {
@@ -35186,9 +35190,9 @@
 	        'click button.stop' : 'clickStop',
 	        'draggable-drag .tempo.value' : 'dragTempo',
 	        'click .dropdown-menu' : 'clickDropdownMenu',
-	        // 'click .dropdown-menu.zoom ul li' : 'clickZoomItem',
-	        // 'click .dropdown-menu.grid ul li' : 'clickGridItem',
-	        'click .dropdown-menu.loop-length ul li' : 'clickLoopLengthItem'
+	        'select .dropdown-menu.zoom' : 'selectZoom',
+	        'select .dropdown-menu.grid' : 'selectGrid',
+	        'select .dropdown-menu.loop-length' : 'selectLoopLength'
 	    },
 	
 	    updateTempo : function() {
@@ -35227,19 +35231,15 @@
 	        this.model.set('tempo', Math.min(bpmMax, Math.max(bpmMin, Math.round(tempo - e.originalEvent.moveY))));
 	    },
 	
-	    clickDropdownMenu : function(e) {
-	        const $menu = $(e.currentTarget);
-	        if ($menu.hasClass('open')) {
-	            $menu.removeClass('open');
-	        } else {
-	            e.stopPropagation();
-	            $menu.addClass('open');
-	            $(document).one('click', function(e) { $menu.removeClass('open'); })
-	        }
+	    selectZoom : function(e) {
 	    },
 	
-	    clickLoopLengthItem : function(e) {
-	        this.model.set('loopLength', e.currentTarget.getAttribute('data-value'));
+	
+	    selectGrid : function(e) {
+	    },
+	
+	    selectLoopLength : function(e) {
+	        this.model.set('loopLength', e.target.getAttribute('data-value'));
 	    }
 	});
 
@@ -35345,6 +35345,40 @@
 	}
 	
 	module.exports = AudioController;
+
+/***/ },
+/* 19 */
+/***/ function(module, exports) {
+
+	const onClickMenu = function(e) {
+	        const menu = e.currentTarget;
+	        if (menu.classList.contains('open')) {
+	            menu.classList.remove('open');
+	        } else {
+	            e.stopPropagation();
+	            menu.classList.add('open');
+	            document.addEventListener('click', function(e) {
+	                    menu.classList.remove('open');
+	                },
+	                {once : true}
+	            );
+	        }
+	}
+	
+	const onClickItem = function(e) {
+	    const item = e.currentTarget;
+	    const selectEvent = new Event('select', {bubbles: true});
+	    item.dispatchEvent(selectEvent);
+	}
+	
+	module.exports = function(target) {
+	    target.classList.add('dropdown-menu');
+	    target.addEventListener('click', onClickMenu);
+	    const items = target.querySelectorAll('ul>li');
+	    for (item of items) {
+	        item.addEventListener('click', onClickItem);
+	    }
+	}
 
 /***/ }
 /******/ ]);

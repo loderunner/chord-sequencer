@@ -4,6 +4,7 @@ const Backbone = require('backbone-nested-models');
 const Tone = require('tone');
 
 const Draggable = require('view/draggable.js');
+const DropdownMenu = require('view/dropdown-menu.js');
 
 module.exports = Backbone.View.extend({
     tagName : 'section',
@@ -23,6 +24,9 @@ module.exports = Backbone.View.extend({
         this.$loopControl = this.$('.loop-control');
 
         Draggable(this.$loopControl.find('.tempo.value')[0]);
+        for (menu of this.$el.find('.dropdown-menu')) {
+            DropdownMenu(menu);
+        };
 
         var self = this;
         Tone.Transport.scheduleRepeat(function(time) {
@@ -35,9 +39,9 @@ module.exports = Backbone.View.extend({
         'click button.stop' : 'clickStop',
         'draggable-drag .tempo.value' : 'dragTempo',
         'click .dropdown-menu' : 'clickDropdownMenu',
-        // 'click .dropdown-menu.zoom ul li' : 'clickZoomItem',
-        // 'click .dropdown-menu.grid ul li' : 'clickGridItem',
-        'click .dropdown-menu.loop-length ul li' : 'clickLoopLengthItem'
+        'select .dropdown-menu.zoom' : 'selectZoom',
+        'select .dropdown-menu.grid' : 'selectGrid',
+        'select .dropdown-menu.loop-length' : 'selectLoopLength'
     },
 
     updateTempo : function() {
@@ -76,18 +80,14 @@ module.exports = Backbone.View.extend({
         this.model.set('tempo', Math.min(bpmMax, Math.max(bpmMin, Math.round(tempo - e.originalEvent.moveY))));
     },
 
-    clickDropdownMenu : function(e) {
-        const $menu = $(e.currentTarget);
-        if ($menu.hasClass('open')) {
-            $menu.removeClass('open');
-        } else {
-            e.stopPropagation();
-            $menu.addClass('open');
-            $(document).one('click', function(e) { $menu.removeClass('open'); })
-        }
+    selectZoom : function(e) {
     },
 
-    clickLoopLengthItem : function(e) {
-        this.model.set('loopLength', e.currentTarget.getAttribute('data-value'));
+
+    selectGrid : function(e) {
+    },
+
+    selectLoopLength : function(e) {
+        this.model.set('loopLength', e.target.getAttribute('data-value'));
     }
 });
