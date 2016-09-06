@@ -1,4 +1,5 @@
 const $ = require('jquery');
+const Easing = require('jquery.easing');
 const _ = require('underscore');
 const Backbone = require('backbone-nested-models');
 const Tone = require('tone');
@@ -70,7 +71,24 @@ module.exports = Backbone.View.extend({
 
     initEvents : function() {
         const $chordSequencer = this.$('.chord-sequencer');
-        $chordSequencer.on('scroll', this.updateScroll.bind(this));
+        $chordSequencer.scroll(this.updateScroll.bind(this));
+
+        const $scrollIndicatorLeft = this.$('.scroll-indicator-left');
+        $scrollIndicatorLeft.click(this.clickScrollIndicator.bind(this));
+
+        const $scrollIndicatorRight = this.$('.scroll-indicator-right');
+        $scrollIndicatorRight.click(this.clickScrollIndicator.bind(this));
+    },
+
+    clickScrollIndicator : function(e) {
+        const $chordSequencer = this.$('.chord-sequencer');
+        const left = $(e.currentTarget).hasClass('scroll-indicator-left');
+        const deltaScroll = (left?-1:1) * $chordSequencer.get(0).clientWidth;
+        $chordSequencer.animate(
+            { scrollLeft : $chordSequencer.scrollLeft() + deltaScroll},
+            400,
+            'easeOutQuint'
+        );
     },
 
     updateScroll : function(e) {
@@ -91,5 +109,5 @@ module.exports = Backbone.View.extend({
         } else {
             $scrollIndicatorRight.removeClass('hidden');
         }
-    }
+    },
 });

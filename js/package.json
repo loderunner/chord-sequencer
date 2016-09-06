@@ -21,6 +21,7 @@
     "backbone-nested-models": "^2.0.4",
     "html-loader": "^0.4.3",
     "jquery": "^3.1.0",
+    "jquery.easing": "^1.4.1",
     "tone": "^0.7.1"
   }
 }
