@@ -14,6 +14,8 @@ module.exports = Backbone.View.extend({
     initialize : function() {
         this.listenTo(this.model, "change:tempo", this.updateTempo);
         this.listenTo(this.model, "change:loopLength", this.updateLoopLength);
+        this.listenTo(this.model, "change:zoom", this.updateZoom);
+        this.listenTo(this.model, "change:grid", this.updateGrid);
         this.create();
     },
 
@@ -41,11 +43,21 @@ module.exports = Backbone.View.extend({
     },
 
     updateLoopLength : function() {
-        var loopLength = Tone.Time(this.model.get('loopLength')).toBarsBeatsSixteenths();
-        loopLength = loopLength.split(':')[0];
-        this.$loopControl.find('.loop-length .value').text(loopLength
-                                                           + ' bar' 
-                                                           + ((parseInt(loopLength) > 1) ? 's' : ''));
+        const loopLength = this.model.get('loopLength');
+        const selectedItem = this.$viewControl.find('.loop-length li[data-value="' + loopLength + '"]');
+        this.$viewControl.find('.loop-length .value').text(selectedItem.text());
+    },
+
+    updateZoom : function() {
+        const zoom = this.model.get('zoom');
+        const selectedItem = this.$viewControl.find('.zoom li[data-value="' + zoom + '"]');
+        this.$viewControl.find('.zoom .value').text(selectedItem.text());
+    },
+
+    updateGrid : function() {
+        const grid = this.model.get('grid');
+        const selectedItem = this.$viewControl.find('.grid li[data-value="' + grid + '"]');
+        this.$viewControl.find('.grid .value').text(selectedItem.text());
     },
 
     updateTime : function(time) {
