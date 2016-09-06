@@ -35138,8 +35138,8 @@
 	        const deltaScroll = (left?-1:1) * $chordSequencer.get(0).clientWidth;
 	        $chordSequencer.animate(
 	            { scrollLeft : $chordSequencer.scrollLeft() + deltaScroll},
-	            400,
-	            'easeOutQuint'
+	            500,
+	            'easeOutCirc'
 	        );
 	    },
 	
