@@ -1,0 +1,30 @@
+.mn {
+    display: inline-block;
+    font: italic normal normal 14px/1 Garamond,"Times New Roman",serif;
+    font-size: inherit;
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    width: 15px;
+    height: 15px;
+}
+
+.mn-note-whole:before {
+    content: url('img/mn-note-whole.svg');
+}
+
+.mn-note-half:before {
+    content: url('img/mn-note-half.svg');
+}
+
+.mn-note-quarter:before {
+    content: url('img/mn-note-quarter.svg');
+}
+
+.mn-note-eighth:before {
+    content: url('img/mn-note-eighth.svg');
+}
+
+.mn-note-sixteenth:before {
+    content: url('img/mn-note-sixteenth.svg');
+}
