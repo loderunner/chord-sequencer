@@ -94,7 +94,9 @@
 	                start : '3m',
 	                duration : '1m'
 	            }
-	        ]
+	        ],
+	        grid : '16n',
+	        zoom : '1m'
 	    }
 	});
 	
@@ -13909,6 +13911,8 @@
 	 * @property {number}       tempo       - The tempo of the song in BPM. Defaults to 120.
 	 * @property {string}       loopLength  - The length of the current loop in Tone.js musical time notation. Defaults to `'1m'`.
 	 * @property {ChordList}    chordList   - The actual list of {@link Chord} events in the sequence.
+	 * @property {string}       grid        - The current grid subdivision in Tone.js musical time notation.
+	 * @property {string}       zoom        - The length of the part displayed in the chord sequencer in Tone.js musical time notation.
 	 *
 	 * @extends Backbone.Model
 	 */
@@ -35062,11 +35066,10 @@
 	
 	    // Lifecycle
 	    initialize : function() {
-	        this.grid = '16n';
-	        this.zoom = '1m';
-	
 	        const chordList = this.model.get('chordList');
-	        this.listenTo(this.model, "change:loopLength", this.updateLoopLength);
+	        this.listenTo(this.model, "change:loopLength", this.updateLoop);
+	        this.listenTo(this.model, "change:zoom", this.updateLoop);
+	        this.listenTo(this.model, "change:grid", this.updateLoop);
 	        this.listenTo(chordList, "add", this.addChord);
 	        this.listenTo(chordList, "remove", this.removeChord);
 	        this.listenTo(chordList, "change", this.updateChord);
@@ -35081,27 +35084,29 @@
 	    },
 	
 	    // Model events
-	    updateLoopLength : function(sequence) {
+	    updateLoop : function(sequence) {
 	        const $backgrounds = this.$('.chord-background');
 	        $backgrounds.empty();
 	
 	        const loopLength = sequence.get('loopLength');
 	
-	        const viewInTicks = Tone.Time(this.zoom).toTicks();
-	        const gridInTicks = Tone.Time(this.grid).toTicks();
+	        const viewInTicks = Tone.Time(this.model.get('zoom')).toTicks();
+	        const gridInTicks = Tone.Time(this.model.get('grid')).toTicks();
 	        const numberOfSubdivisions = Tone.Time(loopLength).toTicks() / gridInTicks;
+	        var $chords = $();
 	        for (var i = 0; i < numberOfSubdivisions; i++) {
 	            const $chordBackground = $('<chord class="chord-background">');
-	            const beat = parseInt(Tone.Time(this.grid).mult(i).toBarsBeatsSixteenths().split(':')[1]);
-	            if ((beat%2) === 0)
+	            const beat = parseInt(Tone.Time(this.model.get('grid')).mult(i).toBarsBeatsSixteenths().split(':')[1]);
+	            if (beat&1)
 	            {
 	                $chordBackground.addClass('offbeat');
 	            }
 	            const startInTicks = gridInTicks * i;
 	            $chordBackground.css('left', 'calc(100% * ' + startInTicks + ' / ' + viewInTicks + ')');
 	            $chordBackground.css('width', 'calc(100% * ' + gridInTicks + ' / ' + viewInTicks + ' - 2px)');
-	            $backgrounds.append($chordBackground);
+	            $chords = $chords.add($chordBackground);
 	        }
+	        $backgrounds.append($chords);
 	
 	        this.updateScroll();
 	    },
@@ -35110,15 +35115,12 @@
 	    },
 	
 	    addChord : function(chord, chordList) {
-	        console.log(chordList, chord);
 	    },
 	
 	    removeChord : function(chord, chordList) {
-	        console.log(chordList, chord);
 	    },
 	
 	    updateChord : function(chord, chordList) {
-	        console.log(chordList, chord);
 	    },
 	
 	    // UI events
@@ -35182,11 +35184,11 @@
 	        var xRatio = (x + $chordSequencer.scrollLeft() - $chordSequencer.offset().left) / $chordSequencer.get(0).scrollWidth;
 	        time.mult(xRatio);
 	        if (quantize === 'floor') {
-	            time.sub(Tone.Time(this.grid).div(2));
-	            time.quantize(Tone.Time(this.grid));
+	            time.sub(Tone.Time(this.model.get('grid')).div(2));
+	            time.quantize(Tone.Time(this.model.get('grid')));
 	        }
 	        else if (quantize === true || quantize === 'quantize') {
-	            time.quantize(Tone.Time(this.grid));
+	            time.quantize(Tone.Time(this.model.get('grid')));
 	        }
 	        
 	        return time;
@@ -35564,10 +35566,12 @@
 	    },
 	
 	    selectZoom : function(e) {
+	        this.model.set('zoom', e.target.getAttribute('data-value'));
 	    },
 	
 	
 	    selectGrid : function(e) {
+	        this.model.set('grid', e.target.getAttribute('data-value'));
 	    },
 	
 	    selectLoopLength : function(e) {
@@ -35659,7 +35663,7 @@
 /* 20 */
 /***/ function(module, exports) {
 
-	module.exports = "<subsection class=\"view-control disabled\">\n    <div class=\"control\">\n        <div class=\"label\">Grid</div>\n        <div class=\"grid dropdown-menu\">\n            <div><span class=\"value\">1/16</span><span class=\"fa fa-caret-down\"></span></div>\n            <ul>\n            <li class=\"menu-item\" data-value=\"16n\">1/16</li>\n            <li class=\"menu-item\" data-value=\"8t\">1/8T</li>\n            <li class=\"menu-item\" data-value=\"8n\">1/8</li>\n            <li class=\"menu-item\" data-value=\"8n + 16n\">1/8&bull;</li>\n            <li class=\"menu-item\" data-value=\"4t\">1/4T</li>\n            <li class=\"menu-item\" data-value=\"4n\">1/4</li>\n            <li class=\"menu-item\" data-value=\"4n + 8n\">1/4&bull;</li>\n            <li class=\"menu-item\" data-value=\"2t\">1/2T</li>\n            <li class=\"menu-item\" data-value=\"2n\">1/2</li>\n            <li class=\"menu-item\" data-value=\"2n + 4n\">1/2&bull;</li>\n            <li class=\"menu-item\" data-value=\"1n\">1</li>\n            </ul>\n        </div>\n    </div>\n    <div class=\"control\">\n        <div class=\"label\">Zoom</div>\n        <div class=\"zoom dropdown-menu\">\n            <div><span class=\"value\">1 bar</span><span class=\"fa fa-caret-down\"></span></div>\n            <ul>\n            <li class=\"menu-item\" data-value=\"1m\">1 bar</li>\n            <li class=\"menu-item\" data-value=\"2m\">2 bars</li>\n            <li class=\"menu-item\" data-value=\"4m\">4 bars</li>\n            <li class=\"menu-item\" data-value=\"8m\">8 bars</li>\n            </ul>\n        </div>\n    </div>\n</subsection>\n<subsection class=\"transport-control\">\n    <div class=\"play-control\"><button class=\"play\"><i class=\"fa fa-play\"></i></button><button class=\"stop\"><i class=\"fa fa-stop\"></i></button></div>\n    <div class=\"counter\">00:00:00</div>\n</subsection>\n<subsection class=\"loop-control\">\n    <div class=\"control\">\n        <div><span class=\"tempo value\" data-min=\"40\" data-max=\"250\">120 bpm</span></div>\n        <div class=\"label\">Tempo</div>\n    </div>\n    <div class=\"control\">\n        <div class=\"loop-length dropdown-menu\">\n            <div><span class=\"fa fa-caret-down\"></span><span class=\"value\">1 bar</span></div>\n            <ul>\n            <li class=\"menu-item\" data-value=\"1m\">1 bar</li>\n            <li class=\"menu-item\" data-value=\"2m\">2 bars</li>\n            <li class=\"menu-item\" data-value=\"4m\">4 bars</li>\n            <li class=\"menu-item\" data-value=\"8m\">8 bars</li>\n            </ul>\n        </div>\n        <div class=\"label\">Loop length</div>\n    </div>\n</subsection>";
+	module.exports = "<subsection class=\"view-control\">\n    <div class=\"control\">\n        <div class=\"label\">Grid</div>\n        <div class=\"grid dropdown-menu\">\n            <div><span class=\"value\">1/16</span><span class=\"fa fa-caret-down\"></span></div>\n            <ul>\n            <li class=\"menu-item\" data-value=\"16n\">1/16</li>\n            <li class=\"menu-item\" data-value=\"8t\">1/8T</li>\n            <li class=\"menu-item\" data-value=\"8n\">1/8</li>\n            <li class=\"menu-item\" data-value=\"8n + 16n\">1/8&bull;</li>\n            <li class=\"menu-item\" data-value=\"4t\">1/4T</li>\n            <li class=\"menu-item\" data-value=\"4n\">1/4</li>\n            <li class=\"menu-item\" data-value=\"4n + 8n\">1/4&bull;</li>\n            <li class=\"menu-item\" data-value=\"2t\">1/2T</li>\n            <li class=\"menu-item\" data-value=\"2n\">1/2</li>\n            <li class=\"menu-item\" data-value=\"2n + 4n\">1/2&bull;</li>\n            <li class=\"menu-item\" data-value=\"1n\">1</li>\n            </ul>\n        </div>\n    </div>\n    <div class=\"control\">\n        <div class=\"label\">Zoom</div>\n        <div class=\"zoom dropdown-menu\">\n            <div><span class=\"value\">1 bar</span><span class=\"fa fa-caret-down\"></span></div>\n            <ul>\n            <li class=\"menu-item\" data-value=\"1m\">1 bar</li>\n            <li class=\"menu-item\" data-value=\"2m\">2 bars</li>\n            <li class=\"menu-item\" data-value=\"4m\">4 bars</li>\n            <li class=\"menu-item\" data-value=\"8m\">8 bars</li>\n            </ul>\n        </div>\n    </div>\n</subsection>\n<subsection class=\"transport-control\">\n    <div class=\"play-control\"><button class=\"play\"><i class=\"fa fa-play\"></i></button><button class=\"stop\"><i class=\"fa fa-stop\"></i></button></div>\n    <div class=\"counter\">00:00:00</div>\n</subsection>\n<subsection class=\"loop-control\">\n    <div class=\"control\">\n        <div><span class=\"tempo value\" data-min=\"40\" data-max=\"250\">120 bpm</span></div>\n        <div class=\"label\">Tempo</div>\n    </div>\n    <div class=\"control\">\n        <div class=\"loop-length dropdown-menu\">\n            <div><span class=\"fa fa-caret-down\"></span><span class=\"value\">1 bar</span></div>\n            <ul>\n            <li class=\"menu-item\" data-value=\"1m\">1 bar</li>\n            <li class=\"menu-item\" data-value=\"2m\">2 bars</li>\n            <li class=\"menu-item\" data-value=\"4m\">4 bars</li>\n            <li class=\"menu-item\" data-value=\"8m\">8 bars</li>\n            </ul>\n        </div>\n        <div class=\"label\">Loop length</div>\n    </div>\n</subsection>";
 
 /***/ },
 /* 21 */

@@ -84,10 +84,12 @@ module.exports = Backbone.View.extend({
     },
 
     selectZoom : function(e) {
+        this.model.set('zoom', e.target.getAttribute('data-value'));
     },
 
 
     selectGrid : function(e) {
+        this.model.set('grid', e.target.getAttribute('data-value'));
     },
 
     selectLoopLength : function(e) {

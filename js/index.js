@@ -48,7 +48,9 @@ song.set({
                 start : '3m',
                 duration : '1m'
             }
-        ]
+        ],
+        grid : '16n',
+        zoom : '1m'
     }
 });
 

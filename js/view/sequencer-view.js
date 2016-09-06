@@ -10,11 +10,10 @@ module.exports = Backbone.View.extend({
 
     // Lifecycle
     initialize : function() {
-        this.grid = '16n';
-        this.zoom = '1m';
-
         const chordList = this.model.get('chordList');
-        this.listenTo(this.model, "change:loopLength", this.updateLoopLength);
+        this.listenTo(this.model, "change:loopLength", this.updateLoop);
+        this.listenTo(this.model, "change:zoom", this.updateLoop);
+        this.listenTo(this.model, "change:grid", this.updateLoop);
         this.listenTo(chordList, "add", this.addChord);
         this.listenTo(chordList, "remove", this.removeChord);
         this.listenTo(chordList, "change", this.updateChord);
@@ -29,27 +28,29 @@ module.exports = Backbone.View.extend({
     },
 
     // Model events
-    updateLoopLength : function(sequence) {
+    updateLoop : function(sequence) {
         const $backgrounds = this.$('.chord-background');
         $backgrounds.empty();
 
         const loopLength = sequence.get('loopLength');
 
-        const viewInTicks = Tone.Time(this.zoom).toTicks();
-        const gridInTicks = Tone.Time(this.grid).toTicks();
+        const viewInTicks = Tone.Time(this.model.get('zoom')).toTicks();
+        const gridInTicks = Tone.Time(this.model.get('grid')).toTicks();
         const numberOfSubdivisions = Tone.Time(loopLength).toTicks() / gridInTicks;
+        var $chords = $();
         for (var i = 0; i < numberOfSubdivisions; i++) {
             const $chordBackground = $('<chord class="chord-background">');
-            const beat = parseInt(Tone.Time(this.grid).mult(i).toBarsBeatsSixteenths().split(':')[1]);
-            if ((beat%2) === 0)
+            const beat = parseInt(Tone.Time(this.model.get('grid')).mult(i).toBarsBeatsSixteenths().split(':')[1]);
+            if (beat&1)
             {
                 $chordBackground.addClass('offbeat');
             }
             const startInTicks = gridInTicks * i;
             $chordBackground.css('left', 'calc(100% * ' + startInTicks + ' / ' + viewInTicks + ')');
             $chordBackground.css('width', 'calc(100% * ' + gridInTicks + ' / ' + viewInTicks + ' - 2px)');
-            $backgrounds.append($chordBackground);
+            $chords = $chords.add($chordBackground);
         }
+        $backgrounds.append($chords);
 
         this.updateScroll();
     },
@@ -58,15 +59,12 @@ module.exports = Backbone.View.extend({
     },
 
     addChord : function(chord, chordList) {
-        console.log(chordList, chord);
     },
 
     removeChord : function(chord, chordList) {
-        console.log(chordList, chord);
     },
 
     updateChord : function(chord, chordList) {
-        console.log(chordList, chord);
     },
 
     // UI events
@@ -130,11 +128,11 @@ module.exports = Backbone.View.extend({
         var xRatio = (x + $chordSequencer.scrollLeft() - $chordSequencer.offset().left) / $chordSequencer.get(0).scrollWidth;
         time.mult(xRatio);
         if (quantize === 'floor') {
-            time.sub(Tone.Time(this.grid).div(2));
-            time.quantize(Tone.Time(this.grid));
+            time.sub(Tone.Time(this.model.get('grid')).div(2));
+            time.quantize(Tone.Time(this.model.get('grid')));
         }
         else if (quantize === true || quantize === 'quantize') {
-            time.quantize(Tone.Time(this.grid));
+            time.quantize(Tone.Time(this.model.get('grid')));
         }
         
         return time;

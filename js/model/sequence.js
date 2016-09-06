@@ -14,6 +14,8 @@ const ChordList = require('model/chord-list.js');
  * @property {number}       tempo       - The tempo of the song in BPM. Defaults to 120.
  * @property {string}       loopLength  - The length of the current loop in Tone.js musical time notation. Defaults to `'1m'`.
  * @property {ChordList}    chordList   - The actual list of {@link Chord} events in the sequence.
+ * @property {string}       grid        - The current grid subdivision in Tone.js musical time notation.
+ * @property {string}       zoom        - The length of the part displayed in the chord sequencer in Tone.js musical time notation.
  *
  * @extends Backbone.Model
  */
