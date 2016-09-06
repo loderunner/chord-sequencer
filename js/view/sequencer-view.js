@@ -71,7 +71,7 @@ module.exports = Backbone.View.extend({
 
     // UI events
     events : {
-        'mousedown .chord-sequencer' : 'updateScroll'
+        'click .chord-sequencer' : 'clickChordSequencer'
     },
 
     initEvents : function() {
@@ -115,4 +115,28 @@ module.exports = Backbone.View.extend({
             $scrollIndicatorRight.removeClass('hidden');
         }
     },
+
+    clickChordSequencer : function(e) {
+        const time = this.timeAtPosition(e.clientX, true);
+        console.log(time.toNotation());
+    },
+
+    // Helpers
+    timeAtPosition : function(x, quantize) {
+        const $chordSequencer = this.$('.chord-sequencer');
+        const loopLength = this.model.get('loopLength');
+
+        var time = Tone.Time(loopLength);
+        var xRatio = (x + $chordSequencer.scrollLeft() - $chordSequencer.offset().left) / $chordSequencer.get(0).scrollWidth;
+        time.mult(xRatio);
+        if (quantize === 'floor') {
+            time.sub(Tone.Time(this.grid).div(2));
+            time.quantize(Tone.Time(this.grid));
+        }
+        else if (quantize === true || quantize === 'quantize') {
+            time.quantize(Tone.Time(this.grid));
+        }
+        
+        return time;
+    }
 });
