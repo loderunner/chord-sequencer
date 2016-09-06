@@ -48,7 +48,7 @@
 	
 	const Song = __webpack_require__(2);
 	const SongView = __webpack_require__(10);
-	const Audio = __webpack_require__(21);
+	const Audio = __webpack_require__(22);
 	
 	
 	
@@ -34962,9 +34962,9 @@
 	const Backbone = __webpack_require__(3);
 	
 	const SequencerView = __webpack_require__(11);
-	const KeyView = __webpack_require__(13);
-	const ModeView = __webpack_require__(15);
-	const TransportView = __webpack_require__(16);
+	const KeyView = __webpack_require__(14);
+	const ModeView = __webpack_require__(16);
+	const TransportView = __webpack_require__(17);
 	
 	module.exports = Backbone.View.extend({
 	    tagName : 'div',
@@ -34977,7 +34977,7 @@
 	    },
 	
 	    create : function() {
-	        const html = __webpack_require__(20);
+	        const html = __webpack_require__(21);
 	        this.$el.append(html);
 	
 	        this.$title = this.$('.title');
@@ -35051,7 +35051,7 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	const $ = __webpack_require__(1);
-	const Easing = __webpack_require__(23);
+	const Easing = __webpack_require__(12);
 	const _ = __webpack_require__(5);
 	const Backbone = __webpack_require__(3);
 	const Tone = __webpack_require__(8);
@@ -35076,7 +35076,7 @@
 	    },
 	
 	    create : function() {
-	        const html = __webpack_require__(12);
+	        const html = __webpack_require__(13);
 	        this.$el.append(html);
 	    },
 	
@@ -35172,354 +35172,6 @@
 
 /***/ },
 /* 12 */
-/***/ function(module, exports) {
-
-	module.exports = "<div class=\"scroll-indicator scroll-indicator-left hidden\">\n  <i class=\"fa fa-chevron-left fa-4\" aria-hidden=\"true\"></i>\n</div>\n<div class=\"chord-sequencer\">\n  <div class=\"chord-background\">\n  </div>\n  <i class=\"position-indicator\" class=\"fa fa-caret-up fa-lg\"\n  aria-hidden=\"true\"></i>\n</div>\n<div class=\"scroll-indicator scroll-indicator-right hidden\">\n  <i class=\"fa fa-chevron-right fa-4\" aria-hidden=\"true\"></i>\n</div>\n";
-
-/***/ },
-/* 13 */
-/***/ function(module, exports, __webpack_require__) {
-
-	const $ = __webpack_require__(1);
-	const _ = __webpack_require__(5);
-	const Backbone = __webpack_require__(3);
-	const Tonality = __webpack_require__(14);
-	
-	module.exports = Backbone.View.extend({
-	    tagName : 'section',
-	    className : 'key',
-	
-	    // Lifecycle
-	    initialize : function() {
-	        this.listenTo(this.model, "change:key", this.updateKey);
-	        this.create();
-	    },
-	
-	    create : function() {
-	        this.$el.append('<h2 class="subtitle">Key</h2><div class="radio-group"></div>');
-	        this.$radioGroup = this.$('.radio-group');
-	        for (key of Tonality.keys) {
-	            this.$radioGroup.append('<span data-value="' + key + '"">' + key + '</span>');
-	        }
-	    },
-	
-	    // Model events
-	    updateKey : function() {
-	        const key = this.model.get('key');
-	        this.$radioGroup.children('.selected').removeClass('selected');
-	        this.$radioGroup.children('[data-value=' + key + ']').addClass('selected');
-	    },
-	
-	    // UI events
-	    events : {
-	        'click .radio-group>span' : 'clickRadio'
-	    },
-	
-	    clickRadio : function(e) {
-	        this.model.set('key', $(e.currentTarget).attr('data-value'));
-	    }
-	});
-
-/***/ },
-/* 14 */
-/***/ function(module, exports, __webpack_require__) {
-
-	const _ = __webpack_require__(5);
-	const Backbone = __webpack_require__(3);
-	
-	const Tonality = {
-	    keys : ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'],
-	    modes : ['Major', 'Minor', 'Harmonic', 'Melodic', 'Ionian', 'Dorian', 'Phrygian', 'Lydian', 'Mixolydian', 'Aeolian', 'Locrian']
-	}
-	
-	module.exports = Tonality;
-
-/***/ },
-/* 15 */
-/***/ function(module, exports, __webpack_require__) {
-
-	const $ = __webpack_require__(1);
-	const _ = __webpack_require__(5);
-	const Backbone = __webpack_require__(3);
-	const Tonality = __webpack_require__(14);
-	
-	module.exports = Backbone.View.extend({
-	    tagName : 'section',
-	    className : 'mode',
-	
-	    // Lifecycle
-	    initialize : function() {
-	        this.listenTo(this.model, "change:mode", this.updateMode);
-	        this.create();
-	    },
-	
-	    create : function() {
-	        this.$el.append('<h2 class="subtitle">Mode</h2><div class="radio-group"></div>');
-	        this.$radioGroup = this.$('.radio-group');
-	        for (mode of Tonality.modes) {
-	            this.$radioGroup.append('<span data-value="' + mode + '"">' + mode + '</span>');
-	        }
-	    },
-	
-	    // Model events
-	    updateMode : function() {
-	        const mode = this.model.get('mode');
-	        this.$radioGroup.children('.selected').removeClass('selected');
-	        this.$radioGroup.children('[data-value=' + mode + ']').addClass('selected');
-	    },
-	
-	    // UI events
-	    events : {
-	        'click .radio-group>span' : 'clickRadio'
-	    },
-	
-	    clickRadio : function(e) {
-	        this.model.set('mode', $(e.currentTarget).attr('data-value'));
-	    }
-	});
-
-/***/ },
-/* 16 */
-/***/ function(module, exports, __webpack_require__) {
-
-	const $ = __webpack_require__(1);
-	const _ = __webpack_require__(5);
-	const Backbone = __webpack_require__(3);
-	const Tone = __webpack_require__(8);
-	
-	const Draggable = __webpack_require__(17);
-	const DropdownMenu = __webpack_require__(18);
-	
-	module.exports = Backbone.View.extend({
-	    tagName : 'section',
-	    className : 'transport',
-	
-	    // Lifecycle
-	    initialize : function() {
-	        this.listenTo(this.model, "change:tempo", this.updateTempo);
-	        this.listenTo(this.model, "change:loopLength", this.updateLoopLength);
-	        this.create();
-	    },
-	
-	    create : function() {
-	        const html = __webpack_require__(19);
-	        this.$el.append(html);
-	        this.$viewControl = this.$('.view-control');
-	        this.$transportControl = this.$('.transport-control');
-	        this.$loopControl = this.$('.loop-control');
-	
-	        Draggable(this.$loopControl.find('.tempo.value')[0]);
-	        for (menu of this.$el.find('.dropdown-menu')) {
-	            DropdownMenu(menu);
-	        };
-	
-	        var self = this;
-	        Tone.Transport.scheduleRepeat(function(time) {
-	            self.updateTime(time);
-	        }, "1i");
-	    },
-	
-	    // Model events
-	    updateTempo : function() {
-	        this.$loopControl.find('.tempo.value').text(this.model.get('tempo').toString() + ' bpm');
-	    },
-	
-	    updateLoopLength : function() {
-	        var loopLength = Tone.Time(this.model.get('loopLength')).toBarsBeatsSixteenths();
-	        loopLength = loopLength.split(':')[0];
-	        this.$loopControl.find('.loop-length .value').text(loopLength
-	                                                           + ' bar' 
-	                                                           + ((parseInt(loopLength) > 1) ? 's' : ''));
-	    },
-	
-	    updateTime : function(time) {
-	        const barsBeatsSixteenths = _.map(Tone.Transport.position.split(':'), function(n) {
-	            n = parseInt(n);
-	            return ((n < 10) ? '0' : '') + n.toString();
-	        });
-	        this.$transportControl.find('.counter').text(barsBeatsSixteenths.join(':'));
-	    },
-	
-	    // UI events
-	    events : {
-	        'click button.play' : 'clickPlay',
-	        'click button.stop' : 'clickStop',
-	        'draggable-drag .tempo.value' : 'dragTempo',
-	        'click .dropdown-menu' : 'clickDropdownMenu',
-	        'select .dropdown-menu.zoom' : 'selectZoom',
-	        'select .dropdown-menu.grid' : 'selectGrid',
-	        'select .dropdown-menu.loop-length' : 'selectLoopLength'
-	    },
-	
-	    clickPlay : function() {
-	        Tone.Transport.start();
-	    },
-	
-	    clickStop : function() {
-	        Tone.Transport.stop();
-	    },
-	
-	    dragTempo : function(e) {
-	        const tempo = this.model.get('tempo');
-	        const $tempoEl = this.$loopControl.find('.tempo.value');
-	        const bpmMin = parseInt($tempoEl.attr('data-min'));
-	        const bpmMax = parseInt($tempoEl.attr('data-max'));
-	        this.model.set('tempo', Math.min(bpmMax, Math.max(bpmMin, Math.round(tempo - e.originalEvent.moveY))));
-	    },
-	
-	    selectZoom : function(e) {
-	    },
-	
-	
-	    selectGrid : function(e) {
-	    },
-	
-	    selectLoopLength : function(e) {
-	        this.model.set('loopLength', e.target.getAttribute('data-value'));
-	    }
-	});
-
-/***/ },
-/* 17 */
-/***/ function(module, exports) {
-
-	const onMouseDown = function(e) {
-	    e.stopPropagation();
-	    e.preventDefault();
-	
-	    this.dragOriginX = e.pageX;
-	    this.dragOriginY = e.pageY;
-	    this.previousX = e.pageX;
-	    this.previousY = e.pageY;
-	    this.callback = onMouseMove.bind(this);
-	    document.addEventListener('mousemove', this.callback, {capture : true});
-	    document.addEventListener('mouseup', onMouseUp.bind(this), {capture : true, once : true});
-	}
-	
-	const onMouseMove = function(e) {
-	    e.stopPropagation();
-	    e.preventDefault();
-	
-	    var dragEvent = new CustomEvent('draggable-drag', {bubbles : true});
-	    dragEvent.deltaX = e.pageX - this.dragOriginX;
-	    dragEvent.deltaY = e.pageY - this.dragOriginY;
-	    dragEvent.moveX = e.pageX - this.previousX;
-	    dragEvent.moveY = e.pageY - this.previousY;
-	    this.dispatchEvent(dragEvent);
-	
-	    this.previousX = e.pageX;
-	    this.previousY = e.pageY;
-	}
-	
-	const onMouseUp = function(e) {
-	    e.stopPropagation();
-	    e.preventDefault();
-	
-	    this.dragOriginX = 0;
-	    this.dragOriginY = 0;
-	    document.removeEventListener('mousemove', this.callback, {capture : true});
-	}
-	
-	module.exports = function(target) {
-	    target.classList.add('draggable');
-	    target.addEventListener('mousedown', onMouseDown.bind(target));
-	}
-
-/***/ },
-/* 18 */
-/***/ function(module, exports) {
-
-	const onClickMenu = function(e) {
-	        const menu = e.currentTarget;
-	        if (menu.classList.contains('open')) {
-	            menu.classList.remove('open');
-	        } else {
-	            e.stopPropagation();
-	            menu.classList.add('open');
-	            document.addEventListener('click', function(e) {
-	                    menu.classList.remove('open');
-	                },
-	                {once : true}
-	            );
-	        }
-	}
-	
-	const onClickItem = function(e) {
-	    const item = e.currentTarget;
-	    const selectEvent = new Event('select', {bubbles: true});
-	    item.dispatchEvent(selectEvent);
-	}
-	
-	module.exports = function(target) {
-	    target.classList.add('dropdown-menu');
-	    target.addEventListener('click', onClickMenu);
-	    const items = target.querySelectorAll('ul>li');
-	    for (item of items) {
-	        item.addEventListener('click', onClickItem);
-	    }
-	}
-
-/***/ },
-/* 19 */
-/***/ function(module, exports) {
-
-	module.exports = "<subsection class=\"view-control disabled\">\n    <div class=\"control\">\n        <div class=\"label\">Grid</div>\n        <div class=\"grid dropdown-menu\">\n            <div><span class=\"value\">16</span><span class=\"fa fa-caret-down\"></span></div>\n            <ul>\n            <li class=\"menu-item\" data-value=\"16n\"><i class=\"mn mn-note-sixteenth\"></i></li>\n            <li class=\"menu-item\" data-value=\"8t\"><i class=\"mn mn-note-eighth\">3</i></li>\n            <li class=\"menu-item\" data-value=\"8n\"><i class=\"mn mn-note-eighth\"></i></li>\n            <li class=\"menu-item\" data-value=\"8n + 16n\"><i class=\"mn mn-note-eighth\"></i>&middot;</li>\n            <li class=\"menu-item\" data-value=\"4t\"><i class=\"mn mn-note-quarter\">3</i></li>\n            <li class=\"menu-item\" data-value=\"4n\"><i class=\"mn mn-note-quarter\"></i></li>\n            <li class=\"menu-item\" data-value=\"4n + 8n\"><i class=\"mn mn-note-quarter\"></i>&middot;</li>\n            <li class=\"menu-item\" data-value=\"2t\"><i class=\"mn mn-note-half\">3</i></li>\n            <li class=\"menu-item\" data-value=\"2n\"><i class=\"mn mn-note-half\"></i></li>\n            <li class=\"menu-item\" data-value=\"2n + 4n\"><i class=\"mn mn-note-half\"></i>&middot;</li>\n            <li class=\"menu-item\" data-value=\"1n\"><i class=\"mn mn-note-whole\"></i></li>\n            </ul>\n        </div>\n    </div>\n    <div class=\"control\">\n        <div class=\"label\">Zoom</div>\n        <div class=\"zoom dropdown-menu\">\n            <div><span class=\"value\">1 bar</span><span class=\"fa fa-caret-down\"></span></div>\n            <ul>\n            <li class=\"menu-item\" data-value=\"1m\">1 bar</li>\n            <li class=\"menu-item\" data-value=\"2m\">2 bars</li>\n            <li class=\"menu-item\" data-value=\"4m\">4 bars</li>\n            <li class=\"menu-item\" data-value=\"8m\">8 bars</li>\n            </ul>\n        </div>\n    </div>\n</subsection>\n<subsection class=\"transport-control\">\n    <div class=\"play-control\"><button class=\"play\"><i class=\"fa fa-play\"></i></button><button class=\"stop\"><i class=\"fa fa-stop\"></i></button></div>\n    <div class=\"counter\">00:00:00</div>\n</subsection>\n<subsection class=\"loop-control\">\n    <div class=\"control\">\n        <div><span class=\"tempo value\" data-min=\"40\" data-max=\"250\">120 bpm</span></div>\n        <div class=\"label\">Tempo</div>\n    </div>\n    <div class=\"control\">\n        <div class=\"loop-length dropdown-menu\">\n            <div><span class=\"fa fa-caret-down\"></span><span class=\"value\">1 bar</span></div>\n            <ul>\n            <li class=\"menu-item\" data-value=\"1m\">1 bar</li>\n            <li class=\"menu-item\" data-value=\"2m\">2 bars</li>\n            <li class=\"menu-item\" data-value=\"4m\">4 bars</li>\n            <li class=\"menu-item\" data-value=\"8m\">8 bars</li>\n            </ul>\n        </div>\n        <div class=\"label\">Loop length</div>\n    </div>\n</subsection>";
-
-/***/ },
-/* 20 */
-/***/ function(module, exports) {
-
-	module.exports = "<h1 class=\"title\"></h1>\n<input class=\"edit\">\n<div class=\"row-container\"></div>";
-
-/***/ },
-/* 21 */
-/***/ function(module, exports, __webpack_require__) {
-
-	const _ = __webpack_require__(5);
-	const Backbone = __webpack_require__(3);
-	const Tone = __webpack_require__(8);
-	
-	function AudioController(song) {
-	    _.extend(this, Backbone.Events);
-	
-	    this.synth = new Tone.PolySynth(8, Tone.Synth).toMaster();
-	
-	    const self = this;
-	    this.part = new Tone.Part(function(time, event) {
-	        self.synth.triggerAttackRelease('C3', '8n', time);
-	    }, ['0m', '4n', '2 * 4n', '3 * 4n']);
-	    this.part.start('0m');
-	    this.part.stop('8m');
-	    // part.loopStart = '0m';
-	    // part.loopEnd = '8m';
-	    // part.loop = true;
-	
-	    Tone.Transport.loopStart = "0m";
-	    Tone.Transport.loopEnd = "8m";
-	    Tone.Transport.loop = true;
-	
-	    this.song = song;
-	
-	    this.listenTo(song.get('sequence'), 'change:tempo', this.updateTempo);
-	    this.listenTo(song.get('sequence'), 'change:loopLength', this.updateLoopLength);
-	
-	    return this;
-	}
-	
-	AudioController.prototype.updateTempo = function(sequence) {
-	    Tone.Transport.bpm.value = sequence.get('tempo');
-	}
-	
-	
-	AudioController.prototype.updateLoopLength = function(sequence) {
-	    Tone.Transport.loopEnd = sequence.get('loopLength');
-	}
-	
-	module.exports = AudioController;
-
-/***/ },
-/* 22 */,
-/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*
@@ -35689,6 +35341,353 @@
 	
 	});
 
+
+/***/ },
+/* 13 */
+/***/ function(module, exports) {
+
+	module.exports = "<div class=\"scroll-indicator scroll-indicator-left hidden\">\n  <i class=\"fa fa-chevron-left fa-4\" aria-hidden=\"true\"></i>\n</div>\n<div class=\"chord-sequencer\">\n  <div class=\"chord-background\">\n  </div>\n  <i class=\"position-indicator\" class=\"fa fa-caret-up fa-lg\"\n  aria-hidden=\"true\"></i>\n</div>\n<div class=\"scroll-indicator scroll-indicator-right hidden\">\n  <i class=\"fa fa-chevron-right fa-4\" aria-hidden=\"true\"></i>\n</div>\n";
+
+/***/ },
+/* 14 */
+/***/ function(module, exports, __webpack_require__) {
+
+	const $ = __webpack_require__(1);
+	const _ = __webpack_require__(5);
+	const Backbone = __webpack_require__(3);
+	const Tonality = __webpack_require__(15);
+	
+	module.exports = Backbone.View.extend({
+	    tagName : 'section',
+	    className : 'key',
+	
+	    // Lifecycle
+	    initialize : function() {
+	        this.listenTo(this.model, "change:key", this.updateKey);
+	        this.create();
+	    },
+	
+	    create : function() {
+	        this.$el.append('<h2 class="subtitle">Key</h2><div class="radio-group"></div>');
+	        this.$radioGroup = this.$('.radio-group');
+	        for (key of Tonality.keys) {
+	            this.$radioGroup.append('<span data-value="' + key + '"">' + key + '</span>');
+	        }
+	    },
+	
+	    // Model events
+	    updateKey : function() {
+	        const key = this.model.get('key');
+	        this.$radioGroup.children('.selected').removeClass('selected');
+	        this.$radioGroup.children('[data-value=' + key + ']').addClass('selected');
+	    },
+	
+	    // UI events
+	    events : {
+	        'click .radio-group>span' : 'clickRadio'
+	    },
+	
+	    clickRadio : function(e) {
+	        this.model.set('key', $(e.currentTarget).attr('data-value'));
+	    }
+	});
+
+/***/ },
+/* 15 */
+/***/ function(module, exports, __webpack_require__) {
+
+	const _ = __webpack_require__(5);
+	const Backbone = __webpack_require__(3);
+	
+	const Tonality = {
+	    keys : ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'],
+	    modes : ['Major', 'Minor', 'Harmonic', 'Melodic', 'Ionian', 'Dorian', 'Phrygian', 'Lydian', 'Mixolydian', 'Aeolian', 'Locrian']
+	}
+	
+	module.exports = Tonality;
+
+/***/ },
+/* 16 */
+/***/ function(module, exports, __webpack_require__) {
+
+	const $ = __webpack_require__(1);
+	const _ = __webpack_require__(5);
+	const Backbone = __webpack_require__(3);
+	const Tonality = __webpack_require__(15);
+	
+	module.exports = Backbone.View.extend({
+	    tagName : 'section',
+	    className : 'mode',
+	
+	    // Lifecycle
+	    initialize : function() {
+	        this.listenTo(this.model, "change:mode", this.updateMode);
+	        this.create();
+	    },
+	
+	    create : function() {
+	        this.$el.append('<h2 class="subtitle">Mode</h2><div class="radio-group"></div>');
+	        this.$radioGroup = this.$('.radio-group');
+	        for (mode of Tonality.modes) {
+	            this.$radioGroup.append('<span data-value="' + mode + '"">' + mode + '</span>');
+	        }
+	    },
+	
+	    // Model events
+	    updateMode : function() {
+	        const mode = this.model.get('mode');
+	        this.$radioGroup.children('.selected').removeClass('selected');
+	        this.$radioGroup.children('[data-value=' + mode + ']').addClass('selected');
+	    },
+	
+	    // UI events
+	    events : {
+	        'click .radio-group>span' : 'clickRadio'
+	    },
+	
+	    clickRadio : function(e) {
+	        this.model.set('mode', $(e.currentTarget).attr('data-value'));
+	    }
+	});
+
+/***/ },
+/* 17 */
+/***/ function(module, exports, __webpack_require__) {
+
+	const $ = __webpack_require__(1);
+	const _ = __webpack_require__(5);
+	const Backbone = __webpack_require__(3);
+	const Tone = __webpack_require__(8);
+	
+	const Draggable = __webpack_require__(18);
+	const DropdownMenu = __webpack_require__(19);
+	
+	module.exports = Backbone.View.extend({
+	    tagName : 'section',
+	    className : 'transport',
+	
+	    // Lifecycle
+	    initialize : function() {
+	        this.listenTo(this.model, "change:tempo", this.updateTempo);
+	        this.listenTo(this.model, "change:loopLength", this.updateLoopLength);
+	        this.create();
+	    },
+	
+	    create : function() {
+	        const html = __webpack_require__(20);
+	        this.$el.append(html);
+	        this.$viewControl = this.$('.view-control');
+	        this.$transportControl = this.$('.transport-control');
+	        this.$loopControl = this.$('.loop-control');
+	
+	        Draggable(this.$loopControl.find('.tempo.value')[0]);
+	        for (menu of this.$el.find('.dropdown-menu')) {
+	            DropdownMenu(menu);
+	        };
+	
+	        var self = this;
+	        Tone.Transport.scheduleRepeat(function(time) {
+	            self.updateTime(time);
+	        }, "1i");
+	    },
+	
+	    // Model events
+	    updateTempo : function() {
+	        this.$loopControl.find('.tempo.value').text(this.model.get('tempo').toString() + ' bpm');
+	    },
+	
+	    updateLoopLength : function() {
+	        var loopLength = Tone.Time(this.model.get('loopLength')).toBarsBeatsSixteenths();
+	        loopLength = loopLength.split(':')[0];
+	        this.$loopControl.find('.loop-length .value').text(loopLength
+	                                                           + ' bar' 
+	                                                           + ((parseInt(loopLength) > 1) ? 's' : ''));
+	    },
+	
+	    updateTime : function(time) {
+	        const barsBeatsSixteenths = _.map(Tone.Transport.position.split(':'), function(n) {
+	            n = parseInt(n);
+	            return ((n < 10) ? '0' : '') + n.toString();
+	        });
+	        this.$transportControl.find('.counter').text(barsBeatsSixteenths.join(':'));
+	    },
+	
+	    // UI events
+	    events : {
+	        'click button.play' : 'clickPlay',
+	        'click button.stop' : 'clickStop',
+	        'draggable-drag .tempo.value' : 'dragTempo',
+	        'click .dropdown-menu' : 'clickDropdownMenu',
+	        'select .dropdown-menu.zoom' : 'selectZoom',
+	        'select .dropdown-menu.grid' : 'selectGrid',
+	        'select .dropdown-menu.loop-length' : 'selectLoopLength'
+	    },
+	
+	    clickPlay : function() {
+	        Tone.Transport.start();
+	    },
+	
+	    clickStop : function() {
+	        Tone.Transport.stop();
+	    },
+	
+	    dragTempo : function(e) {
+	        const tempo = this.model.get('tempo');
+	        const $tempoEl = this.$loopControl.find('.tempo.value');
+	        const bpmMin = parseInt($tempoEl.attr('data-min'));
+	        const bpmMax = parseInt($tempoEl.attr('data-max'));
+	        this.model.set('tempo', Math.min(bpmMax, Math.max(bpmMin, Math.round(tempo - e.originalEvent.moveY))));
+	    },
+	
+	    selectZoom : function(e) {
+	    },
+	
+	
+	    selectGrid : function(e) {
+	    },
+	
+	    selectLoopLength : function(e) {
+	        this.model.set('loopLength', e.target.getAttribute('data-value'));
+	    }
+	});
+
+/***/ },
+/* 18 */
+/***/ function(module, exports) {
+
+	const onMouseDown = function(e) {
+	    e.stopPropagation();
+	    e.preventDefault();
+	
+	    this.dragOriginX = e.pageX;
+	    this.dragOriginY = e.pageY;
+	    this.previousX = e.pageX;
+	    this.previousY = e.pageY;
+	    this.callback = onMouseMove.bind(this);
+	    document.addEventListener('mousemove', this.callback, {capture : true});
+	    document.addEventListener('mouseup', onMouseUp.bind(this), {capture : true, once : true});
+	}
+	
+	const onMouseMove = function(e) {
+	    e.stopPropagation();
+	    e.preventDefault();
+	
+	    var dragEvent = new CustomEvent('draggable-drag', {bubbles : true});
+	    dragEvent.deltaX = e.pageX - this.dragOriginX;
+	    dragEvent.deltaY = e.pageY - this.dragOriginY;
+	    dragEvent.moveX = e.pageX - this.previousX;
+	    dragEvent.moveY = e.pageY - this.previousY;
+	    this.dispatchEvent(dragEvent);
+	
+	    this.previousX = e.pageX;
+	    this.previousY = e.pageY;
+	}
+	
+	const onMouseUp = function(e) {
+	    e.stopPropagation();
+	    e.preventDefault();
+	
+	    this.dragOriginX = 0;
+	    this.dragOriginY = 0;
+	    document.removeEventListener('mousemove', this.callback, {capture : true});
+	}
+	
+	module.exports = function(target) {
+	    target.classList.add('draggable');
+	    target.addEventListener('mousedown', onMouseDown.bind(target));
+	}
+
+/***/ },
+/* 19 */
+/***/ function(module, exports) {
+
+	const onClickMenu = function(e) {
+	        const menu = e.currentTarget;
+	        if (menu.classList.contains('open')) {
+	            menu.classList.remove('open');
+	        } else {
+	            e.stopPropagation();
+	            menu.classList.add('open');
+	            document.addEventListener('click', function(e) {
+	                    menu.classList.remove('open');
+	                },
+	                {once : true}
+	            );
+	        }
+	}
+	
+	const onClickItem = function(e) {
+	    const item = e.currentTarget;
+	    const selectEvent = new Event('select', {bubbles: true});
+	    item.dispatchEvent(selectEvent);
+	}
+	
+	module.exports = function(target) {
+	    target.classList.add('dropdown-menu');
+	    target.addEventListener('click', onClickMenu);
+	    const items = target.querySelectorAll('ul>li');
+	    for (item of items) {
+	        item.addEventListener('click', onClickItem);
+	    }
+	}
+
+/***/ },
+/* 20 */
+/***/ function(module, exports) {
+
+	module.exports = "<subsection class=\"view-control disabled\">\n    <div class=\"control\">\n        <div class=\"label\">Grid</div>\n        <div class=\"grid dropdown-menu\">\n            <div><span class=\"value\">1/16</span><span class=\"fa fa-caret-down\"></span></div>\n            <ul>\n            <li class=\"menu-item\" data-value=\"16n\">1/16</li>\n            <li class=\"menu-item\" data-value=\"8t\">1/8T</li>\n            <li class=\"menu-item\" data-value=\"8n\">1/8</li>\n            <li class=\"menu-item\" data-value=\"8n + 16n\">1/8&bull;</li>\n            <li class=\"menu-item\" data-value=\"4t\">1/4T</li>\n            <li class=\"menu-item\" data-value=\"4n\">1/4</li>\n            <li class=\"menu-item\" data-value=\"4n + 8n\">1/4&bull;</li>\n            <li class=\"menu-item\" data-value=\"2t\">1/2T</li>\n            <li class=\"menu-item\" data-value=\"2n\">1/2</li>\n            <li class=\"menu-item\" data-value=\"2n + 4n\">1/2&bull;</li>\n            <li class=\"menu-item\" data-value=\"1n\">1</li>\n            </ul>\n        </div>\n    </div>\n    <div class=\"control\">\n        <div class=\"label\">Zoom</div>\n        <div class=\"zoom dropdown-menu\">\n            <div><span class=\"value\">1 bar</span><span class=\"fa fa-caret-down\"></span></div>\n            <ul>\n            <li class=\"menu-item\" data-value=\"1m\">1 bar</li>\n            <li class=\"menu-item\" data-value=\"2m\">2 bars</li>\n            <li class=\"menu-item\" data-value=\"4m\">4 bars</li>\n            <li class=\"menu-item\" data-value=\"8m\">8 bars</li>\n            </ul>\n        </div>\n    </div>\n</subsection>\n<subsection class=\"transport-control\">\n    <div class=\"play-control\"><button class=\"play\"><i class=\"fa fa-play\"></i></button><button class=\"stop\"><i class=\"fa fa-stop\"></i></button></div>\n    <div class=\"counter\">00:00:00</div>\n</subsection>\n<subsection class=\"loop-control\">\n    <div class=\"control\">\n        <div><span class=\"tempo value\" data-min=\"40\" data-max=\"250\">120 bpm</span></div>\n        <div class=\"label\">Tempo</div>\n    </div>\n    <div class=\"control\">\n        <div class=\"loop-length dropdown-menu\">\n            <div><span class=\"fa fa-caret-down\"></span><span class=\"value\">1 bar</span></div>\n            <ul>\n            <li class=\"menu-item\" data-value=\"1m\">1 bar</li>\n            <li class=\"menu-item\" data-value=\"2m\">2 bars</li>\n            <li class=\"menu-item\" data-value=\"4m\">4 bars</li>\n            <li class=\"menu-item\" data-value=\"8m\">8 bars</li>\n            </ul>\n        </div>\n        <div class=\"label\">Loop length</div>\n    </div>\n</subsection>";
+
+/***/ },
+/* 21 */
+/***/ function(module, exports) {
+
+	module.exports = "<h1 class=\"title\"></h1>\n<input class=\"edit\">\n<div class=\"row-container\"></div>";
+
+/***/ },
+/* 22 */
+/***/ function(module, exports, __webpack_require__) {
+
+	const _ = __webpack_require__(5);
+	const Backbone = __webpack_require__(3);
+	const Tone = __webpack_require__(8);
+	
+	function AudioController(song) {
+	    _.extend(this, Backbone.Events);
+	
+	    this.synth = new Tone.PolySynth(8, Tone.Synth).toMaster();
+	
+	    const self = this;
+	    this.part = new Tone.Part(function(time, event) {
+	        self.synth.triggerAttackRelease('C3', '8n', time);
+	    }, ['0m', '4n', '2 * 4n', '3 * 4n']);
+	    this.part.start('0m');
+	    this.part.stop('8m');
+	    // part.loopStart = '0m';
+	    // part.loopEnd = '8m';
+	    // part.loop = true;
+	
+	    Tone.Transport.loopStart = "0m";
+	    Tone.Transport.loopEnd = "8m";
+	    Tone.Transport.loop = true;
+	
+	    this.song = song;
+	
+	    this.listenTo(song.get('sequence'), 'change:tempo', this.updateTempo);
+	    this.listenTo(song.get('sequence'), 'change:loopLength', this.updateLoopLength);
+	
+	    return this;
+	}
+	
+	AudioController.prototype.updateTempo = function(sequence) {
+	    Tone.Transport.bpm.value = sequence.get('tempo');
+	}
+	
+	
+	AudioController.prototype.updateLoopLength = function(sequence) {
+	    Tone.Transport.loopEnd = sequence.get('loopLength');
+	}
+	
+	module.exports = AudioController;
 
 /***/ }
 /******/ ]);
