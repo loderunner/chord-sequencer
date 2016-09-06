@@ -266,23 +266,23 @@ chord.playing {
   }
 }
 
-chord.background {
+.chord-background>chord {
     z-index: 1000;
     padding: 0;
 }
 
-chord.background:nth-child(8n+1),
-chord.background:nth-child(8n+2),
-chord.background:nth-child(8n+3),
-chord.background:nth-child(8n+4)
+.chord-background>chord:nth-child(8n+1),
+.chord-background>chord:nth-child(8n+2),
+.chord-background>chord:nth-child(8n+3),
+.chord-background>chord:nth-child(8n+4)
 {
     background-color: hsl(197,6%,69%);
 }
 
-chord.background:nth-child(8n+5),
-chord.background:nth-child(8n+6),
-chord.background:nth-child(8n+7),
-chord.background:nth-child(8n+8)
+.chord-background>chord:nth-child(8n+5),
+.chord-background>chord:nth-child(8n+6),
+.chord-background>chord:nth-child(8n+7),
+.chord-background>chord:nth-child(8n+8)
 {
     background-color: hsl(197,6%,63%);
 }
@@ -303,7 +303,7 @@ chord.background:nth-child(8n+8)
     right: 0;
 }
 
-#position-indicator {
+.position-indicator {
     position : absolute;
     bottom: 0px;
     -webkit-transform : translateX(-50%);
@@ -323,30 +323,11 @@ chord.background:nth-child(8n+8)
     align-items: center;
     border-radius: 4px;
     margin: 1px;
-    transition: opacity 0.4s;
+    transition: opacity 0.2s;
 }
 
 .scroll-indicator.hidden {
     opacity: 0;
-}
-
-#transport {
-    -webkit-box-flex: 1;
-    -webkit-flex: 1 0 auto;
-        -ms-flex: 1 0 auto;
-            flex: 1 0 auto;
-}
-
-#transport > div {
-    display: inline-block;
-    width: 50%;
-}
-
-counter {
-    display: block;
-    margin: 0;
-    font-family: monospace;
-    font-size: 1.5em;
 }
 
 button {
@@ -356,22 +337,6 @@ button {
 
 button:focus {
     outline: none;
-}
-
-#bpm-control {
-    text-align: right;
-    min-width: 2.5em;
-    font-weight: bold;
-    font-variant: small-caps;
-}
-
-#bpm-control span {
-    cursor: pointer;
-}
-
-#bpm-control span::after {
-  content: "\A";
-  white-space: pre;
 }
 
 .checkbox {

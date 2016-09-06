@@ -48,7 +48,7 @@
 	
 	const Song = __webpack_require__(2);
 	const SongView = __webpack_require__(10);
-	const Audio = __webpack_require__(18);
+	const Audio = __webpack_require__(21);
 	
 	
 	
@@ -34961,10 +34961,10 @@
 	const _ = __webpack_require__(5);
 	const Backbone = __webpack_require__(3);
 	
-	const SequencerView = __webpack_require__(20);
-	const KeyView = __webpack_require__(11);
-	const ModeView = __webpack_require__(13);
-	const TransportView = __webpack_require__(14);
+	const SequencerView = __webpack_require__(11);
+	const KeyView = __webpack_require__(13);
+	const ModeView = __webpack_require__(15);
+	const TransportView = __webpack_require__(16);
 	
 	module.exports = Backbone.View.extend({
 	    tagName : 'div',
@@ -34977,7 +34977,7 @@
 	    },
 	
 	    create : function() {
-	        const html = __webpack_require__(17);
+	        const html = __webpack_require__(20);
 	        this.$el.append(html);
 	
 	        this.$title = this.$('.title');
@@ -35053,7 +35053,114 @@
 	const $ = __webpack_require__(1);
 	const _ = __webpack_require__(5);
 	const Backbone = __webpack_require__(3);
-	const Tonality = __webpack_require__(12);
+	const Tone = __webpack_require__(8);
+	
+	module.exports = Backbone.View.extend({
+	    tagName : 'div',
+	    className : 'sequencer-container',
+	
+	    // Lifecycle
+	    initialize : function() {
+	        this.grid = '16n';
+	        this.zoom = '1m';
+	
+	        const chordList = this.model.get('chordList');
+	        this.listenTo(this.model, "change:loopLength", this.updateLoopLength);
+	        this.listenTo(chordList, "add", this.addChord);
+	        this.listenTo(chordList, "remove", this.removeChord);
+	        this.listenTo(chordList, "change", this.updateChord);
+	        this.create();
+	
+	        this.initEvents();
+	    },
+	
+	    create : function() {
+	        const html = __webpack_require__(12);
+	        this.$el.append(html);
+	    },
+	
+	    // Model events
+	    updateLoopLength : function(sequence) {
+	        const $backgrounds = this.$('.chord-background');
+	        $backgrounds.empty();
+	
+	        const loopLength = sequence.get('loopLength');
+	
+	        const viewInTicks = Tone.Time(this.zoom).toTicks();
+	        const gridInTicks = Tone.Time(this.grid).toTicks();
+	        const numberOf16ths = Tone.Time(loopLength).toTicks() / gridInTicks;
+	        for (var i = 0; i < numberOf16ths; i++) {
+	            const $chordBackground = $('<chord class="chord-background">');
+	            const startInTicks = gridInTicks * i;
+	            $chordBackground.css('left', 'calc(100% * ' + startInTicks + ' / ' + viewInTicks + ')');
+	            $chordBackground.css('width', 'calc(100% * ' + gridInTicks + ' / ' + viewInTicks + ' - 2px)');
+	            $backgrounds.append($chordBackground);
+	        }
+	
+	        this.updateScroll();
+	    },
+	
+	    updateChordList : function(sequence) {
+	    },
+	
+	    addChord : function(chord, chordList) {
+	        console.log(chordList, chord);
+	    },
+	
+	    removeChord : function(chord, chordList) {
+	        console.log(chordList, chord);
+	    },
+	
+	    updateChord : function(chord, chordList) {
+	        console.log(chordList, chord);
+	    },
+	
+	    // UI events
+	    events : {
+	        'mousedown .chord-sequencer' : 'updateScroll'
+	    },
+	
+	    initEvents : function() {
+	        const $chordSequencer = this.$('.chord-sequencer');
+	        $chordSequencer.on('scroll', this.updateScroll.bind(this));
+	    },
+	
+	    updateScroll : function(e) {
+	        const $chordSequencer = this.$('.chord-sequencer');
+	        const scrollLeft = $chordSequencer.get(0).scrollLeft;
+	        const maxScroll = $chordSequencer.get(0).scrollWidth - $chordSequencer.get(0).clientWidth;
+	
+	        const $scrollIndicatorLeft = this.$('.scroll-indicator-left');
+	        if (scrollLeft > 0) {
+	            $scrollIndicatorLeft.removeClass('hidden');
+	        } else {
+	            $scrollIndicatorLeft.addClass('hidden');
+	        }
+	
+	        const $scrollIndicatorRight = this.$('.scroll-indicator-right');
+	        if (scrollLeft >= maxScroll) {
+	            $scrollIndicatorRight.addClass('hidden');
+	        } else {
+	            $scrollIndicatorRight.removeClass('hidden');
+	        }
+	    }
+	});
+
+
+/***/ },
+/* 12 */
+/***/ function(module, exports) {
+
+	module.exports = "<div class=\"scroll-indicator scroll-indicator-left hidden\">\n  <i class=\"fa fa-chevron-left fa-4\" aria-hidden=\"true\"></i>\n</div>\n<div class=\"chord-sequencer\">\n  <div class=\"chord-background\">\n  </div>\n  <i class=\"position-indicator\" class=\"fa fa-caret-up fa-lg\"\n  aria-hidden=\"true\"></i>\n</div>\n<div class=\"scroll-indicator scroll-indicator-right hidden\">\n  <i class=\"fa fa-chevron-right fa-4\" aria-hidden=\"true\"></i>\n</div>\n";
+
+/***/ },
+/* 13 */
+/***/ function(module, exports, __webpack_require__) {
+
+	const $ = __webpack_require__(1);
+	const _ = __webpack_require__(5);
+	const Backbone = __webpack_require__(3);
+	const Tonality = __webpack_require__(14);
 	
 	module.exports = Backbone.View.extend({
 	    tagName : 'section',
@@ -35091,7 +35198,7 @@
 	});
 
 /***/ },
-/* 12 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
 	const _ = __webpack_require__(5);
@@ -35105,13 +35212,13 @@
 	module.exports = Tonality;
 
 /***/ },
-/* 13 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
 	const $ = __webpack_require__(1);
 	const _ = __webpack_require__(5);
 	const Backbone = __webpack_require__(3);
-	const Tonality = __webpack_require__(12);
+	const Tonality = __webpack_require__(14);
 	
 	module.exports = Backbone.View.extend({
 	    tagName : 'section',
@@ -35149,7 +35256,7 @@
 	});
 
 /***/ },
-/* 14 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
 	const $ = __webpack_require__(1);
@@ -35157,8 +35264,8 @@
 	const Backbone = __webpack_require__(3);
 	const Tone = __webpack_require__(8);
 	
-	const Draggable = __webpack_require__(15);
-	const DropdownMenu = __webpack_require__(19);
+	const Draggable = __webpack_require__(17);
+	const DropdownMenu = __webpack_require__(18);
 	
 	module.exports = Backbone.View.extend({
 	    tagName : 'section',
@@ -35172,7 +35279,7 @@
 	    },
 	
 	    create : function() {
-	        const html = __webpack_require__(16);
+	        const html = __webpack_require__(19);
 	        this.$el.append(html);
 	        this.$viewControl = this.$('.view-control');
 	        this.$transportControl = this.$('.transport-control');
@@ -35250,7 +35357,7 @@
 	});
 
 /***/ },
-/* 15 */
+/* 17 */
 /***/ function(module, exports) {
 
 	const onMouseDown = function(e) {
@@ -35296,19 +35403,53 @@
 	}
 
 /***/ },
-/* 16 */
+/* 18 */
+/***/ function(module, exports) {
+
+	const onClickMenu = function(e) {
+	        const menu = e.currentTarget;
+	        if (menu.classList.contains('open')) {
+	            menu.classList.remove('open');
+	        } else {
+	            e.stopPropagation();
+	            menu.classList.add('open');
+	            document.addEventListener('click', function(e) {
+	                    menu.classList.remove('open');
+	                },
+	                {once : true}
+	            );
+	        }
+	}
+	
+	const onClickItem = function(e) {
+	    const item = e.currentTarget;
+	    const selectEvent = new Event('select', {bubbles: true});
+	    item.dispatchEvent(selectEvent);
+	}
+	
+	module.exports = function(target) {
+	    target.classList.add('dropdown-menu');
+	    target.addEventListener('click', onClickMenu);
+	    const items = target.querySelectorAll('ul>li');
+	    for (item of items) {
+	        item.addEventListener('click', onClickItem);
+	    }
+	}
+
+/***/ },
+/* 19 */
 /***/ function(module, exports) {
 
 	module.exports = "<subsection class=\"view-control disabled\">\n    <div class=\"control\">\n        <div class=\"label\">Grid</div>\n        <div class=\"grid dropdown-menu\">\n            <div><span class=\"value\">16</span><span class=\"fa fa-caret-down\"></span></div>\n            <ul>\n            <li class=\"menu-item\" data-value=\"16n\">16</li>\n            <li class=\"menu-item\" data-value=\"8n\">8</li>\n            <li class=\"menu-item\" data-value=\"4n\">4</li>\n            <li class=\"menu-item\" data-value=\"2n\">2</li>\n            <li class=\"menu-item\" data-value=\"1n\">1</li>\n            </ul>\n        </div>\n    </div>\n    <div class=\"control\">\n        <div class=\"label\">Zoom</div>\n        <div class=\"zoom dropdown-menu\">\n            <div><span class=\"value\">1 bar</span><span class=\"fa fa-caret-down\"></span></div>\n            <ul>\n            <li class=\"menu-item\" data-value=\"1m\">1 bar</li>\n            <li class=\"menu-item\" data-value=\"2m\">2 bars</li>\n            <li class=\"menu-item\" data-value=\"4m\">4 bars</li>\n            <li class=\"menu-item\" data-value=\"8m\">8 bars</li>\n            </ul>\n        </div>\n    </div>\n</subsection>\n<subsection class=\"transport-control\">\n    <div class=\"play-control\"><button class=\"play\"><i class=\"fa fa-play\"></i></button><button class=\"stop\"><i class=\"fa fa-stop\"></i></button></div>\n    <div class=\"counter\">00:00:00</div>\n</subsection>\n<subsection class=\"loop-control\">\n    <div class=\"control\">\n        <div><span class=\"tempo value\" data-min=\"40\" data-max=\"250\">120 bpm</span></div>\n        <div class=\"label\">Tempo</div>\n    </div>\n    <div class=\"control\">\n        <div class=\"loop-length dropdown-menu\">\n            <div><span class=\"fa fa-caret-down\"></span><span class=\"value\">1 bar</span></div>\n            <ul>\n            <li class=\"menu-item\" data-value=\"1m\">1 bar</li>\n            <li class=\"menu-item\" data-value=\"2m\">2 bars</li>\n            <li class=\"menu-item\" data-value=\"4m\">4 bars</li>\n            <li class=\"menu-item\" data-value=\"8m\">8 bars</li>\n            </ul>\n        </div>\n        <div class=\"label\">Loop length</div>\n    </div>\n</subsection>";
 
 /***/ },
-/* 17 */
+/* 20 */
 /***/ function(module, exports) {
 
 	module.exports = "<h1 class=\"title\"></h1>\n<input class=\"edit\">\n<div class=\"row-container\"></div>";
 
 /***/ },
-/* 18 */
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
 	const _ = __webpack_require__(5);
@@ -35352,93 +35493,6 @@
 	}
 	
 	module.exports = AudioController;
-
-/***/ },
-/* 19 */
-/***/ function(module, exports) {
-
-	const onClickMenu = function(e) {
-	        const menu = e.currentTarget;
-	        if (menu.classList.contains('open')) {
-	            menu.classList.remove('open');
-	        } else {
-	            e.stopPropagation();
-	            menu.classList.add('open');
-	            document.addEventListener('click', function(e) {
-	                    menu.classList.remove('open');
-	                },
-	                {once : true}
-	            );
-	        }
-	}
-	
-	const onClickItem = function(e) {
-	    const item = e.currentTarget;
-	    const selectEvent = new Event('select', {bubbles: true});
-	    item.dispatchEvent(selectEvent);
-	}
-	
-	module.exports = function(target) {
-	    target.classList.add('dropdown-menu');
-	    target.addEventListener('click', onClickMenu);
-	    const items = target.querySelectorAll('ul>li');
-	    for (item of items) {
-	        item.addEventListener('click', onClickItem);
-	    }
-	}
-
-/***/ },
-/* 20 */
-/***/ function(module, exports, __webpack_require__) {
-
-	const $ = __webpack_require__(1);
-	const _ = __webpack_require__(5);
-	const Backbone = __webpack_require__(3);
-	
-	module.exports = Backbone.View.extend({
-	    tagName : 'div',
-	    className : 'sequencer-container',
-	
-	    // Lifecycle
-	    initialize : function() {
-	        const chordList = this.model.get('chordList');
-	        this.listenTo(this.model, "change:loopLength", this.updateLoopLength);
-	        this.listenTo(chordList, "add", this.addChord);
-	        this.listenTo(chordList, "remove", this.removeChord);
-	        this.listenTo(chordList, "change", this.updateChord);
-	        this.create();
-	    },
-	
-	    create : function() {
-	        const html = __webpack_require__(21);
-	        this.$el.append(html);
-	    },
-	
-	    // Model events
-	    updateLoopLength : function(sequence) {
-	    },
-	
-	    updateChordList : function(sequence) {
-	    },
-	
-	    addChord : function(chord, chordList) {
-	        console.log(chordList, chord);
-	    },
-	
-	    removeChord : function(chord, chordList) {
-	        console.log(chordList, chord);
-	    },
-	
-	    updateChord : function(chord, chordList) {
-	        console.log(chordList, chord);
-	    }
-	});
-
-/***/ },
-/* 21 */
-/***/ function(module, exports) {
-
-	module.exports = "<div class=\"scroll-indicator scroll-indicator-left hidden\">\n  <i class=\"fa fa-chevron-left fa-4\" aria-hidden=\"true\"></i>\n</div>\n<div class=\"chord-sequencer\">\n  <div id=\"chord-background\">\n  </div>\n  <i class=\"position-indicator\" class=\"fa fa-caret-up fa-lg\"\n  aria-hidden=\"true\"></i>\n</div>\n<div class=\"scroll-indicator scroll-indicator-right hidden\">\n  <i class=\"fa fa-chevron-right fa-4\" aria-hidden=\"true\"></i>\n</div>\n";
 
 /***/ }
 /******/ ]);
