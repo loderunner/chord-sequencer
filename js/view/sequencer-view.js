@@ -37,9 +37,14 @@ module.exports = Backbone.View.extend({
 
         const viewInTicks = Tone.Time(this.zoom).toTicks();
         const gridInTicks = Tone.Time(this.grid).toTicks();
-        const numberOf16ths = Tone.Time(loopLength).toTicks() / gridInTicks;
-        for (var i = 0; i < numberOf16ths; i++) {
+        const numberOfSubdivisions = Tone.Time(loopLength).toTicks() / gridInTicks;
+        for (var i = 0; i < numberOfSubdivisions; i++) {
             const $chordBackground = $('<chord class="chord-background">');
+            const beat = parseInt(Tone.Time(this.grid).mult(i).toBarsBeatsSixteenths().split(':')[1]);
+            if ((beat%2) === 0)
+            {
+                $chordBackground.addClass('offbeat');
+            }
             const startInTicks = gridInTicks * i;
             $chordBackground.css('left', 'calc(100% * ' + startInTicks + ' / ' + viewInTicks + ')');
             $chordBackground.css('width', 'calc(100% * ' + gridInTicks + ' / ' + viewInTicks + ' - 2px)');

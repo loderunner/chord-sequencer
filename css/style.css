@@ -269,20 +269,10 @@ chord.playing {
 .chord-background>chord {
     z-index: 1000;
     padding: 0;
-}
-
-.chord-background>chord:nth-child(8n+1),
-.chord-background>chord:nth-child(8n+2),
-.chord-background>chord:nth-child(8n+3),
-.chord-background>chord:nth-child(8n+4)
-{
     background-color: hsl(197,6%,69%);
 }
 
-.chord-background>chord:nth-child(8n+5),
-.chord-background>chord:nth-child(8n+6),
-.chord-background>chord:nth-child(8n+7),
-.chord-background>chord:nth-child(8n+8)
+.chord-background>chord.offbeat
 {
     background-color: hsl(197,6%,63%);
 }
