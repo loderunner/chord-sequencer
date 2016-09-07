@@ -112,6 +112,21 @@ module.exports = Backbone.View.extend({
         this.model.set('seventh', !this.model.get('se'));
     },
 
+    dragLeft : function(e) {
+        var x = e.originalEvent.pageX + this.parent.$chordSequencer.scrollLeft() - this.parent.$chordSequencer.offset().left;
+        var time = this.parent.timeForOffset(x, true);
+
+        var d = Tone.Time(this.model.get('start'))
+                        .add(this.model.get('duration'))
+                        .sub(time);
+        if (d.toTicks() > 0) {
+            this.model.set({
+                start: time,
+                duration: d
+            });
+        }
+    },
+
     dragRight : function(e) {
         var x = e.originalEvent.pageX + this.parent.$chordSequencer.scrollLeft() - this.parent.$chordSequencer.offset().left;
         var time = this.parent.timeForOffset(x, true);

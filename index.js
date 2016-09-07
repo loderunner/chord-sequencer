@@ -35647,6 +35647,11 @@
 	    return dragEvent;
 	}
 	
+	const onClick = function(e) {
+	    e.stopPropagation();
+	    document.removeEventListener('click', onClick, {capture : true});        
+	};
+	
 	const onMouseDown = function(e) {
 	    e.stopPropagation();
 	    e.preventDefault();
@@ -35657,8 +35662,15 @@
 	    this.previousY = e.pageY;
 	    this.callback = onMouseMove.bind(this);
 	    document.addEventListener('mousemove', this.callback, {capture : true});
-	    document.addEventListener('mouseup', onMouseUp.bind(this), {capture : true, once : true});
-	    document.addEventListener('click', function(e) { e.stopPropagation(); }, {capture : true, once : true});
+	
+	    const self = this;
+	    const doMouseUp = function(e) {
+	        onMouseUp.call(self, e);
+	        document.removeEventListener('mouseup', doMouseUp, {capture : true});
+	    };
+	
+	    document.addEventListener('mouseup', doMouseUp, {capture : true});
+	    document.addEventListener('click', onClick, {capture : true});
 	}
 	
 	const onMouseMove = function(e) {
@@ -35895,6 +35907,21 @@
 	        e.stopPropagation();
 	        
 	        this.model.set('seventh', !this.model.get('se'));
+	    },
+	
+	    dragLeft : function(e) {
+	        var x = e.originalEvent.pageX + this.parent.$chordSequencer.scrollLeft() - this.parent.$chordSequencer.offset().left;
+	        var time = this.parent.timeForOffset(x, true);
+	
+	        var d = Tone.Time(this.model.get('start'))
+	                        .add(this.model.get('duration'))
+	                        .sub(time);
+	        if (d.toTicks() > 0) {
+	            this.model.set({
+	                start: time,
+	                duration: d
+	            });
+	        }
 	    },
 	
 	    dragRight : function(e) {

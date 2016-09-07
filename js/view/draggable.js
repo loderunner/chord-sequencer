@@ -13,6 +13,11 @@ const DraggableEvent = function(type, e, target) {
     return dragEvent;
 }
 
+const onClick = function(e) {
+    e.stopPropagation();
+    document.removeEventListener('click', onClick, {capture : true});        
+};
+
 const onMouseDown = function(e) {
     e.stopPropagation();
     e.preventDefault();
@@ -23,8 +28,15 @@ const onMouseDown = function(e) {
     this.previousY = e.pageY;
     this.callback = onMouseMove.bind(this);
     document.addEventListener('mousemove', this.callback, {capture : true});
-    document.addEventListener('mouseup', onMouseUp.bind(this), {capture : true, once : true});
-    document.addEventListener('click', function(e) { e.stopPropagation(); }, {capture : true, once : true});
+
+    const self = this;
+    const doMouseUp = function(e) {
+        onMouseUp.call(self, e);
+        document.removeEventListener('mouseup', doMouseUp, {capture : true});
+    };
+
+    document.addEventListener('mouseup', doMouseUp, {capture : true});
+    document.addEventListener('click', onClick, {capture : true});
 }
 
 const onMouseMove = function(e) {
