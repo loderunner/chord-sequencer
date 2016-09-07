@@ -35640,6 +35640,19 @@
 /* 18 */
 /***/ function(module, exports) {
 
+	const DraggableEvent = function(type, e, target) {
+	    var dragEvent = new CustomEvent(type, {bubbles : true});
+	
+	    dragEvent.originX = target.dragOriginX;
+	    dragEvent.originY = target.dragOriginY;
+	    dragEvent.deltaX = e.pageX - target.dragOriginX;
+	    dragEvent.deltaY = e.pageY - target.dragOriginY;
+	    dragEvent.moveX = e.pageX - target.previousX;
+	    dragEvent.moveY = e.pageY - target.previousY;
+	
+	    return dragEvent;
+	}
+	
 	const onMouseDown = function(e) {
 	    e.stopPropagation();
 	    e.preventDefault();
@@ -35657,11 +35670,7 @@
 	    e.stopPropagation();
 	    e.preventDefault();
 	
-	    var dragEvent = new CustomEvent('draggable-drag', {bubbles : true});
-	    dragEvent.deltaX = e.pageX - this.dragOriginX;
-	    dragEvent.deltaY = e.pageY - this.dragOriginY;
-	    dragEvent.moveX = e.pageX - this.previousX;
-	    dragEvent.moveY = e.pageY - this.previousY;
+	    var dragEvent = DraggableEvent('draggable-drag', e, this);
 	    this.dispatchEvent(dragEvent);
 	
 	    this.previousX = e.pageX;
@@ -35785,6 +35794,8 @@
 	const Backbone = __webpack_require__(3);
 	const Tone = __webpack_require__(8);
 	
+	const Draggable = __webpack_require__(18);
+	
 	module.exports = Backbone.View.extend({
 	    tagName: 'chord',
 	
@@ -35814,6 +35825,9 @@
 	        this.$el.append(html);
 	
 	        this.$radioGroup = this.$('.radio-group');
+	
+	        Draggable(this.$('.drag-zone-left').get(0));
+	        Draggable(this.$('.drag-zone-right').get(0));
 	    },
 	
 	    // Model events
@@ -35863,7 +35877,9 @@
 	    events : {
 	        'click' : 'clickChord',
 	        'click .step-group>span' : 'clickStep',
-	        'click .seventh-control' : 'clickSeventh'
+	        'click .seventh-control' : 'clickSeventh',
+	        'draggable-drag .drag-zone-left' : 'dragLeft',
+	        'draggable-drag .drag-zone-right' : 'dragRight',
 	    },
 	
 	    clickChord : function(e) {

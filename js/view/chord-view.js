@@ -4,6 +4,8 @@ const _ = require('underscore');
 const Backbone = require('backbone-nested-models');
 const Tone = require('tone');
 
+const Draggable = require('view/draggable.js');
+
 module.exports = Backbone.View.extend({
     tagName: 'chord',
 
@@ -33,6 +35,9 @@ module.exports = Backbone.View.extend({
         this.$el.append(html);
 
         this.$radioGroup = this.$('.radio-group');
+
+        Draggable(this.$('.drag-zone-left').get(0));
+        Draggable(this.$('.drag-zone-right').get(0));
     },
 
     // Model events
@@ -82,7 +87,9 @@ module.exports = Backbone.View.extend({
     events : {
         'click' : 'clickChord',
         'click .step-group>span' : 'clickStep',
-        'click .seventh-control' : 'clickSeventh'
+        'click .seventh-control' : 'clickSeventh',
+        'draggable-drag .drag-zone-left' : 'dragLeft',
+        'draggable-drag .drag-zone-right' : 'dragRight',
     },
 
     clickChord : function(e) {

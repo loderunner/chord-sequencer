@@ -1,3 +1,16 @@
+const DraggableEvent = function(type, e, target) {
+    var dragEvent = new CustomEvent(type, {bubbles : true});
+
+    dragEvent.originX = target.dragOriginX;
+    dragEvent.originY = target.dragOriginY;
+    dragEvent.deltaX = e.pageX - target.dragOriginX;
+    dragEvent.deltaY = e.pageY - target.dragOriginY;
+    dragEvent.moveX = e.pageX - target.previousX;
+    dragEvent.moveY = e.pageY - target.previousY;
+
+    return dragEvent;
+}
+
 const onMouseDown = function(e) {
     e.stopPropagation();
     e.preventDefault();
@@ -15,11 +28,7 @@ const onMouseMove = function(e) {
     e.stopPropagation();
     e.preventDefault();
 
-    var dragEvent = new CustomEvent('draggable-drag', {bubbles : true});
-    dragEvent.deltaX = e.pageX - this.dragOriginX;
-    dragEvent.deltaY = e.pageY - this.dragOriginY;
-    dragEvent.moveX = e.pageX - this.previousX;
-    dragEvent.moveY = e.pageY - this.previousY;
+    var dragEvent = DraggableEvent('draggable-drag', e, this);
     this.dispatchEvent(dragEvent);
 
     this.previousX = e.pageX;
