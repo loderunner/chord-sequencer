@@ -4,6 +4,8 @@ const _ = require('underscore');
 const Backbone = require('backbone-nested-models');
 const Tone = require('tone');
 
+const ChordView = require('view/chord-view.js');
+
 module.exports = Backbone.View.extend({
     tagName : 'div',
     className : 'sequencer-container',
@@ -65,7 +67,9 @@ module.exports = Backbone.View.extend({
     updateChordList : function(sequence) {
     },
 
-    addChord : function(chord, chordList) {
+    addChord : function(chord) {
+        const chordView = new ChordView({ model : chord });
+        this.$chordSequencer.append(chordView.$el);
     },
 
     removeChord : function(chord, chordList) {

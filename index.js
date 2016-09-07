@@ -34947,8 +34947,9 @@
 	 *
 	 * A `Chord` encapsulates a complete song.
 	 *
-	 * @property {string}       step        - The degree (or step) of the root note of the chord in the scale in roman numerals. Defaults to `'I`'.
+	 * @property {string}       step        - The degree (or step) of the root note of the chord in the scale. Defaults to `0`.
 	 * @property {boolean}      seventh     - `true` if the chord contains a seventh note. Defaults to `false`.
+	 * @property {boolean}      ninth       - `true` if the chord contains a ninth note. Defaults to `false`.
 	 * @property {string}       start       - The start time of the chord in the sequence, in Tone.js time notation. Defaults to `'0m'`.
 	 * @property {string}       duration    - The duration of the chord, in Tone.js time notation. Defaults to `'16n'`.
 	 *
@@ -35060,6 +35061,8 @@
 	const Backbone = __webpack_require__(3);
 	const Tone = __webpack_require__(8);
 	
+	const ChordView = __webpack_require__(23);
+	
 	module.exports = Backbone.View.extend({
 	    tagName : 'div',
 	    className : 'sequencer-container',
@@ -35121,7 +35124,9 @@
 	    updateChordList : function(sequence) {
 	    },
 	
-	    addChord : function(chord, chordList) {
+	    addChord : function(chord) {
+	        const chordView = new ChordView({ model : chord });
+	        this.$chordSequencer.append(chordView.$el);
 	    },
 	
 	    removeChord : function(chord, chordList) {
@@ -35750,6 +35755,72 @@
 	}
 	
 	module.exports = AudioController;
+
+/***/ },
+/* 23 */
+/***/ function(module, exports, __webpack_require__) {
+
+	const $ = __webpack_require__(1);
+	const Easing = __webpack_require__(12);
+	const _ = __webpack_require__(5);
+	const Backbone = __webpack_require__(3);
+	const Tone = __webpack_require__(8);
+	
+	module.exports = Backbone.View.extend({
+	    tagName: 'chord',
+	
+	    // Lifecycle
+	    initialize : function() {
+	        this.listenTo(this.model, "change:start", this.updateStart);
+	        this.listenTo(this.model, "change:duration", this.updateDuration);
+	        this.listenTo(this.model, "change:step", this.updateStep);
+	        this.listenTo(this.model, "change:seventh", this.updateSeventh);
+	        this.create();
+	    },
+	
+	    create : function() {
+	        const html = __webpack_require__(24);
+	        this.$el.append(html);
+	
+	        this.$radioGroup = this.$('.radio-group');
+	    },
+	
+	    // Model events
+	    updateStart : function() {
+	        const sequence = this.model.collection.parent;
+	        const viewInTicks = Tone.Time(sequence.get('zoom')).toTicks();
+	        const startInTicks = Tone.Time(this.model.get('start')).toTicks();
+	        chordElement.style.left = 'calc(100% * ' + startInTicks + ' / ' + viewInTicks + ')';
+	    },
+	
+	    updateDuration : function() {
+	        const sequence = this.model.collection.parent;
+	        const viewInTicks = Tone.Time(sequence.get('zoom')).toTicks();
+	        const durationInTicks = Tone.Time(this.model.get('duration')).toTicks();
+	        chordElement.style.width = 'calc(100% * ' + durationInTicks + ' / ' + viewInTicks + ' - 2px)';
+	    },
+	
+	    updateStep : function() {
+	        const step = this.model.get('step');
+	        this.$radioGroup.children('.selected').removeClass('selected');
+	        this.$radioGroup.children('[data-value=' + step + ']').addClass('selected');
+	    },
+	
+	    // UI events
+	    events : {
+	        'click .radio-group>span' : 'clickRadio'
+	    },
+	
+	    clickRadio : function(e) {
+	        this.model.set('step', $(e.currentTarget).attr('data-value'));
+	    }
+	});
+
+/***/ },
+/* 24 */
+/***/ function(module, exports) {
+
+	module.exports = "<chord>\n    <div class=\"drag-zone drag-zone-left\"></div>\n    <div class=\"drag-zone drag-zone-right\"></div>\n    <div class=\"seventh-control checkbox\">7th <i class=\"seventh-checkbox fa fa-fw fa-square-o\" data-value=\"false\"></i></div>\n    <div class=\"step-group radio-group\">\n        <span data-value=\"6\">VII</span>\n        <span data-value=\"5\">VI</span>\n        <span data-value=\"4\">V</span>\n        <span data-value=\"3\">IV</span>\n        <span data-value=\"2\">III</span>\n        <span data-value=\"1\">II</span>\n        <span data-value=\"0\">I</span>\n    </div>\n</chord>";
 
 /***/ }
 /******/ ]);
