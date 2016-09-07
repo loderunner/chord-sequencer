@@ -35372,7 +35372,7 @@
 /* 13 */
 /***/ function(module, exports) {
 
-	module.exports = "<div class=\"scroll-indicator scroll-indicator-left hidden\">\n  <i class=\"fa fa-chevron-left fa-4\" aria-hidden=\"true\"></i>\n</div>\n<div class=\"chord-sequencer\">\n  <div class=\"chord-background\">\n  </div>\n  <i class=\"position-indicator\" class=\"fa fa-caret-up fa-lg\"\n  aria-hidden=\"true\"></i>\n</div>\n<div class=\"scroll-indicator scroll-indicator-right hidden\">\n  <i class=\"fa fa-chevron-right fa-4\" aria-hidden=\"true\"></i>\n</div>\n";
+	module.exports = "<div class=\"scroll-indicator scroll-indicator-left hidden\">\n  <i class=\"fa fa-chevron-left fa-4\"></i>\n</div>\n<div class=\"chord-sequencer\">\n  <div class=\"chord-background\">\n  </div>\n  <i class=\"position-indicator fa fa-caret-up fa-lg\"></i>\n</div>\n<div class=\"scroll-indicator scroll-indicator-right hidden\">\n  <i class=\"fa fa-chevron-right fa-4\"></i>\n</div>\n";
 
 /***/ },
 /* 14 */
