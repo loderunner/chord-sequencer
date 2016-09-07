@@ -22,31 +22,31 @@ song.set({
         key : 'C',
         mode : 'Major',
         tempo : 120,
-        loopLength : '4m',
+        loopLength : '2m',
         chordList : [
             {
                 step : 0,
                 seventh : false,
                 start : '0m',
-                duration : '1m'
+                duration : '8n'
             },
             {
                 step : 4,
                 seventh : false,
-                start : '1m',
-                duration : '1m'
+                start : '4n',
+                duration : '8n'
             },
             {
                 step : 5,
                 seventh : false,
-                start : '2m',
-                duration : '1m'
+                start : '2n',
+                duration : '8n'
             },
             {
                 step : 3,
                 seventh : true,
-                start : '3m',
-                duration : '1m'
+                start : '2n + 4n',
+                duration : '8n'
             }
         ],
         grid : '16n',

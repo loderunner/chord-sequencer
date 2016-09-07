@@ -9,6 +9,8 @@ module.exports = Backbone.View.extend({
 
     // Lifecycle
     initialize : function() {
+        this.sequence = this.model.collection.parent;
+
         this.create();
 
         this.listenTo(this.model, "change:start", this.updateStart);
@@ -22,7 +24,7 @@ module.exports = Backbone.View.extend({
         this.listenTo(this.model, "change:ninth", this.updateNinth);
         this.updateNinth();
 
-        
+        this.listenTo(this.sequence, "change:zoom", this.updatePosition);
     },
 
     create : function() {
@@ -34,15 +36,13 @@ module.exports = Backbone.View.extend({
 
     // Model events
     updateStart : function() {
-        const sequence = this.model.collection.parent;
-        const viewInTicks = Tone.Time(sequence.get('loopLength')).toTicks();
+        const viewInTicks = Tone.Time(this.sequence.get('zoom')).toTicks();
         const startInTicks = Tone.Time(this.model.get('start')).toTicks();
         this.$el.css('left', "calc(100% * " + startInTicks + " / " + viewInTicks + ")");
     },
 
     updateDuration : function() {
-        const sequence = this.model.collection.parent;
-        const viewInTicks = Tone.Time(sequence.get('loopLength')).toTicks();
+        const viewInTicks = Tone.Time(this.sequence.get('zoom')).toTicks();
         const durationInTicks = Tone.Time(this.model.get('duration')).toTicks();
         this.$el.css('width', "calc(100% * " + durationInTicks + " / " + viewInTicks + " - 2px)");
     },
@@ -66,6 +66,11 @@ module.exports = Backbone.View.extend({
 
     updateNinth : function() {
         const $checkbox = this.$('.ninth-control .checkbox');
+    },
+
+    updatePosition : function() {
+        this.updateStart();
+        this.updateDuration();
     },
 
     // UI events

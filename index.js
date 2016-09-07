@@ -68,31 +68,31 @@
 	        key : 'C',
 	        mode : 'Major',
 	        tempo : 120,
-	        loopLength : '4m',
+	        loopLength : '2m',
 	        chordList : [
 	            {
 	                step : 0,
 	                seventh : false,
 	                start : '0m',
-	                duration : '1m'
+	                duration : '8n'
 	            },
 	            {
 	                step : 4,
 	                seventh : false,
-	                start : '1m',
-	                duration : '1m'
+	                start : '4n',
+	                duration : '8n'
 	            },
 	            {
 	                step : 5,
 	                seventh : false,
-	                start : '2m',
-	                duration : '1m'
+	                start : '2n',
+	                duration : '8n'
 	            },
 	            {
 	                step : 3,
 	                seventh : true,
-	                start : '3m',
-	                duration : '1m'
+	                start : '2n + 4n',
+	                duration : '8n'
 	            }
 	        ],
 	        grid : '16n',
@@ -35782,6 +35782,8 @@
 	
 	    // Lifecycle
 	    initialize : function() {
+	        this.sequence = this.model.collection.parent;
+	
 	        this.create();
 	
 	        this.listenTo(this.model, "change:start", this.updateStart);
@@ -35795,7 +35797,7 @@
 	        this.listenTo(this.model, "change:ninth", this.updateNinth);
 	        this.updateNinth();
 	
-	        
+	        this.listenTo(this.sequence, "change:zoom", this.updatePosition);
 	    },
 	
 	    create : function() {
@@ -35807,15 +35809,13 @@
 	
 	    // Model events
 	    updateStart : function() {
-	        const sequence = this.model.collection.parent;
-	        const viewInTicks = Tone.Time(sequence.get('loopLength')).toTicks();
+	        const viewInTicks = Tone.Time(this.sequence.get('zoom')).toTicks();
 	        const startInTicks = Tone.Time(this.model.get('start')).toTicks();
 	        this.$el.css('left', "calc(100% * " + startInTicks + " / " + viewInTicks + ")");
 	    },
 	
 	    updateDuration : function() {
-	        const sequence = this.model.collection.parent;
-	        const viewInTicks = Tone.Time(sequence.get('loopLength')).toTicks();
+	        const viewInTicks = Tone.Time(this.sequence.get('zoom')).toTicks();
 	        const durationInTicks = Tone.Time(this.model.get('duration')).toTicks();
 	        this.$el.css('width', "calc(100% * " + durationInTicks + " / " + viewInTicks + " - 2px)");
 	    },
@@ -35839,6 +35839,11 @@
 	
 	    updateNinth : function() {
 	        const $checkbox = this.$('.ninth-control .checkbox');
+	    },
+	
+	    updatePosition : function() {
+	        this.updateStart();
+	        this.updateDuration();
 	    },
 	
 	    // UI events
