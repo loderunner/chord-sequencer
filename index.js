@@ -35190,8 +35190,16 @@
 	    },
 	
 	    clickChordSequencer : function(e) {
-	        const time = this.timeForOffset(e.clientX + this.$chordSequencer.scrollLeft() - this.$chordSequencer.offset().left, true);
-	        console.log(time.toNotation());
+	        var x = e.clientX + this.$chordSequencer.scrollLeft() - this.$chordSequencer.offset().left;
+	        const time = this.timeForOffset(x, 'floor');
+	        
+	        const chordList = this.model.get('chordList');
+	        chordList.add({
+	            step : 0,
+	            seventh : false,
+	            start : time.toNotation(),
+	            duration : this.model.get('grid')
+	        });
 	    },
 	
 	    // Helpers
