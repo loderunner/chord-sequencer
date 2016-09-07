@@ -44,8 +44,8 @@ module.exports = Backbone.View.extend({
 
     updateLoopLength : function() {
         const loopLength = this.model.get('loopLength');
-        const selectedItem = this.$viewControl.find('.loop-length li[data-value="' + loopLength + '"]');
-        this.$viewControl.find('.loop-length .value').html(selectedItem.html());
+        const selectedItem = this.$loopControl.find('.loop-length li[data-value="' + loopLength + '"]');
+        this.$loopControl.find('.loop-length .value').html(selectedItem.html());
     },
 
     updateZoom : function() {
