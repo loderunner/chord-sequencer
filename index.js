@@ -35798,6 +35798,7 @@
 	        this.updateNinth();
 	
 	        this.listenTo(this.sequence, "change:zoom", this.updatePosition);
+	        this.listenTo(this.model, "remove", this.removeChord);
 	    },
 	
 	    create : function() {
@@ -35846,10 +35847,21 @@
 	        this.updateDuration();
 	    },
 	
+	    removeChord : function() {
+	        this.$el.remove();
+	    },
+	
 	    // UI events
 	    events : {
+	        'click' : 'clickChord',
 	        'click .step-group>span' : 'clickStep',
 	        'click .seventh-control' : 'clickSeventh'
+	    },
+	
+	    clickChord : function(e) {
+	        e.stopPropagation();
+	
+	        this.model.collection.remove(this.model);
 	    },
 	
 	    clickStep : function(e) {
