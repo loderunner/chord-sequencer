@@ -10,7 +10,9 @@ module.exports = Backbone.View.extend({
     tagName: 'chord',
 
     // Lifecycle
-    initialize : function() {
+    initialize : function(options) {
+        this.parent = options.parent;
+
         this.sequence = this.model.collection.parent;
 
         this.create();
@@ -108,5 +110,15 @@ module.exports = Backbone.View.extend({
         e.stopPropagation();
         
         this.model.set('seventh', !this.model.get('se'));
+    },
+
+    dragRight : function(e) {
+        var x = e.originalEvent.pageX + this.parent.$chordSequencer.scrollLeft() - this.parent.$chordSequencer.offset().left;
+        var time = this.parent.timeForOffset(x, true);
+
+        time.sub(Tone.Time(this.model.get('start')));
+        if (time.toTicks() > 0) {
+            this.model.set('duration', time.toNotation());
+        }
     }
 });

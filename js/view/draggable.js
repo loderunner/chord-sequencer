@@ -3,6 +3,8 @@ const DraggableEvent = function(type, e, target) {
 
     dragEvent.originX = target.dragOriginX;
     dragEvent.originY = target.dragOriginY;
+    dragEvent.pageX = e.pageX;
+    dragEvent.pageY = e.pageY;
     dragEvent.deltaX = e.pageX - target.dragOriginX;
     dragEvent.deltaY = e.pageY - target.dragOriginY;
     dragEvent.moveX = e.pageX - target.previousX;
@@ -22,6 +24,7 @@ const onMouseDown = function(e) {
     this.callback = onMouseMove.bind(this);
     document.addEventListener('mousemove', this.callback, {capture : true});
     document.addEventListener('mouseup', onMouseUp.bind(this), {capture : true, once : true});
+    document.addEventListener('click', function(e) { e.stopPropagation(); }, {capture : true, once : true});
 }
 
 const onMouseMove = function(e) {

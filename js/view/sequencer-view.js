@@ -19,8 +19,6 @@ module.exports = Backbone.View.extend({
         this.listenTo(this.model, "change:zoom", this.updateLoop);
         this.listenTo(this.model, "change:grid", this.updateLoop);
         this.listenTo(chordList, "add", this.addChord);
-        this.listenTo(chordList, "remove", this.removeChord);
-        this.listenTo(chordList, "change", this.updateChord);
 
         this.initEvents();
     },
@@ -69,14 +67,8 @@ module.exports = Backbone.View.extend({
     },
 
     addChord : function(chord) {
-        const chordView = new ChordView({ model : chord });
+        const chordView = new ChordView({ model : chord, parent : this });
         this.$chordSequencer.append(chordView.$el);
-    },
-
-    removeChord : function(chord, chordList) {
-    },
-
-    updateChord : function(chord, chordList) {
     },
 
     updateTime : function() {

@@ -35079,8 +35079,6 @@
 	        this.listenTo(this.model, "change:zoom", this.updateLoop);
 	        this.listenTo(this.model, "change:grid", this.updateLoop);
 	        this.listenTo(chordList, "add", this.addChord);
-	        this.listenTo(chordList, "remove", this.removeChord);
-	        this.listenTo(chordList, "change", this.updateChord);
 	
 	        this.initEvents();
 	    },
@@ -35129,14 +35127,8 @@
 	    },
 	
 	    addChord : function(chord) {
-	        const chordView = new ChordView({ model : chord });
+	        const chordView = new ChordView({ model : chord, parent : this });
 	        this.$chordSequencer.append(chordView.$el);
-	    },
-	
-	    removeChord : function(chord, chordList) {
-	    },
-	
-	    updateChord : function(chord, chordList) {
 	    },
 	
 	    updateTime : function() {
@@ -35645,6 +35637,8 @@
 	
 	    dragEvent.originX = target.dragOriginX;
 	    dragEvent.originY = target.dragOriginY;
+	    dragEvent.pageX = e.pageX;
+	    dragEvent.pageY = e.pageY;
 	    dragEvent.deltaX = e.pageX - target.dragOriginX;
 	    dragEvent.deltaY = e.pageY - target.dragOriginY;
 	    dragEvent.moveX = e.pageX - target.previousX;
@@ -35664,6 +35658,7 @@
 	    this.callback = onMouseMove.bind(this);
 	    document.addEventListener('mousemove', this.callback, {capture : true});
 	    document.addEventListener('mouseup', onMouseUp.bind(this), {capture : true, once : true});
+	    document.addEventListener('click', function(e) { e.stopPropagation(); }, {capture : true, once : true});
 	}
 	
 	const onMouseMove = function(e) {
@@ -35800,7 +35795,9 @@
 	    tagName: 'chord',
 	
 	    // Lifecycle
-	    initialize : function() {
+	    initialize : function(options) {
+	        this.parent = options.parent;
+	
 	        this.sequence = this.model.collection.parent;
 	
 	        this.create();
@@ -35898,6 +35895,16 @@
 	        e.stopPropagation();
 	        
 	        this.model.set('seventh', !this.model.get('se'));
+	    },
+	
+	    dragRight : function(e) {
+	        var x = e.originalEvent.pageX + this.parent.$chordSequencer.scrollLeft() - this.parent.$chordSequencer.offset().left;
+	        var time = this.parent.timeForOffset(x, true);
+	
+	        time.sub(Tone.Time(this.model.get('start')));
+	        if (time.toTicks() > 0) {
+	            this.model.set('duration', time.toNotation());
+	        }
 	    }
 	});
 
