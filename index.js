@@ -90,7 +90,7 @@
 	            },
 	            {
 	                step : 3,
-	                seventh : false,
+	                seventh : true,
 	                start : '3m',
 	                duration : '1m'
 	            }
@@ -35785,6 +35785,8 @@
 	        this.updateStep();
 	        this.listenTo(this.model, "change:seventh", this.updateSeventh);
 	        this.updateSeventh();
+	        this.listenTo(this.model, "change:ninth", this.updateNinth);
+	        this.updateNinth();
 	
 	        
 	    },
@@ -35818,7 +35820,18 @@
 	    },
 	
 	    updateSeventh : function() {
+	        const $checkbox = this.$('.seventh-control .checkbox');
+	        if (this.model.get('seventh')) {
+	            $checkbox.removeClass('fa-square-o');
+	            $checkbox.addClass('fa-check-square-o');
+	        } else {
+	            $checkbox.addClass('fa-square-o');
+	            $checkbox.removeClass('fa-check-square-o');
+	        }
+	    },
 	
+	    updateNinth : function() {
+	        const $checkbox = this.$('.ninth-control .checkbox');
 	    },
 	
 	    // UI events
@@ -35835,7 +35848,7 @@
 /* 24 */
 /***/ function(module, exports) {
 
-	module.exports = "<div class=\"drag-zone drag-zone-left\"></div>\n<div class=\"drag-zone drag-zone-right\"></div>\n<div class=\"seventh-control checkbox\">7th <i class=\"seventh-checkbox fa fa-fw fa-square-o\" data-value=\"false\"></i></div>\n<div class=\"step-group radio-group\">\n    <span data-value=\"6\">VII</span>\n    <span data-value=\"5\">VI</span>\n    <span data-value=\"4\">V</span>\n    <span data-value=\"3\">IV</span>\n    <span data-value=\"2\">III</span>\n    <span data-value=\"1\">II</span>\n    <span data-value=\"0\">I</span>\n</div>";
+	module.exports = "<div class=\"drag-zone drag-zone-left\"></div>\n<div class=\"drag-zone drag-zone-right\"></div>\n<div class=\"control seventh-control\"><span>7th </span><i class=\"checkbox fa fa-fw fa-square-o\"></i></div>\n<div class=\"step-group radio-group\">\n    <span data-value=\"6\">VII</span>\n    <span data-value=\"5\">VI</span>\n    <span data-value=\"4\">V</span>\n    <span data-value=\"3\">IV</span>\n    <span data-value=\"2\">III</span>\n    <span data-value=\"1\">II</span>\n    <span data-value=\"0\">I</span>\n</div>";
 
 /***/ }
 /******/ ]);

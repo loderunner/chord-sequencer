@@ -19,6 +19,8 @@ module.exports = Backbone.View.extend({
         this.updateStep();
         this.listenTo(this.model, "change:seventh", this.updateSeventh);
         this.updateSeventh();
+        this.listenTo(this.model, "change:ninth", this.updateNinth);
+        this.updateNinth();
 
         
     },
@@ -52,7 +54,18 @@ module.exports = Backbone.View.extend({
     },
 
     updateSeventh : function() {
+        const $checkbox = this.$('.seventh-control .checkbox');
+        if (this.model.get('seventh')) {
+            $checkbox.removeClass('fa-square-o');
+            $checkbox.addClass('fa-check-square-o');
+        } else {
+            $checkbox.addClass('fa-square-o');
+            $checkbox.removeClass('fa-check-square-o');
+        }
+    },
 
+    updateNinth : function() {
+        const $checkbox = this.$('.ninth-control .checkbox');
     },
 
     // UI events

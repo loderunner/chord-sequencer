@@ -44,7 +44,7 @@ song.set({
             },
             {
                 step : 3,
-                seventh : false,
+                seventh : true,
                 start : '3m',
                 duration : '1m'
             }
