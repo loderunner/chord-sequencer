@@ -75,7 +75,7 @@ module.exports = Backbone.View.extend({
     },
 
     updateTime : function() {
-        const x = this.positionAtTime(Tone.Time(Tone.Transport.position));
+        const x = this.offsetForTime(Tone.Time(Tone.Transport.position));
         const $positionIndicator = this.$chordSequencer.find('.position-indicator');
         $positionIndicator.css('left', x.toString() + 'px');
     },
@@ -125,16 +125,23 @@ module.exports = Backbone.View.extend({
     },
 
     clickChordSequencer : function(e) {
-        const time = this.timeAtPosition(e.clientX + this.$chordSequencer.scrollLeft() - this.$chordSequencer.offset().left, true);
+        const time = this.timeForOffset(e.clientX + this.$chordSequencer.scrollLeft() - this.$chordSequencer.offset().left, true);
         console.log(time.toNotation());
     },
 
     // Helpers
-    timeAtPosition : function(x, quantize) {
+    timeForOffset : function(x, quantize) {
         const loopLength = this.model.get('loopLength');
 
-        var time = Tone.Time(loopLength);
-        var xRatio = x / this.$chordSequencer.get(0).scrollWidth;
+        const loopTime = Tone.Time(this.model.get('loopLength'));
+        const zoomTime = Tone.Time(this.model.get('zoom'));
+        if (loopTime.toTicks() < zoomTime.toTicks()) {
+            var time = zoomTime;
+        } else {
+            var time = loopTime;
+        }
+        var maxTime = Math.max(Tone.Time(this.model.get('loopLength')).toTicks(), Tone.Time(this.model.get('zoom')).toTicks());;
+        var xRatio = x / Math.max(this.$chordSequencer.get(0).scrollWidth, this.$chordSequencer.innerWidth());
         time.mult(xRatio);
         if (quantize === 'floor') {
             time.sub(Tone.Time(this.model.get('grid')).div(2));
@@ -147,9 +154,9 @@ module.exports = Backbone.View.extend({
         return time;
     },
 
-    positionAtTime : function(time) {
+    offsetForTime : function(time) {
         const position = time.toTicks();
-        const loopLength = Tone.Time(this.model.get('loopLength')).toTicks();
+        const loopLength = Math.max(Tone.Time(this.model.get('loopLength')).toTicks(), Tone.Time(this.model.get('zoom')).toTicks());
         return (this.$chordSequencer.get(0).scrollWidth * position / loopLength);
     }
 });
