@@ -12,6 +12,8 @@ module.exports = Backbone.View.extend({
 
     // Lifecycle
     initialize : function() {
+        this.create();
+        
         const chordList = this.model.get('chordList');
         this.listenTo(this.model, "change:loopLength", this.updateLoop);
         this.listenTo(this.model, "change:zoom", this.updateLoop);
@@ -19,7 +21,6 @@ module.exports = Backbone.View.extend({
         this.listenTo(chordList, "add", this.addChord);
         this.listenTo(chordList, "remove", this.removeChord);
         this.listenTo(chordList, "change", this.updateChord);
-        this.create();
 
         this.initEvents();
     },

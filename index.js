@@ -71,25 +71,25 @@
 	        loopLength : '4m',
 	        chordList : [
 	            {
-	                step : 'I',
+	                step : 0,
 	                seventh : false,
 	                start : '0m',
 	                duration : '1m'
 	            },
 	            {
-	                step : 'V',
+	                step : 4,
 	                seventh : false,
 	                start : '1m',
 	                duration : '1m'
 	            },
 	            {
-	                step : 'VI',
+	                step : 5,
 	                seventh : false,
 	                start : '2m',
 	                duration : '1m'
 	            },
 	            {
-	                step : 'IV',
+	                step : 3,
 	                seventh : false,
 	                start : '3m',
 	                duration : '1m'
@@ -34977,8 +34977,9 @@
 	
 	    // Lifecycle
 	    initialize : function() {
-	        this.listenTo(this.model, "change:title", this.updateTitle);
 	        this.create();
+	        
+	        this.listenTo(this.model, "change:title", this.updateTitle);
 	    },
 	
 	    create : function() {
@@ -35069,6 +35070,8 @@
 	
 	    // Lifecycle
 	    initialize : function() {
+	        this.create();
+	        
 	        const chordList = this.model.get('chordList');
 	        this.listenTo(this.model, "change:loopLength", this.updateLoop);
 	        this.listenTo(this.model, "change:zoom", this.updateLoop);
@@ -35076,7 +35079,6 @@
 	        this.listenTo(chordList, "add", this.addChord);
 	        this.listenTo(chordList, "remove", this.removeChord);
 	        this.listenTo(chordList, "change", this.updateChord);
-	        this.create();
 	
 	        this.initEvents();
 	    },
@@ -35416,8 +35418,9 @@
 	
 	    // Lifecycle
 	    initialize : function() {
-	        this.listenTo(this.model, "change:key", this.updateKey);
 	        this.create();
+	        
+	        this.listenTo(this.model, "change:key", this.updateKey);
 	    },
 	
 	    create : function() {
@@ -35474,8 +35477,8 @@
 	
 	    // Lifecycle
 	    initialize : function() {
-	        this.listenTo(this.model, "change:mode", this.updateMode);
 	        this.create();
+	        this.listenTo(this.model, "change:mode", this.updateMode);
 	    },
 	
 	    create : function() {
@@ -35521,11 +35524,12 @@
 	
 	    // Lifecycle
 	    initialize : function() {
+	        this.create();
+	        
 	        this.listenTo(this.model, "change:tempo", this.updateTempo);
 	        this.listenTo(this.model, "change:loopLength", this.updateLoopLength);
 	        this.listenTo(this.model, "change:zoom", this.updateZoom);
 	        this.listenTo(this.model, "change:grid", this.updateGrid);
-	        this.create();
 	    },
 	
 	    create : function() {
@@ -35771,11 +35775,18 @@
 	
 	    // Lifecycle
 	    initialize : function() {
-	        this.listenTo(this.model, "change:start", this.updateStart);
-	        this.listenTo(this.model, "change:duration", this.updateDuration);
-	        this.listenTo(this.model, "change:step", this.updateStep);
-	        this.listenTo(this.model, "change:seventh", this.updateSeventh);
 	        this.create();
+	
+	        this.listenTo(this.model, "change:start", this.updateStart);
+	        this.updateStart();
+	        this.listenTo(this.model, "change:duration", this.updateDuration);
+	        this.updateDuration();
+	        this.listenTo(this.model, "change:step", this.updateStep);
+	        this.updateStep();
+	        this.listenTo(this.model, "change:seventh", this.updateSeventh);
+	        this.updateSeventh();
+	
+	        
 	    },
 	
 	    create : function() {
@@ -35788,22 +35799,26 @@
 	    // Model events
 	    updateStart : function() {
 	        const sequence = this.model.collection.parent;
-	        const viewInTicks = Tone.Time(sequence.get('zoom')).toTicks();
+	        const viewInTicks = Tone.Time(sequence.get('loopLength')).toTicks();
 	        const startInTicks = Tone.Time(this.model.get('start')).toTicks();
-	        chordElement.style.left = 'calc(100% * ' + startInTicks + ' / ' + viewInTicks + ')';
+	        this.$el.css('left', "calc(100% * " + startInTicks + " / " + viewInTicks + ")");
 	    },
 	
 	    updateDuration : function() {
 	        const sequence = this.model.collection.parent;
-	        const viewInTicks = Tone.Time(sequence.get('zoom')).toTicks();
+	        const viewInTicks = Tone.Time(sequence.get('loopLength')).toTicks();
 	        const durationInTicks = Tone.Time(this.model.get('duration')).toTicks();
-	        chordElement.style.width = 'calc(100% * ' + durationInTicks + ' / ' + viewInTicks + ' - 2px)';
+	        this.$el.css('width', "calc(100% * " + durationInTicks + " / " + viewInTicks + " - 2px)");
 	    },
 	
 	    updateStep : function() {
 	        const step = this.model.get('step');
 	        this.$radioGroup.children('.selected').removeClass('selected');
 	        this.$radioGroup.children('[data-value=' + step + ']').addClass('selected');
+	    },
+	
+	    updateSeventh : function() {
+	
 	    },
 	
 	    // UI events
@@ -35820,7 +35835,7 @@
 /* 24 */
 /***/ function(module, exports) {
 
-	module.exports = "<chord>\n    <div class=\"drag-zone drag-zone-left\"></div>\n    <div class=\"drag-zone drag-zone-right\"></div>\n    <div class=\"seventh-control checkbox\">7th <i class=\"seventh-checkbox fa fa-fw fa-square-o\" data-value=\"false\"></i></div>\n    <div class=\"step-group radio-group\">\n        <span data-value=\"6\">VII</span>\n        <span data-value=\"5\">VI</span>\n        <span data-value=\"4\">V</span>\n        <span data-value=\"3\">IV</span>\n        <span data-value=\"2\">III</span>\n        <span data-value=\"1\">II</span>\n        <span data-value=\"0\">I</span>\n    </div>\n</chord>";
+	module.exports = "<div class=\"drag-zone drag-zone-left\"></div>\n<div class=\"drag-zone drag-zone-right\"></div>\n<div class=\"seventh-control checkbox\">7th <i class=\"seventh-checkbox fa fa-fw fa-square-o\" data-value=\"false\"></i></div>\n<div class=\"step-group radio-group\">\n    <span data-value=\"6\">VII</span>\n    <span data-value=\"5\">VI</span>\n    <span data-value=\"4\">V</span>\n    <span data-value=\"3\">IV</span>\n    <span data-value=\"2\">III</span>\n    <span data-value=\"1\">II</span>\n    <span data-value=\"0\">I</span>\n</div>";
 
 /***/ }
 /******/ ]);

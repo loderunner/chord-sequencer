@@ -12,11 +12,12 @@ module.exports = Backbone.View.extend({
 
     // Lifecycle
     initialize : function() {
+        this.create();
+        
         this.listenTo(this.model, "change:tempo", this.updateTempo);
         this.listenTo(this.model, "change:loopLength", this.updateLoopLength);
         this.listenTo(this.model, "change:zoom", this.updateZoom);
         this.listenTo(this.model, "change:grid", this.updateGrid);
-        this.create();
     },
 
     create : function() {

@@ -9,8 +9,8 @@ module.exports = Backbone.View.extend({
 
     // Lifecycle
     initialize : function() {
-        this.listenTo(this.model, "change:mode", this.updateMode);
         this.create();
+        this.listenTo(this.model, "change:mode", this.updateMode);
     },
 
     create : function() {

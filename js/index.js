@@ -25,25 +25,25 @@ song.set({
         loopLength : '4m',
         chordList : [
             {
-                step : 'I',
+                step : 0,
                 seventh : false,
                 start : '0m',
                 duration : '1m'
             },
             {
-                step : 'V',
+                step : 4,
                 seventh : false,
                 start : '1m',
                 duration : '1m'
             },
             {
-                step : 'VI',
+                step : 5,
                 seventh : false,
                 start : '2m',
                 duration : '1m'
             },
             {
-                step : 'IV',
+                step : 3,
                 seventh : false,
                 start : '3m',
                 duration : '1m'

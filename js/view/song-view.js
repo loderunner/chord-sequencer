@@ -13,8 +13,9 @@ module.exports = Backbone.View.extend({
 
     // Lifecycle
     initialize : function() {
-        this.listenTo(this.model, "change:title", this.updateTitle);
         this.create();
+        
+        this.listenTo(this.model, "change:title", this.updateTitle);
     },
 
     create : function() {

@@ -9,8 +9,9 @@ module.exports = Backbone.View.extend({
 
     // Lifecycle
     initialize : function() {
-        this.listenTo(this.model, "change:key", this.updateKey);
         this.create();
+        
+        this.listenTo(this.model, "change:key", this.updateKey);
     },
 
     create : function() {
