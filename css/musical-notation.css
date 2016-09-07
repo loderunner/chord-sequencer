@@ -1,30 +1,53 @@
+@font-face {
+    font-family: "BravuraText";
+    src: url("fonts/BravuraText.woff") format('woff');
+}
+
 .mn {
     display: inline-block;
-    font: italic normal normal 14px/1 Garamond,"Times New Roman",serif;
+    font: normal normal normal 14px/1 "BravuraText";
     font-size: inherit;
     text-rendering: auto;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    width: 15px;
-    height: 15px;
+    -webkit-transform: translateY(50%);
+       -moz-transform: translateY(50%);
+            transform: translateY(50%);
 }
 
-.mn-note-whole:before {
-    content: url('img/mn-note-whole.svg');
-}
-
-.mn-note-half:before {
-    content: url('img/mn-note-half.svg');
-}
-
-.mn-note-quarter:before {
-    content: url('img/mn-note-quarter.svg');
-}
-
-.mn-note-eighth:before {
-    content: url('img/mn-note-eighth.svg');
+.mn-lg {
+    font-size: 1.33333333em;
+    line-height: 0.75em;
 }
 
 .mn-note-sixteenth:before {
-    content: url('img/mn-note-sixteenth.svg');
+    content: "\e1d9";
+}
+
+.mn-note-eighth:before {
+    content: "\e1d7";
+}
+
+.mn-note-eighth-triplet:before {
+    content: "\e1d7\e883";
+}
+
+.mn-note-quarter:before {
+    content: "\e1d5";
+}
+
+.mn-note-quarter-triplet:before {
+    content: "\e1d5\e883";
+}
+
+.mn-note-half:before {
+    content: "\e1d3";
+}
+
+.mn-note-half-triplet:before {
+    content: "\e1d3\e883";
+}
+
+.mn-note-whole:before {
+    content: "\e1d2";
 }

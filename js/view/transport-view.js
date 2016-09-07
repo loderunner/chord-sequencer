@@ -39,25 +39,25 @@ module.exports = Backbone.View.extend({
 
     // Model events
     updateTempo : function() {
-        this.$loopControl.find('.tempo.value').text(this.model.get('tempo').toString() + ' bpm');
+        this.$loopControl.find('.tempo.value').html(this.model.get('tempo').toString() + ' bpm');
     },
 
     updateLoopLength : function() {
         const loopLength = this.model.get('loopLength');
         const selectedItem = this.$viewControl.find('.loop-length li[data-value="' + loopLength + '"]');
-        this.$viewControl.find('.loop-length .value').text(selectedItem.text());
+        this.$viewControl.find('.loop-length .value').html(selectedItem.html());
     },
 
     updateZoom : function() {
         const zoom = this.model.get('zoom');
         const selectedItem = this.$viewControl.find('.zoom li[data-value="' + zoom + '"]');
-        this.$viewControl.find('.zoom .value').text(selectedItem.text());
+        this.$viewControl.find('.zoom .value').html(selectedItem.html());
     },
 
     updateGrid : function() {
         const grid = this.model.get('grid');
         const selectedItem = this.$viewControl.find('.grid li[data-value="' + grid + '"]');
-        this.$viewControl.find('.grid .value').text(selectedItem.text());
+        this.$viewControl.find('.grid .value').html(selectedItem.html());
     },
 
     updateTime : function(time) {
@@ -65,7 +65,7 @@ module.exports = Backbone.View.extend({
             n = parseInt(n);
             return ((n < 10) ? '0' : '') + n.toString();
         });
-        this.$transportControl.find('.counter').text(barsBeatsSixteenths.join(':'));
+        this.$transportControl.find('.counter').html(barsBeatsSixteenths.join(':'));
     },
 
     // UI events
