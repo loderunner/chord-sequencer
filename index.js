@@ -35109,6 +35109,11 @@
 	        $backgrounds.append($chords);
 	
 	        this.updateScroll();
+	
+	        var self = this;
+	        Tone.Transport.scheduleRepeat(function(time) {
+	            self.updateTime(time);
+	        }, "1i");
 	    },
 	
 	    updateChordList : function(sequence) {
@@ -35121,6 +35126,14 @@
 	    },
 	
 	    updateChord : function(chord, chordList) {
+	    },
+	
+	    updateTime : function() {
+	        const $chordSequencer = this.$('.chord-sequencer');
+	        const $positionIndicator = $chordSequencer.find('.position-indicator');
+	        const position = Tone.Time(Tone.Transport.position).toTicks();
+	        const loopLength = Tone.Time(this.model.get('loopLength')).toTicks();
+	        $positionIndicator.css('left', ($chordSequencer.get(0).scrollWidth * position / loopLength).toString() + 'px');
 	    },
 	
 	    // UI events
@@ -35526,8 +35539,8 @@
 	
 	    updateLoopLength : function() {
 	        const loopLength = this.model.get('loopLength');
-	        const selectedItem = this.$viewControl.find('.loop-length li[data-value="' + loopLength + '"]');
-	        this.$viewControl.find('.loop-length .value').html(selectedItem.html());
+	        const selectedItem = this.$loopControl.find('.loop-length li[data-value="' + loopLength + '"]');
+	        this.$loopControl.find('.loop-length .value').html(selectedItem.html());
 	    },
 	
 	    updateZoom : function() {

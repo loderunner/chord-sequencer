@@ -53,6 +53,11 @@ module.exports = Backbone.View.extend({
         $backgrounds.append($chords);
 
         this.updateScroll();
+
+        var self = this;
+        Tone.Transport.scheduleRepeat(function(time) {
+            self.updateTime(time);
+        }, "1i");
     },
 
     updateChordList : function(sequence) {
@@ -65,6 +70,14 @@ module.exports = Backbone.View.extend({
     },
 
     updateChord : function(chord, chordList) {
+    },
+
+    updateTime : function() {
+        const $chordSequencer = this.$('.chord-sequencer');
+        const $positionIndicator = $chordSequencer.find('.position-indicator');
+        const position = Tone.Time(Tone.Transport.position).toTicks();
+        const loopLength = Tone.Time(this.model.get('loopLength')).toTicks();
+        $positionIndicator.css('left', ($chordSequencer.get(0).scrollWidth * position / loopLength).toString() + 'px');
     },
 
     // UI events
