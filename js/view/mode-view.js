@@ -34,6 +34,8 @@ module.exports = Backbone.View.extend({
     },
 
     clickRadio : function(e) {
+        e.stopPropagation();
+        
         this.model.set('mode', $(e.currentTarget).attr('data-value'));
     }
 });

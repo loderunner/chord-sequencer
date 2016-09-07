@@ -1,9 +1,10 @@
 const onClickMenu = function(e) {
+        e.stopPropagation();
+
         const menu = e.currentTarget;
         if (menu.classList.contains('open')) {
             menu.classList.remove('open');
         } else {
-            e.stopPropagation();
             menu.classList.add('open');
             document.addEventListener('click', function(e) {
                     menu.classList.remove('open');

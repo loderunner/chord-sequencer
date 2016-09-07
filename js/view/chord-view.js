@@ -75,10 +75,14 @@ module.exports = Backbone.View.extend({
     },
 
     clickStep : function(e) {
+        e.stopPropagation();
+        
         this.model.set('step', $(e.currentTarget).attr('data-value'));
     },
 
     clickSeventh : function(e) {
-        this.model.set('seventh', !this.model.get('seventh'));
+        e.stopPropagation();
+        
+        this.model.set('seventh', !this.model.get('se'));
     }
 });

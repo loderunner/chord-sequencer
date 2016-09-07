@@ -55,6 +55,8 @@ module.exports = Backbone.View.extend({
     },
 
     clickTitle : function() {
+        e.stopPropagation();
+        
         this.$edit.attr('value', this.model.get('title'));
         this.$el.addClass('editing');
         this.$edit.focus();
