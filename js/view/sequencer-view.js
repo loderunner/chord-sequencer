@@ -25,6 +25,8 @@ module.exports = Backbone.View.extend({
     create : function() {
         const html = require('html!view/html/sequencer.html');
         this.$el.append(html);
+
+        this.$chordSequencer = this.$('.chord-sequencer');
     },
 
     // Model events
@@ -73,11 +75,10 @@ module.exports = Backbone.View.extend({
     },
 
     updateTime : function() {
-        const $chordSequencer = this.$('.chord-sequencer');
-        const $positionIndicator = $chordSequencer.find('.position-indicator');
+        const $positionIndicator = this.$chordSequencer.find('.position-indicator');
         const position = Tone.Time(Tone.Transport.position).toTicks();
         const loopLength = Tone.Time(this.model.get('loopLength')).toTicks();
-        $positionIndicator.css('left', ($chordSequencer.get(0).scrollWidth * position / loopLength).toString() + 'px');
+        $positionIndicator.css('left', (this.$chordSequencer.get(0).scrollWidth * position / loopLength).toString() + 'px');
     },
 
     // UI events
@@ -86,8 +87,7 @@ module.exports = Backbone.View.extend({
     },
 
     initEvents : function() {
-        const $chordSequencer = this.$('.chord-sequencer');
-        $chordSequencer.scroll(this.updateScroll.bind(this));
+        this.$chordSequencer.scroll(this.updateScroll.bind(this));
 
         const $scrollIndicatorLeft = this.$('.scroll-indicator-left');
         $scrollIndicatorLeft.click(this.clickScrollIndicator.bind(this));
@@ -97,20 +97,18 @@ module.exports = Backbone.View.extend({
     },
 
     clickScrollIndicator : function(e) {
-        const $chordSequencer = this.$('.chord-sequencer');
         const left = $(e.currentTarget).hasClass('scroll-indicator-left');
-        const deltaScroll = (left?-1:1) * $chordSequencer.get(0).clientWidth;
-        $chordSequencer.animate(
-            { scrollLeft : $chordSequencer.scrollLeft() + deltaScroll},
+        const deltaScroll = (left?-1:1) * this.$chordSequencer.get(0).clientWidth;
+        this.$chordSequencer.animate(
+            { scrollLeft : this.$chordSequencer.scrollLeft() + deltaScroll},
             500,
             'easeOutCirc'
         );
     },
 
     updateScroll : function(e) {
-        const $chordSequencer = this.$('.chord-sequencer');
-        const scrollLeft = $chordSequencer.get(0).scrollLeft;
-        const maxScroll = $chordSequencer.get(0).scrollWidth - $chordSequencer.get(0).clientWidth;
+        const scrollLeft = this.$chordSequencer.get(0).scrollLeft;
+        const maxScroll = this.$chordSequencer.get(0).scrollWidth - this.$chordSequencer.get(0).clientWidth;
 
         const $scrollIndicatorLeft = this.$('.scroll-indicator-left');
         if (scrollLeft > 0) {
@@ -134,11 +132,10 @@ module.exports = Backbone.View.extend({
 
     // Helpers
     timeAtPosition : function(x, quantize) {
-        const $chordSequencer = this.$('.chord-sequencer');
         const loopLength = this.model.get('loopLength');
 
         var time = Tone.Time(loopLength);
-        var xRatio = (x + $chordSequencer.scrollLeft() - $chordSequencer.offset().left) / $chordSequencer.get(0).scrollWidth;
+        var xRatio = (x + this.$chordSequencer.scrollLeft() - this.$chordSequencer.offset().left) / this.$chordSequencer.get(0).scrollWidth;
         time.mult(xRatio);
         if (quantize === 'floor') {
             time.sub(Tone.Time(this.model.get('grid')).div(2));
@@ -149,5 +146,9 @@ module.exports = Backbone.View.extend({
         }
         
         return time;
+    },
+
+    positionAtTime : function(time) {
+
     }
 });
