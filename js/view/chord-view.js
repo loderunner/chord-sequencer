@@ -70,10 +70,15 @@ module.exports = Backbone.View.extend({
 
     // UI events
     events : {
-        'click .radio-group>span' : 'clickRadio'
+        'click .step-group>span' : 'clickStep',
+        'click .seventh-control' : 'clickSeventh'
     },
 
-    clickRadio : function(e) {
+    clickStep : function(e) {
         this.model.set('step', $(e.currentTarget).attr('data-value'));
+    },
+
+    clickSeventh : function(e) {
+        this.model.set('seventh', !this.model.get('seventh'));
     }
 });

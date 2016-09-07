@@ -35836,11 +35836,16 @@
 	
 	    // UI events
 	    events : {
-	        'click .radio-group>span' : 'clickRadio'
+	        'click .step-group>span' : 'clickStep',
+	        'click .seventh-control' : 'clickSeventh'
 	    },
 	
-	    clickRadio : function(e) {
+	    clickStep : function(e) {
 	        this.model.set('step', $(e.currentTarget).attr('data-value'));
+	    },
+	
+	    clickSeventh : function(e) {
+	        this.model.set('seventh', !this.model.get('seventh'));
 	    }
 	});
 
@@ -35848,7 +35853,7 @@
 /* 24 */
 /***/ function(module, exports) {
 
-	module.exports = "<div class=\"drag-zone drag-zone-left\"></div>\n<div class=\"drag-zone drag-zone-right\"></div>\n<div class=\"control seventh-control\"><span>7th </span><i class=\"checkbox fa fa-fw fa-square-o\"></i></div>\n<div class=\"step-group radio-group\">\n    <span data-value=\"6\">VII</span>\n    <span data-value=\"5\">VI</span>\n    <span data-value=\"4\">V</span>\n    <span data-value=\"3\">IV</span>\n    <span data-value=\"2\">III</span>\n    <span data-value=\"1\">II</span>\n    <span data-value=\"0\">I</span>\n</div>";
+	module.exports = "<div class=\"drag-zone drag-zone-left\"></div>\n<div class=\"drag-zone drag-zone-right\"></div>\n<div class=\"control seventh-control\"><span>7th </span><i class=\"checkbox fa fa-square-o\"></i></div>\n<div class=\"step-group radio-group\">\n    <span data-value=\"6\">VII</span>\n    <span data-value=\"5\">VI</span>\n    <span data-value=\"4\">V</span>\n    <span data-value=\"3\">IV</span>\n    <span data-value=\"2\">III</span>\n    <span data-value=\"1\">II</span>\n    <span data-value=\"0\">I</span>\n</div>";
 
 /***/ }
 /******/ ]);
