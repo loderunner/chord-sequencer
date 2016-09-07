@@ -75,10 +75,9 @@ module.exports = Backbone.View.extend({
     },
 
     updateTime : function() {
+        const x = this.positionAtTime(Tone.Time(Tone.Transport.position));
         const $positionIndicator = this.$chordSequencer.find('.position-indicator');
-        const position = Tone.Time(Tone.Transport.position).toTicks();
-        const loopLength = Tone.Time(this.model.get('loopLength')).toTicks();
-        $positionIndicator.css('left', (this.$chordSequencer.get(0).scrollWidth * position / loopLength).toString() + 'px');
+        $positionIndicator.css('left', x.toString() + 'px');
     },
 
     // UI events
@@ -126,7 +125,7 @@ module.exports = Backbone.View.extend({
     },
 
     clickChordSequencer : function(e) {
-        const time = this.timeAtPosition(e.clientX, true);
+        const time = this.timeAtPosition(e.clientX + this.$chordSequencer.scrollLeft() - this.$chordSequencer.offset().left, true);
         console.log(time.toNotation());
     },
 
@@ -135,7 +134,7 @@ module.exports = Backbone.View.extend({
         const loopLength = this.model.get('loopLength');
 
         var time = Tone.Time(loopLength);
-        var xRatio = (x + this.$chordSequencer.scrollLeft() - this.$chordSequencer.offset().left) / this.$chordSequencer.get(0).scrollWidth;
+        var xRatio = x / this.$chordSequencer.get(0).scrollWidth;
         time.mult(xRatio);
         if (quantize === 'floor') {
             time.sub(Tone.Time(this.model.get('grid')).div(2));
@@ -149,6 +148,8 @@ module.exports = Backbone.View.extend({
     },
 
     positionAtTime : function(time) {
-
+        const position = time.toTicks();
+        const loopLength = Tone.Time(this.model.get('loopLength')).toTicks();
+        return (this.$chordSequencer.get(0).scrollWidth * position / loopLength);
     }
 });
