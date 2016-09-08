@@ -6,6 +6,12 @@ const onClickMenu = function(e) {
             menu.classList.remove('open');
         } else {
             menu.classList.add('open');
+            const list = menu.getElementsByTagName('ul')[0];
+            const rect = list.getBoundingClientRect();
+            const overlap = rect.bottom - window.innerHeight;
+            if (overlap > 0) {
+                list.style.top = 'calc(100% - ' + overlap + 'px)';
+            }
             document.addEventListener('click', function(e) {
                     menu.classList.remove('open');
                 },
