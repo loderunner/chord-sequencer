@@ -1,4 +1,3 @@
-const _ = require('underscore');
 const Backbone = require('backbone-nested-models');
 const Tone = require('tone');
 
@@ -27,12 +26,12 @@ module.exports = Backbone.Model.extend({
             return { left : null, right : this };
         }
 
-        const end = _.clone(start).add(Tone.Time(this.get('duration')));
+        const end = Tone.Time(start).add(Tone.Time(this.get('duration')));
         if (end.toTicks() <= time.toTicks()) {
             return { left : this, right : null };
         }
 
-        const leftDuration = _.clone(time).sub(start);
+        const leftDuration = Tone.Time(time).sub(start);
         this.set('duration', leftDuration.toNotation());
 
         var rightChord = this.toJSON();
@@ -57,7 +56,7 @@ module.exports = Backbone.Model.extend({
         }
 
         const chordStart = Tone.Time(this.get('start'));
-        const chordEnd = _.clone(chordStart).add(this.get('duration'));
+        const chordEnd = Tone.Time(chordStart).add(this.get('duration'));
         if (sliceStart.toTicks() <= chordStart.toTicks()) {
             if (sliceEnd.toTicks() <= chordStart.toTicks()) {
                 //             ____________
@@ -126,7 +125,7 @@ module.exports = Backbone.Model.extend({
         }
 
         const chordStart = Tone.Time(this.get('start'));
-        const chordEnd = _.clone(chordStart).add(this.get('duration'));
+        const chordEnd = Tone.Time(chordStart).add(this.get('duration'));
         if (trimStart.toTicks() <= chordStart.toTicks()) {
             if (trimEnd.toTicks() <= chordStart.toTicks()) {
                 //             ____________
