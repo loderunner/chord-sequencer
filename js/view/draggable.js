@@ -14,29 +14,42 @@ const DraggableEvent = function(type, e, target) {
 }
 
 const onClick = function(e) {
-    e.stopPropagation();
+    if (this.moved) {
+        e.stopPropagation();
+        e.preventDefault();
+    }
+
     document.removeEventListener('click', onClick, {capture : true});        
+    
+    delete this.moved;
 };
 
 const onMouseDown = function(e) {
     e.stopPropagation();
     e.preventDefault();
 
+    this.moved = false;
     this.dragOriginX = e.pageX;
     this.dragOriginY = e.pageY;
     this.previousX = e.pageX;
     this.previousY = e.pageY;
     this.callback = onMouseMove.bind(this);
+
     document.addEventListener('mousemove', this.callback, {capture : true});
 
     const self = this;
+
     const doMouseUp = function(e) {
         onMouseUp.call(self, e);
         document.removeEventListener('mouseup', doMouseUp, {capture : true});
     };
+    const doClick = function(e) {
+        onClick.call(self, e);
+        document.removeEventListener('click', doClick, {capture : true});
+    };
 
     document.addEventListener('mouseup', doMouseUp, {capture : true});
-    document.addEventListener('click', onClick, {capture : true});
+    document.addEventListener('click', doClick, {capture : true});
 }
 
 const onMouseMove = function(e) {
@@ -46,17 +59,24 @@ const onMouseMove = function(e) {
     var dragEvent = DraggableEvent('draggable-drag', e, this);
     this.dispatchEvent(dragEvent);
 
+    this.moved = true;
     this.previousX = e.pageX;
     this.previousY = e.pageY;
 }
 
 const onMouseUp = function(e) {
-    e.stopPropagation();
-    e.preventDefault();
+    if (this.moved) {
+        e.stopPropagation();
+        e.preventDefault();
+    }
 
-    this.dragOriginX = 0;
-    this.dragOriginY = 0;
     document.removeEventListener('mousemove', this.callback, {capture : true});
+
+    delete this.dragOriginX;
+    delete this.dragOriginY;
+    delete this.previousX;
+    delete this.previousY;
+    delete this.callback;
 }
 
 module.exports = function(target) {

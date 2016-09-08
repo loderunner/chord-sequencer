@@ -38,6 +38,7 @@ module.exports = Backbone.View.extend({
 
         this.$radioGroup = this.$('.radio-group');
 
+        Draggable(this.$el.get(0));
         Draggable(this.$('.drag-zone-left').get(0));
         Draggable(this.$('.drag-zone-right').get(0));
     },
