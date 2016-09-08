@@ -109,7 +109,7 @@ module.exports = Backbone.View.extend({
     clickSeventh : function(e) {
         e.stopPropagation();
         
-        this.model.set('seventh', !this.model.get('se'));
+        this.model.set('seventh', !this.model.get('seventh'));
     },
 
     dragLeft : function(e) {

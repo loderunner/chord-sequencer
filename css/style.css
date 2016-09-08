@@ -277,6 +277,13 @@ chord.playing {
     background-color: hsl(197,6%,63%);
 }
 
+chord .control {
+    font-size: .75em;
+    font-weight: bold;
+    font-variant: small-caps;
+    vertical-align: baseline;
+}
+
 .drag-zone {
     position: absolute;
     cursor: ew-resize;
@@ -329,13 +336,6 @@ button {
 
 button:focus {
     outline: none;
-}
-
-.checkbox {
-    font-size: .75em;
-    font-weight: bold;
-    font-variant: small-caps;
-    vertical-align: baseline;
 }
 
 .dropdown-menu {
