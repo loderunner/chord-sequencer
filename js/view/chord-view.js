@@ -4,6 +4,7 @@ const _ = require('underscore');
 const Backbone = require('backbone-nested-models');
 const Tone = require('tone');
 
+const Utils = require('utils.js');
 const Draggable = require('view/draggable.js');
 
 module.exports = Backbone.View.extend({
@@ -90,7 +91,9 @@ module.exports = Backbone.View.extend({
     events : {
         'click' :                           'clickChord',
         'click .step-group>span' :          'clickStep',
+        'mousedown .step-group>span' :      Utils.stopPropagation,
         'click .seventh-control' :          'clickSeventh',
+        'mousedown .seventh-control' :      Utils.stopPropagation,
         'draggable-begin' :                 'beginDragChord',
         'draggable-drag' :                  'dragChord',
         'draggable-end' :                   'endDragChord',

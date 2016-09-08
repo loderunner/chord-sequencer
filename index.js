@@ -35985,6 +35985,7 @@
 	const Backbone = __webpack_require__(3);
 	const Tone = __webpack_require__(8);
 	
+	const Utils = __webpack_require__(25);
 	const Draggable = __webpack_require__(18);
 	
 	module.exports = Backbone.View.extend({
@@ -36071,7 +36072,9 @@
 	    events : {
 	        'click' :                           'clickChord',
 	        'click .step-group>span' :          'clickStep',
+	        'mousedown .step-group>span' :      Utils.stopPropagation,
 	        'click .seventh-control' :          'clickSeventh',
+	        'mousedown .seventh-control' :      Utils.stopPropagation,
 	        'draggable-begin' :                 'beginDragChord',
 	        'draggable-drag' :                  'dragChord',
 	        'draggable-end' :                   'endDragChord',
@@ -36156,6 +36159,18 @@
 /***/ function(module, exports) {
 
 	module.exports = "<div class=\"drag-zone drag-zone-left\"></div>\n<div class=\"drag-zone drag-zone-right\"></div>\n<div class=\"control seventh-control\"><span>7th </span><i class=\"checkbox fa fa-square-o\"></i></div>\n<div class=\"step-group radio-group\">\n    <span data-value=\"6\">VII</span>\n    <span data-value=\"5\">VI</span>\n    <span data-value=\"4\">V</span>\n    <span data-value=\"3\">IV</span>\n    <span data-value=\"2\">III</span>\n    <span data-value=\"1\">II</span>\n    <span data-value=\"0\">I</span>\n</div>";
+
+/***/ },
+/* 25 */
+/***/ function(module, exports) {
+
+	module.exports = {
+	    stopPropagation : function (e) {
+	        e.stopImmediatePropagation();
+	        e.stopPropagation();
+	        e.preventDefault();
+	    }
+	}
 
 /***/ }
 /******/ ]);
