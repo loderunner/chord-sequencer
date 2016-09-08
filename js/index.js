@@ -27,26 +27,8 @@ song.set({
             {
                 step : 0,
                 seventh : false,
-                start : '0m',
-                duration : '8n'
-            },
-            {
-                step : 4,
-                seventh : false,
-                start : '4n',
-                duration : '8n'
-            },
-            {
-                step : 5,
-                seventh : false,
-                start : '2n',
-                duration : '8n'
-            },
-            {
-                step : 3,
-                seventh : true,
-                start : '2n + 4n',
-                duration : '8n'
+                start : '16n',
+                duration : '4n'
             }
         ],
         grid : '16n',

@@ -1,3 +1,4 @@
+const _ = require('underscore');
 const Backbone = require('backbone');
 const Tone = require('tone');
 
@@ -15,6 +16,7 @@ const Chord = require('model/chord.js');
 module.exports = Backbone.Collection.extend({
     model : Chord,
     /**
+     * @module ChordList
      * @method comparator
      *
      * @desc Compares two `Chord`s and returns `-1` if the first chord has a lower start
