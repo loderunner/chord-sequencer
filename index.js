@@ -35493,11 +35493,14 @@
 	
 	    // UI events
 	    events : {
-	        'click' : 'clickChord',
-	        'click .step-group>span' : 'clickStep',
-	        'click .seventh-control' : 'clickSeventh',
-	        'draggable-drag .drag-zone-left' : 'dragLeft',
-	        'draggable-drag .drag-zone-right' : 'dragRight',
+	        'click' :                           'clickChord',
+	        'click .step-group>span' :          'clickStep',
+	        'click .seventh-control' :          'clickSeventh',
+	        'draggable-begin' :                 'beginDragChord',
+	        'draggable-drag' :                  'dragChord',
+	        'draggable-end' :                   'endDragChord',
+	        'draggable-drag .drag-zone-left' :  'dragLeft',
+	        'draggable-drag .drag-zone-right' : 'dragRight'
 	    },
 	
 	    clickChord : function(e) {
@@ -35518,7 +35521,33 @@
 	        this.model.set('seventh', !this.model.get('seventh'));
 	    },
 	
+	    beginDragChord : function(e) {
+	        this.clickX = e.originalEvent.pageX - this.$el.offset().left;
+	        this.$el.addClass('dragging');
+	    },
+	
+	    dragChord : function(e) {
+	        e.stopPropagation();
+	        
+	        var x = e.originalEvent.pageX
+	                - this.clickX
+	                + this.parent.$chordSequencer.scrollLeft()
+	                - this.parent.$chordSequencer.offset().left;
+	        var time = this.parent.timeForOffset(x, true);
+	
+	        if (time.toTicks() >= 0) {
+	            this.model.set('start', time.toNotation());
+	        }
+	    },
+	
+	    endDragChord : function(e) {
+	        delete this.clickX;
+	        this.$el.removeClass('dragging');
+	    },
+	
 	    dragLeft : function(e) {
+	        e.stopPropagation();
+	
 	        var x = e.originalEvent.pageX + this.parent.$chordSequencer.scrollLeft() - this.parent.$chordSequencer.offset().left;
 	        var time = this.parent.timeForOffset(x, true);
 	
@@ -35527,13 +35556,15 @@
 	                        .sub(time);
 	        if (d.toTicks() > 0) {
 	            this.model.set({
-	                start: time,
-	                duration: d
+	                start: time.toNotation(),
+	                duration: d.toNotation()
 	            });
 	        }
 	    },
 	
 	    dragRight : function(e) {
+	        e.stopPropagation();
+	        
 	        var x = e.originalEvent.pageX + this.parent.$chordSequencer.scrollLeft() - this.parent.$chordSequencer.offset().left;
 	        var time = this.parent.timeForOffset(x, true);
 	
@@ -35570,7 +35601,7 @@
 	    }
 	
 	    document.removeEventListener('click', onClick, {capture : true});        
-	    
+	
 	    delete this.moved;
 	};
 	
@@ -35586,6 +35617,9 @@
 	    this.callback = onMouseMove.bind(this);
 	
 	    document.addEventListener('mousemove', this.callback, {capture : true});
+	
+	    var dragEvent = DraggableEvent('draggable-begin', e, this);
+	    this.dispatchEvent(dragEvent);
 	
 	    const self = this;
 	
@@ -35606,10 +35640,11 @@
 	    e.stopPropagation();
 	    e.preventDefault();
 	
+	    this.moved = true;
+	
 	    var dragEvent = DraggableEvent('draggable-drag', e, this);
 	    this.dispatchEvent(dragEvent);
 	
-	    this.moved = true;
 	    this.previousX = e.pageX;
 	    this.previousY = e.pageY;
 	}
@@ -35619,6 +35654,9 @@
 	        e.stopPropagation();
 	        e.preventDefault();
 	    }
+	
+	    var dragEvent = DraggableEvent('draggable-end', e, this);
+	    this.dispatchEvent(dragEvent);
 	
 	    document.removeEventListener('mousemove', this.callback, {capture : true});
 	

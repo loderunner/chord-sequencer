@@ -20,7 +20,7 @@ const onClick = function(e) {
     }
 
     document.removeEventListener('click', onClick, {capture : true});        
-    
+
     delete this.moved;
 };
 
@@ -36,6 +36,9 @@ const onMouseDown = function(e) {
     this.callback = onMouseMove.bind(this);
 
     document.addEventListener('mousemove', this.callback, {capture : true});
+
+    var dragEvent = DraggableEvent('draggable-begin', e, this);
+    this.dispatchEvent(dragEvent);
 
     const self = this;
 
@@ -56,10 +59,11 @@ const onMouseMove = function(e) {
     e.stopPropagation();
     e.preventDefault();
 
+    this.moved = true;
+
     var dragEvent = DraggableEvent('draggable-drag', e, this);
     this.dispatchEvent(dragEvent);
 
-    this.moved = true;
     this.previousX = e.pageX;
     this.previousY = e.pageY;
 }
@@ -69,6 +73,9 @@ const onMouseUp = function(e) {
         e.stopPropagation();
         e.preventDefault();
     }
+
+    var dragEvent = DraggableEvent('draggable-end', e, this);
+    this.dispatchEvent(dragEvent);
 
     document.removeEventListener('mousemove', this.callback, {capture : true});
 

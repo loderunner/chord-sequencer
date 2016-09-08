@@ -88,11 +88,14 @@ module.exports = Backbone.View.extend({
 
     // UI events
     events : {
-        'click' : 'clickChord',
-        'click .step-group>span' : 'clickStep',
-        'click .seventh-control' : 'clickSeventh',
-        'draggable-drag .drag-zone-left' : 'dragLeft',
-        'draggable-drag .drag-zone-right' : 'dragRight',
+        'click' :                           'clickChord',
+        'click .step-group>span' :          'clickStep',
+        'click .seventh-control' :          'clickSeventh',
+        'draggable-begin' :                 'beginDragChord',
+        'draggable-drag' :                  'dragChord',
+        'draggable-end' :                   'endDragChord',
+        'draggable-drag .drag-zone-left' :  'dragLeft',
+        'draggable-drag .drag-zone-right' : 'dragRight'
     },
 
     clickChord : function(e) {
@@ -113,7 +116,33 @@ module.exports = Backbone.View.extend({
         this.model.set('seventh', !this.model.get('seventh'));
     },
 
+    beginDragChord : function(e) {
+        this.clickX = e.originalEvent.pageX - this.$el.offset().left;
+        this.$el.addClass('dragging');
+    },
+
+    dragChord : function(e) {
+        e.stopPropagation();
+        
+        var x = e.originalEvent.pageX
+                - this.clickX
+                + this.parent.$chordSequencer.scrollLeft()
+                - this.parent.$chordSequencer.offset().left;
+        var time = this.parent.timeForOffset(x, true);
+
+        if (time.toTicks() >= 0) {
+            this.model.set('start', time.toNotation());
+        }
+    },
+
+    endDragChord : function(e) {
+        delete this.clickX;
+        this.$el.removeClass('dragging');
+    },
+
     dragLeft : function(e) {
+        e.stopPropagation();
+
         var x = e.originalEvent.pageX + this.parent.$chordSequencer.scrollLeft() - this.parent.$chordSequencer.offset().left;
         var time = this.parent.timeForOffset(x, true);
 
@@ -122,13 +151,15 @@ module.exports = Backbone.View.extend({
                         .sub(time);
         if (d.toTicks() > 0) {
             this.model.set({
-                start: time,
-                duration: d
+                start: time.toNotation(),
+                duration: d.toNotation()
             });
         }
     },
 
     dragRight : function(e) {
+        e.stopPropagation();
+        
         var x = e.originalEvent.pageX + this.parent.$chordSequencer.scrollLeft() - this.parent.$chordSequencer.offset().left;
         var time = this.parent.timeForOffset(x, true);
 
