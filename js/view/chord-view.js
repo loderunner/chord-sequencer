@@ -150,7 +150,7 @@ module.exports = Backbone.View.extend({
             const cutStart = Tone.Time(this.model.get('start'));
             const cutEnd = Tone.Time(cutStart).add(this.model.get('duration'));
             const cuts = chord.cutout(cutStart, cutEnd);
-            if (!(cuts.left) && !(cuts.right)) {
+            if ((cuts.left === null) && (cuts.right === null)) {
                 // left and right are null, chord has been deleted
                 // decrement index
                 i--;
