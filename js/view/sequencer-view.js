@@ -79,7 +79,7 @@ module.exports = Backbone.View.extend({
 
     // UI events
     events : {
-        'click .chord-sequencer' : 'clickChordSequencer'
+        'mousedown .chord-sequencer' : 'mouseDownChordSequencer'
     },
 
     initEvents : function() {
@@ -121,7 +121,7 @@ module.exports = Backbone.View.extend({
         }
     },
 
-    clickChordSequencer : function(e) {
+    mouseDownChordSequencer : function(e) {
         var x = e.clientX + this.$chordSequencer.scrollLeft() - this.$chordSequencer.offset().left;
         const time = this.timeForOffset(x, 'floor');
         

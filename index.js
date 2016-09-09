@@ -35289,7 +35289,7 @@
 	
 	    // UI events
 	    events : {
-	        'click .chord-sequencer' : 'clickChordSequencer'
+	        'mousedown .chord-sequencer' : 'mouseDownChordSequencer'
 	    },
 	
 	    initEvents : function() {
@@ -35331,7 +35331,7 @@
 	        }
 	    },
 	
-	    clickChordSequencer : function(e) {
+	    mouseDownChordSequencer : function(e) {
 	        var x = e.clientX + this.$chordSequencer.scrollLeft() - this.$chordSequencer.offset().left;
 	        const time = this.timeForOffset(x, 'floor');
 	        
@@ -35705,7 +35705,7 @@
 	            const cutStart = Tone.Time(this.model.get('start'));
 	            const cutEnd = Tone.Time(cutStart).add(this.model.get('duration'));
 	            const cuts = chord.cutout(cutStart, cutEnd);
-	            if (!(cuts.left) && !(cuts.right)) {
+	            if ((cuts.left === null) && (cuts.right === null)) {
 	                // left and right are null, chord has been deleted
 	                // decrement index
 	                i--;
