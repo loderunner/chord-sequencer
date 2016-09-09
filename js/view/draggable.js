@@ -26,6 +26,7 @@ const onClick = function(e) {
 
 const onMouseDown = function(e) {
     e.stopPropagation();
+    e.stopImmediatePropagation();
     e.preventDefault();
 
     this.moved = false;

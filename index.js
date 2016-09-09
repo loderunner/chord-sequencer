@@ -35276,9 +35276,20 @@
 	    updateChordList : function(sequence) {
 	    },
 	
-	    addChord : function(chord) {
+	    addChord : function(chord, chordList, options) {
 	        const chordView = new ChordView({ model : chord, parent : this });
 	        this.$chordSequencer.append(chordView.$el);
+	
+	        if (options && options.event) {
+	            const dragZone = chordView.$('.drag-zone-right');
+	            const event = new MouseEvent('mousedown', {
+	                screenX : dragZone.offset().left,
+	                screenY : dragZone.offset().top,
+	                clientX : 0,
+	                clientY : 0
+	            });
+	            dragZone[0].dispatchEvent(event);
+	        }
 	    },
 	
 	    updateTime : function() {
@@ -35341,6 +35352,9 @@
 	            seventh : false,
 	            start : time.toNotation(),
 	            duration : this.model.get('grid')
+	        },
+	        {
+	            event : e
 	        });
 	    },
 	
@@ -35787,6 +35801,7 @@
 	
 	const onMouseDown = function(e) {
 	    e.stopPropagation();
+	    e.stopImmediatePropagation();
 	    e.preventDefault();
 	
 	    this.moved = false;
