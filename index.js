@@ -48,7 +48,7 @@
 	
 	const Song = __webpack_require__(2);
 	const SongView = __webpack_require__(10);
-	const Audio = __webpack_require__(22);
+	const Audio = __webpack_require__(25);
 	
 	
 	
@@ -34923,7 +34923,6 @@
 /* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
-	const _ = __webpack_require__(5);
 	const Backbone = __webpack_require__(3);
 	const Tone = __webpack_require__(8);
 	
@@ -34952,12 +34951,12 @@
 	            return { left : null, right : this };
 	        }
 	
-	        const end = _.clone(start).add(Tone.Time(this.get('duration')));
+	        const end = Tone.Time(start).add(Tone.Time(this.get('duration')));
 	        if (end.toTicks() <= time.toTicks()) {
 	            return { left : this, right : null };
 	        }
 	
-	        const leftDuration = _.clone(time).sub(start);
+	        const leftDuration = Tone.Time(time).sub(start);
 	        this.set('duration', leftDuration.toNotation());
 	
 	        var rightChord = this.toJSON();
@@ -34982,7 +34981,7 @@
 	        }
 	
 	        const chordStart = Tone.Time(this.get('start'));
-	        const chordEnd = _.clone(chordStart).add(this.get('duration'));
+	        const chordEnd = Tone.Time(chordStart).add(this.get('duration'));
 	        if (sliceStart.toTicks() <= chordStart.toTicks()) {
 	            if (sliceEnd.toTicks() <= chordStart.toTicks()) {
 	                //             ____________
@@ -35051,7 +35050,7 @@
 	        }
 	
 	        const chordStart = Tone.Time(this.get('start'));
-	        const chordEnd = _.clone(chordStart).add(this.get('duration'));
+	        const chordEnd = Tone.Time(chordStart).add(this.get('duration'));
 	        if (trimStart.toTicks() <= chordStart.toTicks()) {
 	            if (trimEnd.toTicks() <= chordStart.toTicks()) {
 	                //             ____________
@@ -35118,9 +35117,9 @@
 	const Backbone = __webpack_require__(3);
 	
 	const SequencerView = __webpack_require__(11);
-	const KeyView = __webpack_require__(14);
-	const ModeView = __webpack_require__(16);
-	const TransportView = __webpack_require__(17);
+	const KeyView = __webpack_require__(18);
+	const ModeView = __webpack_require__(20);
+	const TransportView = __webpack_require__(21);
 	
 	module.exports = Backbone.View.extend({
 	    tagName : 'div',
@@ -35134,7 +35133,7 @@
 	    },
 	
 	    create : function() {
-	        const html = __webpack_require__(21);
+	        const html = __webpack_require__(24);
 	        this.$el.append(html);
 	
 	        this.$title = this.$('.title');
@@ -35215,7 +35214,7 @@
 	const Backbone = __webpack_require__(3);
 	const Tone = __webpack_require__(8);
 	
-	const ChordView = __webpack_require__(23);
+	const ChordView = __webpack_require__(13);
 	
 	module.exports = Backbone.View.extend({
 	    tagName : 'div',
@@ -35235,7 +35234,7 @@
 	    },
 	
 	    create : function() {
-	        const html = __webpack_require__(13);
+	        const html = __webpack_require__(17);
 	        this.$el.append(html);
 	
 	        this.$chordSequencer = this.$('.chord-sequencer');
@@ -35552,431 +35551,6 @@
 
 /***/ },
 /* 13 */
-/***/ function(module, exports) {
-
-	module.exports = "<div class=\"scroll-indicator scroll-indicator-left hidden\">\n  <i class=\"fa fa-chevron-left fa-4\"></i>\n</div>\n<div class=\"chord-sequencer\">\n  <div class=\"chord-background\">\n  </div>\n  <i class=\"position-indicator fa fa-caret-up fa-lg\"></i>\n</div>\n<div class=\"scroll-indicator scroll-indicator-right hidden\">\n  <i class=\"fa fa-chevron-right fa-4\"></i>\n</div>\n";
-
-/***/ },
-/* 14 */
-/***/ function(module, exports, __webpack_require__) {
-
-	const $ = __webpack_require__(1);
-	const _ = __webpack_require__(5);
-	const Backbone = __webpack_require__(3);
-	const Tonality = __webpack_require__(15);
-	
-	module.exports = Backbone.View.extend({
-	    tagName : 'section',
-	    className : 'key',
-	
-	    // Lifecycle
-	    initialize : function() {
-	        this.create();
-	        
-	        this.listenTo(this.model, "change:key", this.updateKey);
-	    },
-	
-	    create : function() {
-	        this.$el.append('<h2 class="subtitle">Key</h2><div class="radio-group"></div>');
-	        this.$radioGroup = this.$('.radio-group');
-	        for (key of Tonality.keys) {
-	            this.$radioGroup.append('<span data-value="' + key + '"">' + key + '</span>');
-	        }
-	    },
-	
-	    // Model events
-	    updateKey : function() {
-	        const key = this.model.get('key');
-	        this.$radioGroup.children('.selected').removeClass('selected');
-	        this.$radioGroup.children('[data-value=' + key + ']').addClass('selected');
-	    },
-	
-	    // UI events
-	    events : {
-	        'click .radio-group>span' : 'clickRadio'
-	    },
-	
-	    clickRadio : function(e) {
-	        e.stopPropagation();
-	        
-	        this.model.set('key', $(e.currentTarget).attr('data-value'));
-	    }
-	});
-
-/***/ },
-/* 15 */
-/***/ function(module, exports, __webpack_require__) {
-
-	const _ = __webpack_require__(5);
-	const Backbone = __webpack_require__(3);
-	
-	const Tonality = {
-	    keys : ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'],
-	    modes : ['Major', 'Minor', 'Harmonic', 'Melodic', 'Ionian', 'Dorian', 'Phrygian', 'Lydian', 'Mixolydian', 'Aeolian', 'Locrian']
-	}
-	
-	module.exports = Tonality;
-
-/***/ },
-/* 16 */
-/***/ function(module, exports, __webpack_require__) {
-
-	const $ = __webpack_require__(1);
-	const _ = __webpack_require__(5);
-	const Backbone = __webpack_require__(3);
-	const Tonality = __webpack_require__(15);
-	
-	module.exports = Backbone.View.extend({
-	    tagName : 'section',
-	    className : 'mode',
-	
-	    // Lifecycle
-	    initialize : function() {
-	        this.create();
-	        this.listenTo(this.model, "change:mode", this.updateMode);
-	    },
-	
-	    create : function() {
-	        this.$el.append('<h2 class="subtitle">Mode</h2><div class="radio-group"></div>');
-	        this.$radioGroup = this.$('.radio-group');
-	        for (mode of Tonality.modes) {
-	            this.$radioGroup.append('<span data-value="' + mode + '"">' + mode + '</span>');
-	        }
-	    },
-	
-	    // Model events
-	    updateMode : function() {
-	        const mode = this.model.get('mode');
-	        this.$radioGroup.children('.selected').removeClass('selected');
-	        this.$radioGroup.children('[data-value=' + mode + ']').addClass('selected');
-	    },
-	
-	    // UI events
-	    events : {
-	        'click .radio-group>span' : 'clickRadio'
-	    },
-	
-	    clickRadio : function(e) {
-	        e.stopPropagation();
-	        
-	        this.model.set('mode', $(e.currentTarget).attr('data-value'));
-	    }
-	});
-
-/***/ },
-/* 17 */
-/***/ function(module, exports, __webpack_require__) {
-
-	const $ = __webpack_require__(1);
-	const _ = __webpack_require__(5);
-	const Backbone = __webpack_require__(3);
-	const Tone = __webpack_require__(8);
-	
-	const Draggable = __webpack_require__(18);
-	const DropdownMenu = __webpack_require__(19);
-	
-	module.exports = Backbone.View.extend({
-	    tagName : 'section',
-	    className : 'transport',
-	
-	    // Lifecycle
-	    initialize : function() {
-	        this.create();
-	        
-	        this.listenTo(this.model, "change:tempo", this.updateTempo);
-	        this.listenTo(this.model, "change:loopLength", this.updateLoopLength);
-	        this.listenTo(this.model, "change:zoom", this.updateZoom);
-	        this.listenTo(this.model, "change:grid", this.updateGrid);
-	    },
-	
-	    create : function() {
-	        const html = __webpack_require__(20);
-	        this.$el.append(html);
-	        this.$viewControl = this.$('.view-control');
-	        this.$transportControl = this.$('.transport-control');
-	        this.$loopControl = this.$('.loop-control');
-	
-	        Draggable(this.$loopControl.find('.tempo.value')[0]);
-	        for (menu of this.$el.find('.dropdown-menu')) {
-	            DropdownMenu(menu);
-	        };
-	
-	        var self = this;
-	        Tone.Transport.scheduleRepeat(function(time) {
-	            self.updateTime(time);
-	        }, "1i");
-	    },
-	
-	    // Model events
-	    updateTempo : function() {
-	        this.$loopControl.find('.tempo.value').html(this.model.get('tempo').toString() + ' bpm');
-	    },
-	
-	    updateLoopLength : function() {
-	        const loopLength = this.model.get('loopLength');
-	        const selectedItem = this.$loopControl.find('.loop-length li[data-value="' + loopLength + '"]');
-	        this.$loopControl.find('.loop-length .value').html(selectedItem.html());
-	    },
-	
-	    updateZoom : function() {
-	        const zoom = this.model.get('zoom');
-	        const selectedItem = this.$viewControl.find('.zoom li[data-value="' + zoom + '"]');
-	        this.$viewControl.find('.zoom .value').html(selectedItem.html());
-	    },
-	
-	    updateGrid : function() {
-	        const grid = this.model.get('grid');
-	        const selectedItem = this.$viewControl.find('.grid li[data-value="' + grid + '"]');
-	        this.$viewControl.find('.grid .value').html(selectedItem.html());
-	    },
-	
-	    updateTime : function(time) {
-	        const barsBeatsSixteenths = _.map(Tone.Transport.position.split(':'), function(n) {
-	            n = parseInt(n);
-	            return ((n < 10) ? '0' : '') + n.toString();
-	        });
-	        this.$transportControl.find('.counter').html(barsBeatsSixteenths.join(':'));
-	    },
-	
-	    // UI events
-	    events : {
-	        'click button.play' : 'clickPlay',
-	        'click button.stop' : 'clickStop',
-	        'draggable-drag .tempo.value' : 'dragTempo',
-	        'click .dropdown-menu' : 'clickDropdownMenu',
-	        'select .dropdown-menu.zoom' : 'selectZoom',
-	        'select .dropdown-menu.grid' : 'selectGrid',
-	        'select .dropdown-menu.loop-length' : 'selectLoopLength'
-	    },
-	
-	    clickPlay : function() {
-	        Tone.Transport.start();
-	    },
-	
-	    clickStop : function() {
-	        Tone.Transport.stop();
-	    },
-	
-	    dragTempo : function(e) {
-	        const tempo = this.model.get('tempo');
-	        const $tempoEl = this.$loopControl.find('.tempo.value');
-	        const bpmMin = parseInt($tempoEl.attr('data-min'));
-	        const bpmMax = parseInt($tempoEl.attr('data-max'));
-	        this.model.set('tempo', Math.min(bpmMax, Math.max(bpmMin, Math.round(tempo - e.originalEvent.moveY))));
-	    },
-	
-	    selectZoom : function(e) {
-	        this.model.set('zoom', e.target.getAttribute('data-value'));
-	    },
-	
-	
-	    selectGrid : function(e) {
-	        this.model.set('grid', e.target.getAttribute('data-value'));
-	    },
-	
-	    selectLoopLength : function(e) {
-	        this.model.set('loopLength', e.target.getAttribute('data-value'));
-	    }
-	});
-
-/***/ },
-/* 18 */
-/***/ function(module, exports) {
-
-	const DraggableEvent = function(type, e, target) {
-	    var dragEvent = new CustomEvent(type, {bubbles : true});
-	
-	    dragEvent.originX = target.dragOriginX;
-	    dragEvent.originY = target.dragOriginY;
-	    dragEvent.pageX = e.pageX;
-	    dragEvent.pageY = e.pageY;
-	    dragEvent.deltaX = e.pageX - target.dragOriginX;
-	    dragEvent.deltaY = e.pageY - target.dragOriginY;
-	    dragEvent.moveX = e.pageX - target.previousX;
-	    dragEvent.moveY = e.pageY - target.previousY;
-	
-	    return dragEvent;
-	}
-	
-	const onClick = function(e) {
-	    if (this.moved) {
-	        e.stopPropagation();
-	        e.preventDefault();
-	    }
-	
-	    document.removeEventListener('click', onClick, {capture : true});        
-	
-	    delete this.moved;
-	};
-	
-	const onMouseDown = function(e) {
-	    e.stopPropagation();
-	    e.preventDefault();
-	
-	    this.moved = false;
-	    this.dragOriginX = e.pageX;
-	    this.dragOriginY = e.pageY;
-	    this.previousX = e.pageX;
-	    this.previousY = e.pageY;
-	    this.callback = onMouseMove.bind(this);
-	
-	    document.addEventListener('mousemove', this.callback, {capture : true});
-	
-	    var dragEvent = DraggableEvent('draggable-begin', e, this);
-	    this.dispatchEvent(dragEvent);
-	
-	    const self = this;
-	
-	    const doMouseUp = function(e) {
-	        onMouseUp.call(self, e);
-	        document.removeEventListener('mouseup', doMouseUp, {capture : true});
-	    };
-	    const doClick = function(e) {
-	        onClick.call(self, e);
-	        document.removeEventListener('click', doClick, {capture : true});
-	    };
-	
-	    document.addEventListener('mouseup', doMouseUp, {capture : true});
-	    document.addEventListener('click', doClick, {capture : true});
-	}
-	
-	const onMouseMove = function(e) {
-	    e.stopPropagation();
-	    e.preventDefault();
-	
-	    this.moved = true;
-	
-	    var dragEvent = DraggableEvent('draggable-drag', e, this);
-	    this.dispatchEvent(dragEvent);
-	
-	    this.previousX = e.pageX;
-	    this.previousY = e.pageY;
-	}
-	
-	const onMouseUp = function(e) {
-	    if (this.moved) {
-	        e.stopPropagation();
-	        e.preventDefault();
-	    }
-	
-	    var dragEvent = DraggableEvent('draggable-end', e, this);
-	    this.dispatchEvent(dragEvent);
-	
-	    document.removeEventListener('mousemove', this.callback, {capture : true});
-	
-	    delete this.dragOriginX;
-	    delete this.dragOriginY;
-	    delete this.previousX;
-	    delete this.previousY;
-	    delete this.callback;
-	}
-	
-	module.exports = function(target) {
-	    target.classList.add('draggable');
-	    target.addEventListener('mousedown', onMouseDown.bind(target));
-	}
-
-/***/ },
-/* 19 */
-/***/ function(module, exports) {
-
-	const onClickMenu = function(e) {
-	        e.stopPropagation();
-	
-	        const menu = e.currentTarget;
-	        if (menu.classList.contains('open')) {
-	            menu.classList.remove('open');
-	        } else {
-	            menu.classList.add('open');
-	            const list = menu.getElementsByTagName('ul')[0];
-	            const rect = list.getBoundingClientRect();
-	            const overlap = rect.bottom - window.innerHeight;
-	            if (overlap > 0) {
-	                list.style.top = 'calc(100% - ' + overlap + 'px)';
-	            }
-	            document.addEventListener('click', function(e) {
-	                    menu.classList.remove('open');
-	                },
-	                {once : true}
-	            );
-	        }
-	}
-	
-	const onClickItem = function(e) {
-	    const item = e.currentTarget;
-	    const selectEvent = new Event('select', {bubbles: true});
-	    item.dispatchEvent(selectEvent);
-	}
-	
-	module.exports = function(target) {
-	    target.classList.add('dropdown-menu');
-	    target.addEventListener('click', onClickMenu);
-	    const items = target.querySelectorAll('ul>li');
-	    for (item of items) {
-	        item.addEventListener('click', onClickItem);
-	    }
-	}
-
-/***/ },
-/* 20 */
-/***/ function(module, exports) {
-
-	module.exports = "<subsection class=\"view-control\">\n    <div class=\"control\">\n        <div class=\"label\">Grid</div>\n        <div class=\"grid dropdown-menu\">\n            <div><span class=\"value\">1/16</span><span class=\"fa fa-caret-down\"></span></div>\n            <ul>\n            <li class=\"menu-item\" data-value=\"16n\"><i class=\"mn mn-lg mn-note-sixteenth\"></i></li>\n            <li class=\"menu-item\" data-value=\"8t\"><i class=\"mn mn-lg mn-note-eighth-triplet\"></i></li>\n            <li class=\"menu-item\" data-value=\"8n\"><i class=\"mn mn-lg mn-note-eighth\"></i></li>\n            <!-- <li class=\"menu-item\" data-value=\"8n + 16n\"><i class=\"mn mn-lg mn-note-eighth-dot\"></i></li> -->\n            <li class=\"menu-item\" data-value=\"4t\"><i class=\"mn mn-lg mn-note-quarter-triplet\"></i></li>\n            <li class=\"menu-item\" data-value=\"4n\"><i class=\"mn mn-lg mn-note-quarter\"></i></li>\n            <!-- <li class=\"menu-item\" data-value=\"4n + 8n\"><i class=\"mn mn-lg mn-note-quarter-dot\"></i></li> -->\n            <li class=\"menu-item\" data-value=\"2t\"><i class=\"mn mn-lg mn-note-half-triplet\"></i></li>\n            <li class=\"menu-item\" data-value=\"2n\"><i class=\"mn mn-lg mn-note-half\"></i></li>\n            <!-- <li class=\"menu-item\" data-value=\"2n + 4n\"><i class=\"mn mn-lg mn-note-half-dot\"></i></li> -->\n            <li class=\"menu-item\" data-value=\"1n\"><i class=\"mn mn-lg mn-note-whole\"></i></li>\n            </ul>\n        </div>\n    </div>\n    <div class=\"control\">\n        <div class=\"label\">Zoom</div>\n        <div class=\"zoom dropdown-menu\">\n            <div><span class=\"value\">1 bar</span><span class=\"fa fa-caret-down\"></span></div>\n            <ul>\n            <li class=\"menu-item\" data-value=\"1m\">1 bar</li>\n            <li class=\"menu-item\" data-value=\"2m\">2 bars</li>\n            <li class=\"menu-item\" data-value=\"4m\">4 bars</li>\n            <li class=\"menu-item\" data-value=\"8m\">8 bars</li>\n            </ul>\n        </div>\n    </div>\n</subsection>\n<subsection class=\"transport-control\">\n    <div class=\"play-control\"><button class=\"play\"><i class=\"fa fa-play\"></i></button><button class=\"stop\"><i class=\"fa fa-stop\"></i></button></div>\n    <div class=\"counter\">00:00:00</div>\n</subsection>\n<subsection class=\"loop-control\">\n    <div class=\"control\">\n        <div><span class=\"tempo value\" data-min=\"40\" data-max=\"250\">120 bpm</span></div>\n        <div class=\"label\">Tempo</div>\n    </div>\n    <div class=\"control\">\n        <div class=\"loop-length dropdown-menu\">\n            <div><span class=\"fa fa-caret-down\"></span><span class=\"value\">1 bar</span></div>\n            <ul>\n            <li class=\"menu-item\" data-value=\"1m\">1 bar</li>\n            <li class=\"menu-item\" data-value=\"2m\">2 bars</li>\n            <li class=\"menu-item\" data-value=\"4m\">4 bars</li>\n            <li class=\"menu-item\" data-value=\"8m\">8 bars</li>\n            </ul>\n        </div>\n        <div class=\"label\">Loop length</div>\n    </div>\n</subsection>";
-
-/***/ },
-/* 21 */
-/***/ function(module, exports) {
-
-	module.exports = "<h1 class=\"title\"></h1>\n<input class=\"edit\">\n<div class=\"row-container\"></div>";
-
-/***/ },
-/* 22 */
-/***/ function(module, exports, __webpack_require__) {
-
-	const _ = __webpack_require__(5);
-	const Backbone = __webpack_require__(3);
-	const Tone = __webpack_require__(8);
-	
-	function AudioController(song) {
-	    _.extend(this, Backbone.Events);
-	
-	    this.synth = new Tone.PolySynth(8, Tone.Synth).toMaster();
-	
-	    const self = this;
-	    this.part = new Tone.Part(function(time, event) {
-	        self.synth.triggerAttackRelease('C3', '8n', time);
-	    }, ['0m', '4n', '2 * 4n', '3 * 4n']);
-	    this.part.start('0m');
-	    this.part.stop('8m');
-	    // part.loopStart = '0m';
-	    // part.loopEnd = '8m';
-	    // part.loop = true;
-	
-	    Tone.Transport.loopStart = "0m";
-	    Tone.Transport.loopEnd = "8m";
-	    Tone.Transport.loop = true;
-	
-	    this.song = song;
-	
-	    this.listenTo(song.get('sequence'), 'change:tempo', this.updateTempo);
-	    this.listenTo(song.get('sequence'), 'change:loopLength', this.updateLoopLength);
-	
-	    return this;
-	}
-	
-	AudioController.prototype.updateTempo = function(sequence) {
-	    Tone.Transport.bpm.value = sequence.get('tempo');
-	}
-	
-	
-	AudioController.prototype.updateLoopLength = function(sequence) {
-	    Tone.Transport.loopEnd = sequence.get('loopLength');
-	}
-	
-	module.exports = AudioController;
-
-/***/ },
-/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
 	const $ = __webpack_require__(1);
@@ -35985,8 +35559,8 @@
 	const Backbone = __webpack_require__(3);
 	const Tone = __webpack_require__(8);
 	
-	const Utils = __webpack_require__(25);
-	const Draggable = __webpack_require__(18);
+	const Utils = __webpack_require__(14);
+	const Draggable = __webpack_require__(15);
 	
 	module.exports = Backbone.View.extend({
 	    tagName: 'chord',
@@ -36015,7 +35589,7 @@
 	    },
 	
 	    create : function() {
-	        const html = __webpack_require__(24);
+	        const html = __webpack_require__(16);
 	        this.$el.append(html);
 	
 	        this.$radioGroup = this.$('.radio-group');
@@ -36155,22 +35729,447 @@
 	});
 
 /***/ },
-/* 24 */
-/***/ function(module, exports) {
-
-	module.exports = "<div class=\"drag-zone drag-zone-left\"></div>\n<div class=\"drag-zone drag-zone-right\"></div>\n<div class=\"control seventh-control\"><span>7th </span><i class=\"checkbox fa fa-square-o\"></i></div>\n<div class=\"step-group radio-group\">\n    <span data-value=\"6\">VII</span>\n    <span data-value=\"5\">VI</span>\n    <span data-value=\"4\">V</span>\n    <span data-value=\"3\">IV</span>\n    <span data-value=\"2\">III</span>\n    <span data-value=\"1\">II</span>\n    <span data-value=\"0\">I</span>\n</div>";
-
-/***/ },
-/* 25 */
+/* 14 */
 /***/ function(module, exports) {
 
 	module.exports = {
-	    stopPropagation : function (e) {
+	    stopPropagation : function(e) {
 	        e.stopImmediatePropagation();
 	        e.stopPropagation();
 	        e.preventDefault();
 	    }
 	}
+
+/***/ },
+/* 15 */
+/***/ function(module, exports) {
+
+	const DraggableEvent = function(type, e, target) {
+	    var dragEvent = new CustomEvent(type, {bubbles : true});
+	
+	    dragEvent.originX = target.dragOriginX;
+	    dragEvent.originY = target.dragOriginY;
+	    dragEvent.pageX = e.pageX;
+	    dragEvent.pageY = e.pageY;
+	    dragEvent.deltaX = e.pageX - target.dragOriginX;
+	    dragEvent.deltaY = e.pageY - target.dragOriginY;
+	    dragEvent.moveX = e.pageX - target.previousX;
+	    dragEvent.moveY = e.pageY - target.previousY;
+	
+	    return dragEvent;
+	}
+	
+	const onClick = function(e) {
+	    if (this.moved) {
+	        e.stopPropagation();
+	        e.preventDefault();
+	    }
+	
+	    document.removeEventListener('click', onClick, {capture : true});        
+	
+	    delete this.moved;
+	};
+	
+	const onMouseDown = function(e) {
+	    e.stopPropagation();
+	    e.preventDefault();
+	
+	    this.moved = false;
+	    this.dragOriginX = e.pageX;
+	    this.dragOriginY = e.pageY;
+	    this.previousX = e.pageX;
+	    this.previousY = e.pageY;
+	    this.callback = onMouseMove.bind(this);
+	
+	    document.addEventListener('mousemove', this.callback, {capture : true});
+	
+	    var dragEvent = DraggableEvent('draggable-begin', e, this);
+	    this.dispatchEvent(dragEvent);
+	
+	    const self = this;
+	
+	    const doMouseUp = function(e) {
+	        onMouseUp.call(self, e);
+	        document.removeEventListener('mouseup', doMouseUp, {capture : true});
+	    };
+	    const doClick = function(e) {
+	        onClick.call(self, e);
+	        document.removeEventListener('click', doClick, {capture : true});
+	    };
+	
+	    document.addEventListener('mouseup', doMouseUp, {capture : true});
+	    document.addEventListener('click', doClick, {capture : true});
+	}
+	
+	const onMouseMove = function(e) {
+	    e.stopPropagation();
+	    e.preventDefault();
+	
+	    this.moved = true;
+	
+	    var dragEvent = DraggableEvent('draggable-drag', e, this);
+	    this.dispatchEvent(dragEvent);
+	
+	    this.previousX = e.pageX;
+	    this.previousY = e.pageY;
+	}
+	
+	const onMouseUp = function(e) {
+	    if (this.moved) {
+	        e.stopPropagation();
+	        e.preventDefault();
+	    }
+	
+	    var dragEvent = DraggableEvent('draggable-end', e, this);
+	    this.dispatchEvent(dragEvent);
+	
+	    document.removeEventListener('mousemove', this.callback, {capture : true});
+	
+	    delete this.dragOriginX;
+	    delete this.dragOriginY;
+	    delete this.previousX;
+	    delete this.previousY;
+	    delete this.callback;
+	}
+	
+	module.exports = function(target) {
+	    target.classList.add('draggable');
+	    target.addEventListener('mousedown', onMouseDown.bind(target));
+	}
+
+/***/ },
+/* 16 */
+/***/ function(module, exports) {
+
+	module.exports = "<div class=\"drag-zone drag-zone-left\"></div>\n<div class=\"drag-zone drag-zone-right\"></div>\n<div class=\"control seventh-control\"><span>7th </span><i class=\"checkbox fa fa-square-o\"></i></div>\n<div class=\"step-group radio-group\">\n    <span data-value=\"6\">VII</span>\n    <span data-value=\"5\">VI</span>\n    <span data-value=\"4\">V</span>\n    <span data-value=\"3\">IV</span>\n    <span data-value=\"2\">III</span>\n    <span data-value=\"1\">II</span>\n    <span data-value=\"0\">I</span>\n</div>";
+
+/***/ },
+/* 17 */
+/***/ function(module, exports) {
+
+	module.exports = "<div class=\"scroll-indicator scroll-indicator-left hidden\">\n  <i class=\"fa fa-chevron-left fa-4\"></i>\n</div>\n<div class=\"chord-sequencer\">\n  <div class=\"chord-background\">\n  </div>\n  <i class=\"position-indicator fa fa-caret-up fa-lg\"></i>\n</div>\n<div class=\"scroll-indicator scroll-indicator-right hidden\">\n  <i class=\"fa fa-chevron-right fa-4\"></i>\n</div>\n";
+
+/***/ },
+/* 18 */
+/***/ function(module, exports, __webpack_require__) {
+
+	const $ = __webpack_require__(1);
+	const _ = __webpack_require__(5);
+	const Backbone = __webpack_require__(3);
+	const Tonality = __webpack_require__(19);
+	
+	module.exports = Backbone.View.extend({
+	    tagName : 'section',
+	    className : 'key',
+	
+	    // Lifecycle
+	    initialize : function() {
+	        this.create();
+	        
+	        this.listenTo(this.model, "change:key", this.updateKey);
+	    },
+	
+	    create : function() {
+	        this.$el.append('<h2 class="subtitle">Key</h2><div class="radio-group"></div>');
+	        this.$radioGroup = this.$('.radio-group');
+	        for (key of Tonality.keys) {
+	            this.$radioGroup.append('<span data-value="' + key + '"">' + key + '</span>');
+	        }
+	    },
+	
+	    // Model events
+	    updateKey : function() {
+	        const key = this.model.get('key');
+	        this.$radioGroup.children('.selected').removeClass('selected');
+	        this.$radioGroup.children('[data-value=' + key + ']').addClass('selected');
+	    },
+	
+	    // UI events
+	    events : {
+	        'click .radio-group>span' : 'clickRadio'
+	    },
+	
+	    clickRadio : function(e) {
+	        e.stopPropagation();
+	        
+	        this.model.set('key', $(e.currentTarget).attr('data-value'));
+	    }
+	});
+
+/***/ },
+/* 19 */
+/***/ function(module, exports, __webpack_require__) {
+
+	const _ = __webpack_require__(5);
+	const Backbone = __webpack_require__(3);
+	
+	const Tonality = {
+	    keys : ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'],
+	    modes : ['Major', 'Minor', 'Harmonic', 'Melodic', 'Ionian', 'Dorian', 'Phrygian', 'Lydian', 'Mixolydian', 'Aeolian', 'Locrian']
+	}
+	
+	module.exports = Tonality;
+
+/***/ },
+/* 20 */
+/***/ function(module, exports, __webpack_require__) {
+
+	const $ = __webpack_require__(1);
+	const _ = __webpack_require__(5);
+	const Backbone = __webpack_require__(3);
+	const Tonality = __webpack_require__(19);
+	
+	module.exports = Backbone.View.extend({
+	    tagName : 'section',
+	    className : 'mode',
+	
+	    // Lifecycle
+	    initialize : function() {
+	        this.create();
+	        this.listenTo(this.model, "change:mode", this.updateMode);
+	    },
+	
+	    create : function() {
+	        this.$el.append('<h2 class="subtitle">Mode</h2><div class="radio-group"></div>');
+	        this.$radioGroup = this.$('.radio-group');
+	        for (mode of Tonality.modes) {
+	            this.$radioGroup.append('<span data-value="' + mode + '"">' + mode + '</span>');
+	        }
+	    },
+	
+	    // Model events
+	    updateMode : function() {
+	        const mode = this.model.get('mode');
+	        this.$radioGroup.children('.selected').removeClass('selected');
+	        this.$radioGroup.children('[data-value=' + mode + ']').addClass('selected');
+	    },
+	
+	    // UI events
+	    events : {
+	        'click .radio-group>span' : 'clickRadio'
+	    },
+	
+	    clickRadio : function(e) {
+	        e.stopPropagation();
+	        
+	        this.model.set('mode', $(e.currentTarget).attr('data-value'));
+	    }
+	});
+
+/***/ },
+/* 21 */
+/***/ function(module, exports, __webpack_require__) {
+
+	const $ = __webpack_require__(1);
+	const _ = __webpack_require__(5);
+	const Backbone = __webpack_require__(3);
+	const Tone = __webpack_require__(8);
+	
+	const Draggable = __webpack_require__(15);
+	const DropdownMenu = __webpack_require__(22);
+	
+	module.exports = Backbone.View.extend({
+	    tagName : 'section',
+	    className : 'transport',
+	
+	    // Lifecycle
+	    initialize : function() {
+	        this.create();
+	        
+	        this.listenTo(this.model, "change:tempo", this.updateTempo);
+	        this.listenTo(this.model, "change:loopLength", this.updateLoopLength);
+	        this.listenTo(this.model, "change:zoom", this.updateZoom);
+	        this.listenTo(this.model, "change:grid", this.updateGrid);
+	    },
+	
+	    create : function() {
+	        const html = __webpack_require__(23);
+	        this.$el.append(html);
+	        this.$viewControl = this.$('.view-control');
+	        this.$transportControl = this.$('.transport-control');
+	        this.$loopControl = this.$('.loop-control');
+	
+	        Draggable(this.$loopControl.find('.tempo.value')[0]);
+	        for (menu of this.$el.find('.dropdown-menu')) {
+	            DropdownMenu(menu);
+	        };
+	
+	        var self = this;
+	        Tone.Transport.scheduleRepeat(function(time) {
+	            self.updateTime(time);
+	        }, "1i");
+	    },
+	
+	    // Model events
+	    updateTempo : function() {
+	        this.$loopControl.find('.tempo.value').html(this.model.get('tempo').toString() + ' bpm');
+	    },
+	
+	    updateLoopLength : function() {
+	        const loopLength = this.model.get('loopLength');
+	        const selectedItem = this.$loopControl.find('.loop-length li[data-value="' + loopLength + '"]');
+	        this.$loopControl.find('.loop-length .value').html(selectedItem.html());
+	    },
+	
+	    updateZoom : function() {
+	        const zoom = this.model.get('zoom');
+	        const selectedItem = this.$viewControl.find('.zoom li[data-value="' + zoom + '"]');
+	        this.$viewControl.find('.zoom .value').html(selectedItem.html());
+	    },
+	
+	    updateGrid : function() {
+	        const grid = this.model.get('grid');
+	        const selectedItem = this.$viewControl.find('.grid li[data-value="' + grid + '"]');
+	        this.$viewControl.find('.grid .value').html(selectedItem.html());
+	    },
+	
+	    updateTime : function(time) {
+	        const barsBeatsSixteenths = _.map(Tone.Transport.position.split(':'), function(n) {
+	            n = parseInt(n);
+	            return ((n < 10) ? '0' : '') + n.toString();
+	        });
+	        this.$transportControl.find('.counter').html(barsBeatsSixteenths.join(':'));
+	    },
+	
+	    // UI events
+	    events : {
+	        'click button.play' : 'clickPlay',
+	        'click button.stop' : 'clickStop',
+	        'draggable-drag .tempo.value' : 'dragTempo',
+	        'click .dropdown-menu' : 'clickDropdownMenu',
+	        'select .dropdown-menu.zoom' : 'selectZoom',
+	        'select .dropdown-menu.grid' : 'selectGrid',
+	        'select .dropdown-menu.loop-length' : 'selectLoopLength'
+	    },
+	
+	    clickPlay : function() {
+	        Tone.Transport.start();
+	    },
+	
+	    clickStop : function() {
+	        Tone.Transport.stop();
+	    },
+	
+	    dragTempo : function(e) {
+	        const tempo = this.model.get('tempo');
+	        const $tempoEl = this.$loopControl.find('.tempo.value');
+	        const bpmMin = parseInt($tempoEl.attr('data-min'));
+	        const bpmMax = parseInt($tempoEl.attr('data-max'));
+	        this.model.set('tempo', Math.min(bpmMax, Math.max(bpmMin, Math.round(tempo - e.originalEvent.moveY))));
+	    },
+	
+	    selectZoom : function(e) {
+	        this.model.set('zoom', e.target.getAttribute('data-value'));
+	    },
+	
+	
+	    selectGrid : function(e) {
+	        this.model.set('grid', e.target.getAttribute('data-value'));
+	    },
+	
+	    selectLoopLength : function(e) {
+	        this.model.set('loopLength', e.target.getAttribute('data-value'));
+	    }
+	});
+
+/***/ },
+/* 22 */
+/***/ function(module, exports) {
+
+	const onClickMenu = function(e) {
+	        e.stopPropagation();
+	
+	        const menu = e.currentTarget;
+	        if (menu.classList.contains('open')) {
+	            menu.classList.remove('open');
+	        } else {
+	            menu.classList.add('open');
+	            const list = menu.getElementsByTagName('ul')[0];
+	            const rect = list.getBoundingClientRect();
+	            const overlap = rect.bottom - window.innerHeight;
+	            if (overlap > 0) {
+	                list.style.top = 'calc(100% - ' + overlap + 'px)';
+	            }
+	            document.addEventListener('click', function(e) {
+	                    menu.classList.remove('open');
+	                },
+	                {once : true}
+	            );
+	        }
+	}
+	
+	const onClickItem = function(e) {
+	    const item = e.currentTarget;
+	    const selectEvent = new Event('select', {bubbles: true});
+	    item.dispatchEvent(selectEvent);
+	}
+	
+	module.exports = function(target) {
+	    target.classList.add('dropdown-menu');
+	    target.addEventListener('click', onClickMenu);
+	    const items = target.querySelectorAll('ul>li');
+	    for (item of items) {
+	        item.addEventListener('click', onClickItem);
+	    }
+	}
+
+/***/ },
+/* 23 */
+/***/ function(module, exports) {
+
+	module.exports = "<subsection class=\"view-control\">\n    <div class=\"control\">\n        <div class=\"label\">Grid</div>\n        <div class=\"grid dropdown-menu\">\n            <div><span class=\"value\">1/16</span><span class=\"fa fa-caret-down\"></span></div>\n            <ul>\n            <li class=\"menu-item\" data-value=\"16n\"><i class=\"mn mn-lg mn-note-sixteenth\"></i></li>\n            <li class=\"menu-item\" data-value=\"8t\"><i class=\"mn mn-lg mn-note-eighth-triplet\"></i></li>\n            <li class=\"menu-item\" data-value=\"8n\"><i class=\"mn mn-lg mn-note-eighth\"></i></li>\n            <!-- <li class=\"menu-item\" data-value=\"8n + 16n\"><i class=\"mn mn-lg mn-note-eighth-dot\"></i></li> -->\n            <li class=\"menu-item\" data-value=\"4t\"><i class=\"mn mn-lg mn-note-quarter-triplet\"></i></li>\n            <li class=\"menu-item\" data-value=\"4n\"><i class=\"mn mn-lg mn-note-quarter\"></i></li>\n            <!-- <li class=\"menu-item\" data-value=\"4n + 8n\"><i class=\"mn mn-lg mn-note-quarter-dot\"></i></li> -->\n            <li class=\"menu-item\" data-value=\"2t\"><i class=\"mn mn-lg mn-note-half-triplet\"></i></li>\n            <li class=\"menu-item\" data-value=\"2n\"><i class=\"mn mn-lg mn-note-half\"></i></li>\n            <!-- <li class=\"menu-item\" data-value=\"2n + 4n\"><i class=\"mn mn-lg mn-note-half-dot\"></i></li> -->\n            <li class=\"menu-item\" data-value=\"1n\"><i class=\"mn mn-lg mn-note-whole\"></i></li>\n            </ul>\n        </div>\n    </div>\n    <div class=\"control\">\n        <div class=\"label\">Zoom</div>\n        <div class=\"zoom dropdown-menu\">\n            <div><span class=\"value\">1 bar</span><span class=\"fa fa-caret-down\"></span></div>\n            <ul>\n            <li class=\"menu-item\" data-value=\"1m\">1 bar</li>\n            <li class=\"menu-item\" data-value=\"2m\">2 bars</li>\n            <li class=\"menu-item\" data-value=\"4m\">4 bars</li>\n            <li class=\"menu-item\" data-value=\"8m\">8 bars</li>\n            </ul>\n        </div>\n    </div>\n</subsection>\n<subsection class=\"transport-control\">\n    <div class=\"play-control\"><button class=\"play\"><i class=\"fa fa-play\"></i></button><button class=\"stop\"><i class=\"fa fa-stop\"></i></button></div>\n    <div class=\"counter\">00:00:00</div>\n</subsection>\n<subsection class=\"loop-control\">\n    <div class=\"control\">\n        <div><span class=\"tempo value\" data-min=\"40\" data-max=\"250\">120 bpm</span></div>\n        <div class=\"label\">Tempo</div>\n    </div>\n    <div class=\"control\">\n        <div class=\"loop-length dropdown-menu\">\n            <div><span class=\"fa fa-caret-down\"></span><span class=\"value\">1 bar</span></div>\n            <ul>\n            <li class=\"menu-item\" data-value=\"1m\">1 bar</li>\n            <li class=\"menu-item\" data-value=\"2m\">2 bars</li>\n            <li class=\"menu-item\" data-value=\"4m\">4 bars</li>\n            <li class=\"menu-item\" data-value=\"8m\">8 bars</li>\n            </ul>\n        </div>\n        <div class=\"label\">Loop length</div>\n    </div>\n</subsection>";
+
+/***/ },
+/* 24 */
+/***/ function(module, exports) {
+
+	module.exports = "<h1 class=\"title\"></h1>\n<input class=\"edit\">\n<div class=\"row-container\"></div>";
+
+/***/ },
+/* 25 */
+/***/ function(module, exports, __webpack_require__) {
+
+	const _ = __webpack_require__(5);
+	const Backbone = __webpack_require__(3);
+	const Tone = __webpack_require__(8);
+	
+	function AudioController(song) {
+	    _.extend(this, Backbone.Events);
+	
+	    this.synth = new Tone.PolySynth(8, Tone.Synth).toMaster();
+	
+	    const self = this;
+	    this.part = new Tone.Part(function(time, event) {
+	        self.synth.triggerAttackRelease('C3', '8n', time);
+	    }, ['0m', '4n', '2 * 4n', '3 * 4n']);
+	    this.part.start('0m');
+	    this.part.stop('8m');
+	    // part.loopStart = '0m';
+	    // part.loopEnd = '8m';
+	    // part.loop = true;
+	
+	    Tone.Transport.loopStart = "0m";
+	    Tone.Transport.loopEnd = "8m";
+	    Tone.Transport.loop = true;
+	
+	    this.song = song;
+	
+	    this.listenTo(song.get('sequence'), 'change:tempo', this.updateTempo);
+	    this.listenTo(song.get('sequence'), 'change:loopLength', this.updateLoopLength);
+	
+	    return this;
+	}
+	
+	AudioController.prototype.updateTempo = function(sequence) {
+	    Tone.Transport.bpm.value = sequence.get('tempo');
+	}
+	
+	
+	AudioController.prototype.updateLoopLength = function(sequence) {
+	    Tone.Transport.loopEnd = sequence.get('loopLength');
+	}
+	
+	module.exports = AudioController;
 
 /***/ }
 /******/ ]);
