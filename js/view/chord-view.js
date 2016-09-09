@@ -141,6 +141,21 @@ module.exports = Backbone.View.extend({
     endDragChord : function(e) {
         delete this.clickX;
         this.$el.removeClass('dragging');
+
+        for (var i = 0; i < this.model.collection.length; i++) {
+            const chord = this.model.collection.at(i);
+            if (chord === this.model) {
+                continue;
+            }
+            const cutStart = Tone.Time(this.model.get('start'));
+            const cutEnd = Tone.Time(cutStart).add(this.model.get('duration'));
+            const cuts = chord.cutout(cutStart, cutEnd);
+            if (!(cuts.left) && !(cuts.right)) {
+                // left and right are null, chord has been deleted
+                // decrement index
+                i--;
+            }
+        }
     },
 
     dragLeft : function(e) {

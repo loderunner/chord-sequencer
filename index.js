@@ -34967,36 +34967,36 @@
 	        return { left : this, right : rightChord };
 	    },
 	
-	    slice : function(sliceStart, sliceEnd) {
-	        if (!(sliceStart instanceof Tone.Time)) {
-	            sliceStart = Tone.Time(sliceStart);
+	    cutout : function(cutoutStart, cutoutEnd) {
+	        if (!(cutoutStart instanceof Tone.Time)) {
+	            cutoutStart = Tone.Time(cutoutStart);
 	        }
 	
-	        if (!(sliceEnd instanceof Tone.Time)) {
-	            sliceEnd = Tone.Time(sliceEnd);
+	        if (!(cutoutEnd instanceof Tone.Time)) {
+	            cutoutEnd = Tone.Time(cutoutEnd);
 	        }
 	
-	        if (sliceStart.toTicks() > sliceEnd.toTicks()) {
+	        if (cutoutStart.toTicks() > cutoutEnd.toTicks()) {
 	            throw new RangeError("start is greater than end");
 	        }
 	
 	        const chordStart = Tone.Time(this.get('start'));
 	        const chordEnd = Tone.Time(chordStart).add(this.get('duration'));
-	        if (sliceStart.toTicks() <= chordStart.toTicks()) {
-	            if (sliceEnd.toTicks() <= chordStart.toTicks()) {
+	        if (cutoutStart.toTicks() <= chordStart.toTicks()) {
+	            if (cutoutEnd.toTicks() <= chordStart.toTicks()) {
 	                //             ____________
 	                //            |____________|
 	                //   ^    ^  
 	                // start end
 	                return { left : null, right : this };
-	            } else if (sliceEnd.toTicks() < chordEnd.toTicks()) {
+	            } else if (cutoutEnd.toTicks() < chordEnd.toTicks()) {
 	                //             ____________
 	                //            |____________|
 	                //   ^                  ^  
 	                // start               end
 	                this.set({
-	                    start : sliceEnd.toNotation(),
-	                    duration : chordEnd.sub(sliceEnd).toNotation()
+	                    start : cutoutEnd.toNotation(),
+	                    duration : chordEnd.sub(cutoutEnd).toNotation()
 	                });
 	                return { left : null, right : this };
 	            } else {
@@ -35007,16 +35007,16 @@
 	                this.collection.remove(this);
 	                return { left : null, right : null };
 	            }
-	        } else if (sliceStart.toTicks() < chordEnd.toTicks()) {
-	            if (sliceEnd.toTicks() < chordEnd.toTicks()) {
+	        } else if (cutoutStart.toTicks() < chordEnd.toTicks()) {
+	            if (cutoutEnd.toTicks() < chordEnd.toTicks()) {
 	                //             ____________
 	                //            |____________|
 	                //              ^       ^  
 	                //            start    end
-	                this.set('duration', sliceStart.sub(chordStart).toNotation());
+	                this.set('duration', cutoutStart.sub(chordStart).toNotation());
 	                var rightChord = this.toJSON();
-	                rightChord.start = sliceEnd.toNotation();
-	                rightChord.duration = chordEnd.sub(sliceEnd).toNotation();
+	                rightChord.start = cutoutEnd.toNotation();
+	                rightChord.duration = chordEnd.sub(cutoutEnd).toNotation();
 	                rightChord = this.collection.add(rightChord);
 	                return { left : this, right : rightChord };
 	            } else {
@@ -35024,7 +35024,7 @@
 	                //            |____________|
 	                //              ^                     ^  
 	                //            start                  end
-	                this.set('duration', sliceStart.sub(chordStart).toNotation());
+	                this.set('duration', cutoutStart.sub(chordStart).toNotation());
 	                return { left : this, right : null };
 	            }
 	        } else {
@@ -35696,6 +35696,21 @@
 	    endDragChord : function(e) {
 	        delete this.clickX;
 	        this.$el.removeClass('dragging');
+	
+	        for (var i = 0; i < this.model.collection.length; i++) {
+	            const chord = this.model.collection.at(i);
+	            if (chord === this.model) {
+	                continue;
+	            }
+	            const cutStart = Tone.Time(this.model.get('start'));
+	            const cutEnd = Tone.Time(cutStart).add(this.model.get('duration'));
+	            const cuts = chord.cutout(cutStart, cutEnd);
+	            if (!(cuts.left) && !(cuts.right)) {
+	                // left and right are null, chord has been deleted
+	                // decrement index
+	                i--;
+	            }
+	        }
 	    },
 	
 	    dragLeft : function(e) {
