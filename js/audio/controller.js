@@ -2,6 +2,9 @@ const _ = require('underscore');
 const Backbone = require('backbone-nested-models');
 const Tone = require('tone');
 
+const Tonality = require('audio/tonality.js');
+var step = 0;
+
 function AudioController(song) {
     _.extend(this, Backbone.Events);
 
@@ -9,7 +12,10 @@ function AudioController(song) {
 
     const self = this;
     this.part = new Tone.Part(function(time, event) {
-        self.synth.triggerAttackRelease('C3', event.get('duration'), time);
+        // var note = Tonality.sub('C5', step);
+        // console.log('C3 + ' + step + ' = ' + note);
+        // step++;
+        self.synth.triggerAttackRelease('C3', '16n', time);
     });
     this.part.start('0m');
     this.part.stop('8m');
@@ -46,7 +52,7 @@ AudioController.prototype.updateLoopLength = function(sequence) {
 AudioController.prototype.updateChordList = function(chordList, options) {
     _.each(options.changes.added, function(chord) {
         // const chordData = chord.toJSON();
-        this.part.add(chord.get('start'), chord);
+        this.part.add(chord.get('start'), 'C3');
     }, this);
 
     _.each(options.changes.removed, function(chord) {
