@@ -9,8 +9,8 @@ function AudioController(song) {
 
     const self = this;
     this.part = new Tone.Part(function(time, event) {
-        self.synth.triggerAttackRelease('C3', '8n', time);
-    }, ['0m', '4n', '2 * 4n', '3 * 4n']);
+        self.synth.triggerAttackRelease('C3', event.get('duration'), time);
+    });
     this.part.start('0m');
     this.part.stop('8m');
     // part.loopStart = '0m';
@@ -23,8 +23,13 @@ function AudioController(song) {
 
     this.song = song;
 
-    this.listenTo(song.get('sequence'), 'change:tempo', this.updateTempo);
-    this.listenTo(song.get('sequence'), 'change:loopLength', this.updateLoopLength);
+    const sequence = song.get('sequence');
+    this.listenTo(sequence, 'change:tempo', this.updateTempo);
+    this.listenTo(sequence, 'change:loopLength', this.updateLoopLength);
+
+    const chordList = sequence.get('chordList');
+    this.listenTo(chordList, 'update', this.updateChordList);
+    this.listenTo(chordList, 'change', this.updateChord);
 
     return this;
 }
@@ -36,6 +41,25 @@ AudioController.prototype.updateTempo = function(sequence) {
 
 AudioController.prototype.updateLoopLength = function(sequence) {
     Tone.Transport.loopEnd = sequence.get('loopLength');
+}
+
+AudioController.prototype.updateChordList = function(chordList, options) {
+    _.each(options.changes.added, function(chord) {
+        // const chordData = chord.toJSON();
+        this.part.add(chord.get('start'), chord);
+    }, this);
+
+    _.each(options.changes.removed, function(chord) {
+        // const chordData = chord.toJSON();
+        this.part.remove(chord.get('start'), chord);
+    }, this);
+}
+
+AudioController.prototype.updateChord = function(chord) {
+    if (chord.hasChanged('start')) {
+        this.part.remove(chord.previous('start'), chord);
+        this.part.add(chord.get('start'), chord);
+    }
 }
 
 module.exports = AudioController;

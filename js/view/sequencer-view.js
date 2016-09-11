@@ -20,6 +20,10 @@ module.exports = Backbone.View.extend({
         this.listenTo(this.model, "change:grid", this.updateLoop);
         this.listenTo(chordList, "add", this.addChord);
 
+        var self = this;
+        Tone.Transport.scheduleRepeat(function(time) {
+            self.updateTime(time);
+        }, "1i");
         this.initEvents();
     },
 
@@ -56,11 +60,6 @@ module.exports = Backbone.View.extend({
         $backgrounds.append($chords);
 
         this.updateScroll();
-
-        var self = this;
-        Tone.Transport.scheduleRepeat(function(time) {
-            self.updateTime(time);
-        }, "1i");
     },
 
     updateChordList : function(sequence) {
