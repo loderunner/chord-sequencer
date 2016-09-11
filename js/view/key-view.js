@@ -1,7 +1,8 @@
 const $ = require('jquery');
 const _ = require('underscore');
 const Backbone = require('backbone-nested-models');
-const Tonality = require('audio/tonality.js');
+
+const Tonality = require('audio/tonality/tonality.js');
 
 module.exports = Backbone.View.extend({
     tagName : 'section',
