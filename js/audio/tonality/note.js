@@ -10,6 +10,7 @@ function Note(letter, alteration, octave) {
         this.letter = note.letter;
         this.alteration = note.alteration;
         this.octave = note.octave;
+        return this;
     }
 
     if (!alteration && !octave) {
@@ -33,7 +34,7 @@ function Note(letter, alteration, octave) {
 
         if ((typeof letter) !== (typeof '')) {
             throw new TypeError("" + letter + " is not a valid note name");
-        } else if ((letter.length > 1) || (!letter.contains(letter))) {
+        } else if ((letter.length > 1) || (!letter.includes(letter))) {
             throw new InvalidArgumentError("'" + letter + "' is not a valid note name");
         }
         this.letter = letter;
@@ -41,7 +42,7 @@ function Note(letter, alteration, octave) {
         if (alteration !== undefined) {
             if ((typeof alteration) !== (typeof '')) {
                 throw new TypeError('' + alteration + ' is not a valid note alteration');
-            } else if ((alteration.length > 1) || (!alterations.contains(alteration))) {
+            } else if ((alteration.length > 1) || (!alterations.includes(alteration))) {
                 throw new InvalidArgumentError("'" + letter + "' is not a valid note alteration");
             }
         }
@@ -98,7 +99,7 @@ Note.prototype.decr = function() {
     } else if (!this.alteration || this.alteration === '') {
         note.alteration = 'b';
     } else if (this.alteration === 'b') {
-        note.letter = letters[(letters.indexOf(this.letter) + 7 - 1) % letters.length];
+        note.letter = letters[(letters.indexOf(this.letter) + letter.length - 1) % letters.length];
         note.alteration = undefined;
     }
 
@@ -123,9 +124,9 @@ Note.prototype.sub = function(val) {
 
 Note.prototype.enharmonic = function() {
     if (this.alteration === '#') {
-        return new Note(letters[letters.indexOf(letter) + 1], 'b', octave);
+        return new Note(letters[(letters.indexOf(this.letter) + 1) % letters.length], 'b', this.octave);
     } else if (this.alteration === 'b') {
-        return new Note(letters[letters.indexOf(letter) - 1], '#', octave);
+        return new Note(letters[(letters.indexOf(this.letter)  + letters.length - 1) % letters.length], '#', this.octave);
     } else {
         return new Note(this);
     }

@@ -28,13 +28,15 @@ function AudioController(song) {
 
     this.song = song;
 
-    const sequence = song.get('sequence');
-    this.listenTo(sequence, 'change:tempo', this.updateTempo);
-    this.listenTo(sequence, 'change:loopLength', this.updateLoopLength);
+    this.sequence = song.get('sequence');
+    this.listenTo(this.sequence, 'change:tempo', this.updateTempo);
+    this.listenTo(this.sequence, 'change:loopLength', this.updateLoopLength);
+    this.listenTo(this.sequence, 'change:key', this.updateKeyMode);
+    this.listenTo(this.sequence, 'change:mode', this.updateKeyMode);
 
-    const chordList = sequence.get('chordList');
-    this.listenTo(chordList, 'update', this.updateChordList);
-    this.listenTo(chordList, 'change', this.updateChord);
+    this.chordList = this.sequence.get('chordList');
+    this.listenTo(this.chordList, 'update', this.updateChordList);
+    this.listenTo(this.chordList, 'change', this.updateChord);
 
     return this;
 }
@@ -63,6 +65,10 @@ AudioController.prototype.updateChord = function(chord) {
         this.part.remove(chord.previous('start'), chord);
         this.part.add(chord.get('start'), chord);
     }
+}
+
+AudioController.prototype.updateKeyMode = function() {
+    this.scale = Tonality.Scale(this.sequence.get('key'), this.sequence.get('mode'));
 }
 
 module.exports = AudioController;

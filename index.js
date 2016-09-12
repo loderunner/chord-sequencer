@@ -49,7 +49,7 @@
 	const $ = __webpack_require__(2);
 	const Song = __webpack_require__(3);
 	const SongView = __webpack_require__(10);
-	const Audio = __webpack_require__(26);
+	const Audio = __webpack_require__(28);
 	
 	
 	
@@ -35114,8 +35114,8 @@
 	
 	const SequencerView = __webpack_require__(11);
 	const KeyView = __webpack_require__(18);
-	const ModeView = __webpack_require__(21);
-	const TransportView = __webpack_require__(22);
+	const ModeView = __webpack_require__(23);
+	const TransportView = __webpack_require__(24);
 	
 	module.exports = Backbone.View.extend({
 	    tagName : 'div',
@@ -35129,7 +35129,7 @@
 	    },
 	
 	    create : function() {
-	        const html = __webpack_require__(25);
+	        const html = __webpack_require__(27);
 	        this.$el.append(html);
 	
 	        this.$title = this.$('.title');
@@ -35927,23 +35927,13 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	const Note = __webpack_require__(20);
+	const Scale = __webpack_require__(22);
 	
 	const Tonality = {
 	    Note : function(val) { return new Note(val); },
-	    keys : ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'],
-	    modes : {
-	        'Major'     : [2,2,1,2,2,2,1],
-	        'Minor'     : [2,1,2,2,1,2,2],
-	        'Harmonic'  : [2,1,2,2,1,3,1],
-	        'Melodic'   : [2,1,2,2,2,2,1],
-	        'Ionian'    : [2,2,1,2,2,2,1],
-	        'Dorian'    : [2,1,2,2,2,1,2],
-	        'Phrygian'  : [1,2,2,2,1,2,2],
-	        'Lydian'    : [2,2,2,1,2,2,1],
-	        'Mixolydian': [2,2,1,2,2,1,2],
-	        'Aeolian'   : [2,1,2,2,1,2,2],
-	        'Locrian'   : [1,2,2,1,2,2,2]
-	    }
+	    Scale : function(key, mode) { return new Scale(key, mode); },
+	    keys : Scale.keys,
+	    modes : Object.keys(Scale.modes)
 	}
 	
 	module.exports = Tonality;
@@ -35952,7 +35942,7 @@
 /* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
-	const InvalidArgumentError = __webpack_require__(27);
+	const InvalidArgumentError = __webpack_require__(21);
 	
 	const letters = 'ABCDEFG';
 	const alterations = ['', '#', 'b'];
@@ -35964,6 +35954,7 @@
 	        this.letter = note.letter;
 	        this.alteration = note.alteration;
 	        this.octave = note.octave;
+	        return this;
 	    }
 	
 	    if (!alteration && !octave) {
@@ -35987,7 +35978,7 @@
 	
 	        if ((typeof letter) !== (typeof '')) {
 	            throw new TypeError("" + letter + " is not a valid note name");
-	        } else if ((letter.length > 1) || (!letter.contains(letter))) {
+	        } else if ((letter.length > 1) || (!letter.includes(letter))) {
 	            throw new InvalidArgumentError("'" + letter + "' is not a valid note name");
 	        }
 	        this.letter = letter;
@@ -35995,7 +35986,7 @@
 	        if (alteration !== undefined) {
 	            if ((typeof alteration) !== (typeof '')) {
 	                throw new TypeError('' + alteration + ' is not a valid note alteration');
-	            } else if ((alteration.length > 1) || (!alterations.contains(alteration))) {
+	            } else if ((alteration.length > 1) || (!alterations.includes(alteration))) {
 	                throw new InvalidArgumentError("'" + letter + "' is not a valid note alteration");
 	            }
 	        }
@@ -36052,7 +36043,7 @@
 	    } else if (!this.alteration || this.alteration === '') {
 	        note.alteration = 'b';
 	    } else if (this.alteration === 'b') {
-	        note.letter = letters[(letters.indexOf(this.letter) + 7 - 1) % letters.length];
+	        note.letter = letters[(letters.indexOf(this.letter) + letter.length - 1) % letters.length];
 	        note.alteration = undefined;
 	    }
 	
@@ -36077,9 +36068,9 @@
 	
 	Note.prototype.enharmonic = function() {
 	    if (this.alteration === '#') {
-	        return new Note(letters[letters.indexOf(letter) + 1], 'b', octave);
+	        return new Note(letters[(letters.indexOf(this.letter) + 1) % letters.length], 'b', this.octave);
 	    } else if (this.alteration === 'b') {
-	        return new Note(letters[letters.indexOf(letter) - 1], '#', octave);
+	        return new Note(letters[(letters.indexOf(this.letter)  + letters.length - 1) % letters.length], '#', this.octave);
 	    } else {
 	        return new Note(this);
 	    }
@@ -36093,6 +36084,98 @@
 
 /***/ },
 /* 21 */
+/***/ function(module, exports) {
+
+	function InvalidArgumentError(message) {
+	    this.message = message;
+	
+	    return this;
+	};
+	
+	Object.setPrototypeOf(InvalidArgumentError, Error);
+	InvalidArgumentError.prototype = Object.create(Error.prototype);
+	InvalidArgumentError.prototype.name = "InvalidArgumentError";
+	InvalidArgumentError.prototype.constructor = InvalidArgumentError;
+	
+	module.exports = InvalidArgumentError;
+
+/***/ },
+/* 22 */
+/***/ function(module, exports, __webpack_require__) {
+
+	const InvalidArgumentError = __webpack_require__(21);
+	const Note = __webpack_require__(20);
+	
+	const keys = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
+	const modes = {
+	    'Major'     : [2,2,1,2,2,2,1],
+	    'Minor'     : [2,1,2,2,1,2,2],
+	    'Harmonic'  : [2,1,2,2,1,3,1],
+	    'Melodic'   : [2,1,2,2,2,2,1],
+	    'Ionian'    : [2,2,1,2,2,2,1],
+	    'Dorian'    : [2,1,2,2,2,1,2],
+	    'Phrygian'  : [1,2,2,2,1,2,2],
+	    'Lydian'    : [2,2,2,1,2,2,1],
+	    'Mixolydian': [2,2,1,2,2,1,2],
+	    'Aeolian'   : [2,1,2,2,1,2,2],
+	    'Locrian'   : [1,2,2,1,2,2,2]
+	};
+	
+	const Scale = function(key, mode) {
+	    if (key instanceof Scale) {
+	        this.key = key;
+	        this.mode = mode;
+	        return this;
+	    }
+	
+	    if ((typeof key) !== (typeof '')) {
+	        throw new TypeError('' + key + ' is not a valid key');
+	    } else if (!keys.includes(key)) {
+	        throw new InvalidArgumentError('' + key + ' is not a valid key');
+	    }
+	    this.key = key;
+	
+	    if ((typeof mode) !== (typeof '')) {
+	        throw new TypeError('' + mode + ' is not a valid mode');
+	    } else if (!(mode in modes)) {
+	        throw new InvalidArgumentError('' + mode + ' is not a valid mode');
+	    }
+	    this.mode = mode;
+	
+	    this.generate();
+	
+	    return this;
+	}
+	
+	Scale.keys = keys;
+	Scale.modes = modes;
+	
+	Scale.prototype.generate = function() {
+	    const intervals = modes[this.mode];
+	    this.notes = [new Note(this.key + '0')];
+	    for (var i = 0; i < (intervals.length - 1); i++) {
+	        var note = this.notes[i].add(intervals[i]);
+	        if (note.letter === this.notes[i].letter) {
+	            note = note.enharmonic();
+	        }
+	        this.notes.push(note);
+	    }
+	}
+	
+	Scale.prototype.next = function(g) {
+	    note = new Note(note);
+	
+	    if (note.alteration === 'b') {
+	        note = note.enharmonic();
+	    }
+	
+	
+	}
+	
+	module.exports = Scale;
+
+/***/ },
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
 	const $ = __webpack_require__(2);
@@ -36114,7 +36197,7 @@
 	    create : function() {
 	        this.$el.append('<h2 class="subtitle">Mode</h2><div class="radio-group"></div>');
 	        this.$radioGroup = this.$('.radio-group');
-	        for (mode in Tonality.modes) {
+	        for (mode of Tonality.modes) {
 	            this.$radioGroup.append('<span data-value="' + mode + '"">' + mode + '</span>');
 	        }
 	    },
@@ -36139,7 +36222,7 @@
 	});
 
 /***/ },
-/* 22 */
+/* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
 	const $ = __webpack_require__(2);
@@ -36148,7 +36231,7 @@
 	const Tone = __webpack_require__(1);
 	
 	const Draggable = __webpack_require__(15);
-	const DropdownMenu = __webpack_require__(23);
+	const DropdownMenu = __webpack_require__(25);
 	
 	module.exports = Backbone.View.extend({
 	    tagName : 'section',
@@ -36165,7 +36248,7 @@
 	    },
 	
 	    create : function() {
-	        const html = __webpack_require__(24);
+	        const html = __webpack_require__(26);
 	        this.$el.append(html);
 	        this.$viewControl = this.$('.view-control');
 	        this.$transportControl = this.$('.transport-control');
@@ -36255,7 +36338,7 @@
 	});
 
 /***/ },
-/* 23 */
+/* 25 */
 /***/ function(module, exports) {
 
 	const onClickMenu = function(e) {
@@ -36296,19 +36379,19 @@
 	}
 
 /***/ },
-/* 24 */
+/* 26 */
 /***/ function(module, exports) {
 
 	module.exports = "<subsection class=\"view-control\">\n    <div class=\"control\">\n        <div class=\"label\">Grid</div>\n        <div class=\"grid dropdown-menu\">\n            <div><span class=\"value\">1/16</span><span class=\"fa fa-caret-down\"></span></div>\n            <ul>\n            <li class=\"menu-item\" data-value=\"16n\"><i class=\"mn mn-lg mn-note-sixteenth\"></i></li>\n            <li class=\"menu-item\" data-value=\"8t\"><i class=\"mn mn-lg mn-note-eighth-triplet\"></i></li>\n            <li class=\"menu-item\" data-value=\"8n\"><i class=\"mn mn-lg mn-note-eighth\"></i></li>\n            <!-- <li class=\"menu-item\" data-value=\"8n + 16n\"><i class=\"mn mn-lg mn-note-eighth-dot\"></i></li> -->\n            <li class=\"menu-item\" data-value=\"4t\"><i class=\"mn mn-lg mn-note-quarter-triplet\"></i></li>\n            <li class=\"menu-item\" data-value=\"4n\"><i class=\"mn mn-lg mn-note-quarter\"></i></li>\n            <!-- <li class=\"menu-item\" data-value=\"4n + 8n\"><i class=\"mn mn-lg mn-note-quarter-dot\"></i></li> -->\n            <li class=\"menu-item\" data-value=\"2t\"><i class=\"mn mn-lg mn-note-half-triplet\"></i></li>\n            <li class=\"menu-item\" data-value=\"2n\"><i class=\"mn mn-lg mn-note-half\"></i></li>\n            <!-- <li class=\"menu-item\" data-value=\"2n + 4n\"><i class=\"mn mn-lg mn-note-half-dot\"></i></li> -->\n            <li class=\"menu-item\" data-value=\"1n\"><i class=\"mn mn-lg mn-note-whole\"></i></li>\n            </ul>\n        </div>\n    </div>\n    <div class=\"control\">\n        <div class=\"label\">Zoom</div>\n        <div class=\"zoom dropdown-menu\">\n            <div><span class=\"value\">1 bar</span><span class=\"fa fa-caret-down\"></span></div>\n            <ul>\n            <li class=\"menu-item\" data-value=\"1m\">1 bar</li>\n            <li class=\"menu-item\" data-value=\"2m\">2 bars</li>\n            <li class=\"menu-item\" data-value=\"4m\">4 bars</li>\n            <li class=\"menu-item\" data-value=\"8m\">8 bars</li>\n            </ul>\n        </div>\n    </div>\n</subsection>\n<subsection class=\"transport-control\">\n    <div class=\"play-control\"><button class=\"play\"><i class=\"fa fa-play\"></i></button><button class=\"stop\"><i class=\"fa fa-stop\"></i></button></div>\n    <div class=\"counter\">00:00:00</div>\n</subsection>\n<subsection class=\"loop-control\">\n    <div class=\"control\">\n        <div><span class=\"tempo value\" data-min=\"40\" data-max=\"250\">120 bpm</span></div>\n        <div class=\"label\">Tempo</div>\n    </div>\n    <div class=\"control\">\n        <div class=\"loop-length dropdown-menu\">\n            <div><span class=\"fa fa-caret-down\"></span><span class=\"value\">1 bar</span></div>\n            <ul>\n            <li class=\"menu-item\" data-value=\"1m\">1 bar</li>\n            <li class=\"menu-item\" data-value=\"2m\">2 bars</li>\n            <li class=\"menu-item\" data-value=\"4m\">4 bars</li>\n            <li class=\"menu-item\" data-value=\"8m\">8 bars</li>\n            </ul>\n        </div>\n        <div class=\"label\">Loop length</div>\n    </div>\n</subsection>";
 
 /***/ },
-/* 25 */
+/* 27 */
 /***/ function(module, exports) {
 
 	module.exports = "<h1 class=\"title\"></h1>\n<input class=\"edit\">\n<div class=\"row-container\"></div>";
 
 /***/ },
-/* 26 */
+/* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
 	const _ = __webpack_require__(6);
@@ -36341,13 +36424,15 @@
 	
 	    this.song = song;
 	
-	    const sequence = song.get('sequence');
-	    this.listenTo(sequence, 'change:tempo', this.updateTempo);
-	    this.listenTo(sequence, 'change:loopLength', this.updateLoopLength);
+	    this.sequence = song.get('sequence');
+	    this.listenTo(this.sequence, 'change:tempo', this.updateTempo);
+	    this.listenTo(this.sequence, 'change:loopLength', this.updateLoopLength);
+	    this.listenTo(this.sequence, 'change:key', this.updateKeyMode);
+	    this.listenTo(this.sequence, 'change:mode', this.updateKeyMode);
 	
-	    const chordList = sequence.get('chordList');
-	    this.listenTo(chordList, 'update', this.updateChordList);
-	    this.listenTo(chordList, 'change', this.updateChord);
+	    this.chordList = this.sequence.get('chordList');
+	    this.listenTo(this.chordList, 'update', this.updateChordList);
+	    this.listenTo(this.chordList, 'change', this.updateChord);
 	
 	    return this;
 	}
@@ -36378,24 +36463,11 @@
 	    }
 	}
 	
+	AudioController.prototype.updateKeyMode = function() {
+	    this.scale = Tonality.Scale(this.sequence.get('key'), this.sequence.get('mode'));
+	}
+	
 	module.exports = AudioController;
-
-/***/ },
-/* 27 */
-/***/ function(module, exports) {
-
-	function InvalidArgumentError(message) {
-	    this.message = message;
-	
-	    return this;
-	};
-	
-	Object.setPrototypeOf(InvalidArgumentError, Error);
-	InvalidArgumentError.prototype = Object.create(Error.prototype);
-	InvalidArgumentError.prototype.name = "InvalidArgumentError";
-	InvalidArgumentError.prototype.constructor = InvalidArgumentError;
-	
-	module.exports = InvalidArgumentError;
 
 /***/ }
 /******/ ]);
