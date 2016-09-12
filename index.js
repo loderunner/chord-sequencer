@@ -35898,7 +35898,7 @@
 	    create : function() {
 	        this.$el.append('<h2 class="subtitle">Key</h2><div class="radio-group"></div>');
 	        this.$radioGroup = this.$('.radio-group');
-	        for (key of Tonality.keys) {
+	        for (var key of Tonality.keys) {
 	            this.$radioGroup.append('<span data-value="' + key + '"">' + key + '</span>');
 	        }
 	    },
@@ -36197,7 +36197,7 @@
 	    create : function() {
 	        this.$el.append('<h2 class="subtitle">Mode</h2><div class="radio-group"></div>');
 	        this.$radioGroup = this.$('.radio-group');
-	        for (mode of Tonality.modes) {
+	        for (var mode of Tonality.modes) {
 	            this.$radioGroup.append('<span data-value="' + mode + '"">' + mode + '</span>');
 	        }
 	    },

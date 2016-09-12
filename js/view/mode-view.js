@@ -17,7 +17,7 @@ module.exports = Backbone.View.extend({
     create : function() {
         this.$el.append('<h2 class="subtitle">Mode</h2><div class="radio-group"></div>');
         this.$radioGroup = this.$('.radio-group');
-        for (mode of Tonality.modes) {
+        for (var mode of Tonality.modes) {
             this.$radioGroup.append('<span data-value="' + mode + '"">' + mode + '</span>');
         }
     },
