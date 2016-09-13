@@ -36012,6 +36012,9 @@
 	    return this;
 	};
 	
+	Note.letters = letters;
+	Note.alterations = alterations;
+	
 	Note.prototype.incr = function() {
 	    var note = new Note(this);
 	    if (this.letter === 'E' && (!this.alteration || this.alteration === '')) {
@@ -36142,34 +36145,35 @@
 	    }
 	    this.mode = mode;
 	
-	    this.generate();
-	
 	    return this;
 	}
 	
 	Scale.keys = keys;
 	Scale.modes = modes;
 	
-	Scale.prototype.generate = function() {
-	    const intervals = modes[this.mode];
-	    this.notes = [new Note(this.key + '0')];
-	    for (var i = 0; i < (intervals.length - 1); i++) {
-	        var note = this.notes[i].add(intervals[i]);
-	        if (note.letter === this.notes[i].letter) {
-	            note = note.enharmonic();
-	        }
-	        this.notes.push(note);
-	    }
-	}
-	
-	Scale.prototype.next = function(g) {
+	Scale.prototype.next = function(note) {
 	    note = new Note(note);
 	
-	    if (note.alteration === 'b') {
-	        note = note.enharmonic();
+	    if ((Note.letters.indexOf(note.letter) + 1) >= Note.letters.indexOf(this.key[0])) {
+	        var octave = note.octave;
+	    } else {
+	        var octave = note.octave + 1;
 	    }
 	
+	    const intervals = modes[this.mode];
+	    var prevNote = new Note(this.key[0], this.key[1], octave);
+	    for (var i = 0; i < intervals.length; i++) {
+	        var nextNote = prevNote.add(intervals[i]);
+	        if (nextNote.letter === prevNote.letter) {
+	            nextNote = nextNote.enharmonic();
+	        }
+	        if (note.letter === prevNote.letter) {
+	            return nextNote;
+	        }
+	        prevNote = nextNote;
+	    }
 	
+	    return nextNote;
 	}
 	
 	module.exports = Scale;
@@ -36399,7 +36403,7 @@
 	const Tone = __webpack_require__(1);
 	
 	const Tonality = __webpack_require__(19);
-	var step = 0;
+	var note = 'C3';
 	
 	function AudioController(song) {
 	    _.extend(this, Backbone.Events);
@@ -36408,8 +36412,7 @@
 	
 	    const self = this;
 	    this.part = new Tone.Part(function(time, event) {
-	        var note = Tonality.Note('C5').sub(step);
-	        step++;
+	        note = self.scale.next(note);
 	        self.synth.triggerAttackRelease(note.toString(), event.get('duration'), time);
 	    });
 	    this.part.start('0m');
@@ -36465,6 +36468,11 @@
 	
 	AudioController.prototype.updateKeyMode = function() {
 	    this.scale = Tonality.Scale(this.sequence.get('key'), this.sequence.get('mode'));
+	    var notes = [this.scale.key + '3'];
+	    for (var i = 0; i < 12; i ++) {
+	        notes.push(this.scale.next(notes[i]).toString());
+	    }
+	    console.log(notes);
 	}
 	
 	module.exports = AudioController;

@@ -37,34 +37,35 @@ const Scale = function(key, mode) {
     }
     this.mode = mode;
 
-    this.generate();
-
     return this;
 }
 
 Scale.keys = keys;
 Scale.modes = modes;
 
-Scale.prototype.generate = function() {
-    const intervals = modes[this.mode];
-    this.notes = [new Note(this.key + '0')];
-    for (var i = 0; i < (intervals.length - 1); i++) {
-        var note = this.notes[i].add(intervals[i]);
-        if (note.letter === this.notes[i].letter) {
-            note = note.enharmonic();
-        }
-        this.notes.push(note);
-    }
-}
-
-Scale.prototype.next = function(g) {
+Scale.prototype.next = function(note) {
     note = new Note(note);
 
-    if (note.alteration === 'b') {
-        note = note.enharmonic();
+    if ((Note.letters.indexOf(note.letter) + 1) >= Note.letters.indexOf(this.key[0])) {
+        var octave = note.octave;
+    } else {
+        var octave = note.octave + 1;
     }
 
+    const intervals = modes[this.mode];
+    var prevNote = new Note(this.key[0], this.key[1], octave);
+    for (var i = 0; i < intervals.length; i++) {
+        var nextNote = prevNote.add(intervals[i]);
+        if (nextNote.letter === prevNote.letter) {
+            nextNote = nextNote.enharmonic();
+        }
+        if (note.letter === prevNote.letter) {
+            return nextNote;
+        }
+        prevNote = nextNote;
+    }
 
+    return nextNote;
 }
 
 module.exports = Scale;

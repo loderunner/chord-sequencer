@@ -68,6 +68,9 @@ function Note(letter, alteration, octave) {
     return this;
 };
 
+Note.letters = letters;
+Note.alterations = alterations;
+
 Note.prototype.incr = function() {
     var note = new Note(this);
     if (this.letter === 'E' && (!this.alteration || this.alteration === '')) {
