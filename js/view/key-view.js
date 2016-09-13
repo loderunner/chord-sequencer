@@ -27,7 +27,7 @@ module.exports = Backbone.View.extend({
     updateKey : function() {
         const key = this.model.get('key');
         this.$radioGroup.children('.selected').removeClass('selected');
-        this.$radioGroup.children('[data-value=' + key + ']').addClass('selected');
+        this.$radioGroup.children('[data-value="' + key + '"]').addClass('selected');
     },
 
     // UI events

@@ -3,7 +3,6 @@ const Backbone = require('backbone-nested-models');
 const Tone = require('tone');
 
 const Tonality = require('audio/tonality/tonality.js');
-var note = 'C3';
 
 function AudioController(song) {
     _.extend(this, Backbone.Events);
@@ -11,9 +10,11 @@ function AudioController(song) {
     this.synth = new Tone.PolySynth(8, Tone.Synth).toMaster();
 
     const self = this;
+    var step = 0;
     this.part = new Tone.Part(function(time, event) {
-        note = self.scale.next(note);
+        note = self.notes[step];
         self.synth.triggerAttackRelease(note.toString(), event.get('duration'), time);
+        step = (step + 1) % 8;
     });
     this.part.start('0m');
     this.part.stop('8m');
@@ -68,11 +69,10 @@ AudioController.prototype.updateChord = function(chord) {
 
 AudioController.prototype.updateKeyMode = function() {
     this.scale = Tonality.Scale(this.sequence.get('key'), this.sequence.get('mode'));
-    var notes = [this.scale.key + '3'];
-    for (var i = 0; i < 12; i ++) {
-        notes.push(this.scale.next(notes[i]).toString());
+    this.notes = [this.scale.key + '3'];
+    for (var i = 0; i < 8; i ++) {
+        this.notes.push(this.scale.next(this.notes[i]).toString());
     }
-    console.log(notes);
 }
 
 module.exports = AudioController;

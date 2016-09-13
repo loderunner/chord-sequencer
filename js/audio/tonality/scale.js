@@ -46,17 +46,17 @@ Scale.modes = modes;
 Scale.prototype.next = function(note) {
     note = new Note(note);
 
-    if ((Note.letters.indexOf(note.letter) + 1) >= Note.letters.indexOf(this.key[0])) {
+    if (Note.letters.indexOf(note.letter) >= Note.letters.indexOf(this.key[0])) {
         var octave = note.octave;
     } else {
-        var octave = note.octave + 1;
+        var octave = note.octave - 1;
     }
 
     const intervals = modes[this.mode];
     var prevNote = new Note(this.key[0], this.key[1], octave);
     for (var i = 0; i < intervals.length; i++) {
         var nextNote = prevNote.add(intervals[i]);
-        if (nextNote.letter === prevNote.letter) {
+        if (nextNote.letter !== Note.letters[(Note.letters.indexOf(prevNote.letter) + 1) % Note.letters.length]) {
             nextNote = nextNote.enharmonic();
         }
         if (note.letter === prevNote.letter) {
