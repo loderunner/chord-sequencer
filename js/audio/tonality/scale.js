@@ -56,9 +56,9 @@ Scale.prototype.next = function(note) {
     var prevNote = new Note(this.key[0], this.key[1], octave);
     for (var i = 0; i < intervals.length; i++) {
         var nextNote = prevNote.add(intervals[i]);
-        if (nextNote.letter !== Note.letters[(Note.letters.indexOf(prevNote.letter) + 1) % Note.letters.length]) {
-            nextNote = nextNote.enharmonic();
-        }
+        // if (nextNote.letter !== Note.letters[(Note.letters.indexOf(prevNote.letter) + 1) % Note.letters.length]) {
+        //     nextNote = nextNote.enharmonic();
+        // }
         if (note.letter === prevNote.letter) {
             return nextNote;
         }

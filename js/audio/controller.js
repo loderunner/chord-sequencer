@@ -73,6 +73,7 @@ AudioController.prototype.updateKeyMode = function() {
     for (var i = 0; i < 8; i ++) {
         this.notes.push(this.scale.next(this.notes[i]).toString());
     }
+    console.log(this.notes);
 }
 
 module.exports = AudioController;
