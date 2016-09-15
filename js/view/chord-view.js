@@ -144,13 +144,13 @@ module.exports = Backbone.View.extend({
 
         for (var i = 0; i < this.model.collection.length; i++) {
             const chord = this.model.collection.at(i);
-            if (chord == this.model) {
+            if (chord === this.model) {
                 continue;
             }
             const cutStart = Tone.Time(this.model.get('start'));
             const cutEnd = Tone.Time(cutStart).add(this.model.get('duration'));
             const cuts = chord.cutout(cutStart, cutEnd);
-            if ((cuts.left == null) && (cuts.right == null)) {
+            if ((cuts.left === null) && (cuts.right === null)) {
                 // left and right are null, chord has been deleted
                 // decrement index
                 i--;

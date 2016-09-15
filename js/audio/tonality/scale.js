@@ -59,7 +59,7 @@ Scale.prototype.next = function(note) {
         // if (nextNote.letter !== Note.letters[(Note.letters.indexOf(prevNote.letter) + 1) % Note.letters.length]) {
         //     nextNote = nextNote.enharmonic();
         // }
-        if (note.letter == prevNote.letter) {
+        if (note.letter === prevNote.letter) {
             return nextNote;
         }
         prevNote = nextNote;

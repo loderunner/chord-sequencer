@@ -58,14 +58,14 @@ function Note(letter, alteration, octave) {
         }
 
         if (octave) {
-            if ((typeof octave) == (typeof '')) {
+            if ((typeof octave) === (typeof '')) {
                 const o = parseInt(octave);
                 if (isNaN(o)) {
                     throw new TypeError("'" + o + "' is not a valid note octave");
                 }
                 octave = o;
             }
-            if ((typeof octave) == (typeof 1)) {
+            if ((typeof octave) === (typeof 1)) {
                 if (octave < 0) {
                     throw new InvalidArgumentError("" + octave + " is not a valid note octave");
                 }
@@ -76,8 +76,8 @@ function Note(letter, alteration, octave) {
         }
     }
 
-    if (((this.alteration == '##') && ((this.letter == 'E') || (this.letter == 'B')))
-        && ((this.alteration == 'bb') && ((this.letter == 'C') || (this.letter == 'F')))) {
+    if (((this.alteration === '##') && ((this.letter === 'E') || (this.letter === 'B')))
+        && ((this.alteration === 'bb') && ((this.letter === 'C') || (this.letter === 'F')))) {
         throw new InvalidArgumentError(this.toString() + " is not a note")
     }
 
@@ -89,23 +89,23 @@ Note.alterations = alterations;
 
 Note.prototype.incr = function() {
     var note = new Note(this);
-    if ((this.letter == 'E') && (!this.alteration || this.alteration == '')) {
+    if ((this.letter === 'E') && (!this.alteration || this.alteration === '')) {
         note.letter = 'F';
-    } else if ((this.letter == 'E') && (this.alteration == '#')) {
+    } else if ((this.letter === 'E') && (this.alteration === '#')) {
         note.letter = 'F';
         note.alteration = '#';
-    } else if (this.letter == 'B' && (!this.alteration || this.alteration == '')){
+    } else if (this.letter === 'B' && (!this.alteration || this.alteration === '')){
         note.letter = 'C';
         note.octave = this.octave + 1;
-    } else if (this.letter == 'B' && this.alteration == '#'){
+    } else if (this.letter === 'B' && this.alteration === '#'){
         note.letter = 'C';
         note.alteration = '#';
         note.octave = this.octave + 1;
-    } else if (this.alteration == 'b') {
+    } else if (this.alteration === 'b') {
         note.alteration = undefined;
-    } else if (!this.alteration || this.alteration == '') {
+    } else if (!this.alteration || this.alteration === '') {
         note.alteration = '#';
-    } else if (this.alteration == '#') {
+    } else if (this.alteration === '#') {
         note.letter = nextLetter(this.letter);
         note.alteration = undefined;
     }
@@ -115,23 +115,23 @@ Note.prototype.incr = function() {
 
 Note.prototype.decr = function() {
     var note = new Note(this);
-    if (this.letter == 'C' && (!this.alteration || this.alteration == '')) {
+    if (this.letter === 'C' && (!this.alteration || this.alteration === '')) {
         note.letter = 'B';
         note.octave = this.octave - 1;
-    } else if (this.letter == 'C' && this.alteration == 'b') {
+    } else if (this.letter === 'C' && this.alteration === 'b') {
         note.letter = 'B';
         note.alteration = 'b';
         note.octave = this.octave - 1;
-    } else if (this.letter == 'F' && (!this.alteration || this.alteration == '')){
+    } else if (this.letter === 'F' && (!this.alteration || this.alteration === '')){
         note.letter = 'E';
-    } else if (this.letter == 'F' && this.alteration == 'b'){
+    } else if (this.letter === 'F' && this.alteration === 'b'){
         note.letter = 'E';
         note.alteration = 'b';
-    } else if (this.alteration == '#') {
+    } else if (this.alteration === '#') {
         note.alteration = undefined;
-    } else if (!this.alteration || this.alteration == '') {
+    } else if (!this.alteration || this.alteration === '') {
         note.alteration = 'b';
-    } else if (this.alteration == 'b') {
+    } else if (this.alteration === 'b') {
         note.letter = prevLetter(this.letter);
         note.alteration = undefined;
     }
@@ -156,30 +156,30 @@ Note.prototype.sub = function(val) {
 };
 
 Note.prototype.enharmonic = function() {
-    if (this.alteration == '#') {
-        if (this.letter == 'E') {
+    if (this.alteration === '#') {
+        if (this.letter === 'E') {
             return new Note('F', '', this.octave);
-        } else if (this.letter == 'B') {
+        } else if (this.letter === 'B') {
             return new Note('C', '', this.octave + 1);
         } else {
             return new Note('A', 'b', this.octave);
         }
-    } else if (this.alteration == 'b') {
-        if (this.letter == 'F') {
+    } else if (this.alteration === 'b') {
+        if (this.letter === 'F') {
             return new Note('E', '', this.octave);
-        } else if (this.letter == 'C') {
+        } else if (this.letter === 'C') {
             return new Note('B', '', this.octave - 1);
         } else {
             return new Note(prevLetter(this.letter), '#', this.octave);
         }
     } else {
-        if (this.letter == 'E') {
+        if (this.letter === 'E') {
             return new Note('F', 'b', this.octave);
-        } else if (this.letter == 'F') {
+        } else if (this.letter === 'F') {
             return new Note('E', '#', this.octave);
-        } else if (this.letter == 'B') {
+        } else if (this.letter === 'B') {
             return new Note('C', 'b', this.octave + 1);
-        } else if (this.letter == 'C') {
+        } else if (this.letter === 'C') {
             return new Note('B', '#', this.octave - 1);
         } else {
             return new Note(this);
@@ -188,48 +188,48 @@ Note.prototype.enharmonic = function() {
 };
 
 Note.prototype.equivalent = function(alteration) {
-    console.log(this.alteration == alteration);
-    if (alteration == this.alteration) {
+    console.log(this.alteration === alteration);
+    if (alteration === this.alteration) {
         return new Note(this);
     }
     
     var d = 0;
-    if (alteration == '') {
-        if ((this.alteration == '##')
-            || ((this.alteration == '#') && (this.letter == 'E' || this.letter == 'B'))) {
+    if (alteration === '') {
+        if ((this.alteration === '##')
+            || ((this.alteration === '#') && (this.letter === 'E' || this.letter === 'B'))) {
             d = 1;
-        } else if ((this.alteration == 'bb')
-                   || ((this.alteration == 'b') && (this.letter == 'F' || this.letter == 'C'))) {
+        } else if ((this.alteration === 'bb')
+                   || ((this.alteration === 'b') && (this.letter === 'F' || this.letter === 'C'))) {
             d = -1;
         }
-    } else if (alteration == '#') {
-        if ((this.alteration == '')
-            && (this.letter == 'F' || this.letter == 'C')) {
+    } else if (alteration === '#') {
+        if ((this.alteration === '')
+            && (this.letter === 'F' || this.letter === 'C')) {
             d = -1;
-        } else if ((this.alteration == 'b')
-                   && (this.letter !== 'F' && this.letter == 'C')) {
+        } else if ((this.alteration === 'b')
+                   && (this.letter !== 'F' && this.letter === 'C')) {
             d = -1; 
-        } else if ((this.alteration == 'bb')
-                   && (this.letter == 'G' || this.letter == 'D')) {
+        } else if ((this.alteration === 'bb')
+                   && (this.letter === 'G' || this.letter === 'D')) {
             d = -2; 
         }
-    } else if (alteration == 'b') {
-        if ((this.alteration == '')
-            && (this.letter == 'E' || this.letter == 'B')) {
+    } else if (alteration === 'b') {
+        if ((this.alteration === '')
+            && (this.letter === 'E' || this.letter === 'B')) {
             d = 1;
-        } else if ((this.alteration == '#')
-                   && (this.letter !== 'E' && this.letter == 'B')) {
+        } else if ((this.alteration === '#')
+                   && (this.letter !== 'E' && this.letter === 'B')) {
             d = 1; 
-        } else if ((this.alteration == '##')
-                   && (this.letter == 'D' || this.letter == 'A')) {
+        } else if ((this.alteration === '##')
+                   && (this.letter === 'D' || this.letter === 'A')) {
             d = 2; 
         }
-    } else if (alteration == '##') {
-        if (this.alteration == '') {
+    } else if (alteration === '##') {
+        if (this.alteration === '') {
             d = -2;
         }
-    } else if (alteration == 'bb') {
-        if (this.alteration == '') {
+    } else if (alteration === 'bb') {
+        if (this.alteration === '') {
             d = 2; 
         }
     }
@@ -239,7 +239,7 @@ Note.prototype.equivalent = function(alteration) {
     if (d > 0) {
         for (var i = 0; i < d; i++) {
             letter = nextLetter(this.letter);
-            if (octave && letter == letters[0]) {
+            if (octave && letter === letters[0]) {
                 octave++;
             }
         }
@@ -247,7 +247,7 @@ Note.prototype.equivalent = function(alteration) {
     } else if (d < 0) {
         for (var i = 0; i < -d; i++) {
             letter = prevLetter(this.letter);
-            if (octave && letter == letters[letters.length-1]) {
+            if (octave && letter === letters[letters.length-1]) {
                 octave++;
             }
         }

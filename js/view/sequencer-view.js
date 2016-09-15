@@ -161,11 +161,11 @@ module.exports = Backbone.View.extend({
         var maxTime = Math.max(Tone.Time(this.model.get('loopLength')).toTicks(), Tone.Time(this.model.get('zoom')).toTicks());;
         var xRatio = x / Math.max(this.$chordSequencer.get(0).scrollWidth, this.$chordSequencer.innerWidth());
         time.mult(xRatio);
-        if (quantize == 'floor') {
+        if (quantize === 'floor') {
             time.sub(Tone.Time(this.model.get('grid')).div(2));
             time.quantize(Tone.Time(this.model.get('grid')));
         }
-        else if (quantize == true || quantize == 'quantize') {
+        else if (quantize === true || quantize === 'quantize') {
             time.quantize(Tone.Time(this.model.get('grid')));
         }
         
