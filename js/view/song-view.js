@@ -78,13 +78,13 @@ module.exports = Backbone.View.extend({
     },
 
     keyPressEdit : function(e) {
-        if (e.key === "Enter") {
+        if (e.key == "Enter") {
             this.closeEdit(true);
         }
     },
 
     keyDownEdit : function(e) {
-        if (e.key === 'Escape') {
+        if (e.key == 'Escape') {
             this.closeEdit(false);
         }
     }
