@@ -1,8 +1,16 @@
 const InvalidArgumentError = require('invalid-argument-error.js');
 
 const letters = 'CDEFGAB';
-const alterations = ['', '#', 'b'];
-const regex = /([A-G])(#|b)?(\d+)/;
+const alterations = ['', '#', 'b', '##', 'bb'];
+const regex = /([A-G])((?:#|b){0,2})(\d*)/;
+
+function nextLetter(l) {
+    letters[(letters.indexOf(l) + 1) % letters.length];
+}
+
+function prevLetter(l) {
+    letters[(letters.indexOf(l) + letters.length - 1) % letters.length];
+}
 
 function Note(letter, alteration, octave) {
     if (letter instanceof Note) {
@@ -25,7 +33,7 @@ function Note(letter, alteration, octave) {
         {
             this.letter = values[1];
             this.alteration = values[2];
-            this.octave = parseInt(values[3]);
+            this.octave = values[3] ? parseInt(values[3]) : undefined;
         } else {
             throw new InvalidArgumentError("'" + letter + "' is not a valid note string");
         }
@@ -39,30 +47,38 @@ function Note(letter, alteration, octave) {
         }
         this.letter = letter;
 
-        if (alteration !== undefined) {
+        if (alteration) {
             if ((typeof alteration) !== (typeof '')) {
                 throw new TypeError('' + alteration + ' is not a valid note alteration');
-            } else if ((alteration.length > 1) || (!alterations.includes(alteration))) {
-                throw new InvalidArgumentError("'" + letter + "' is not a valid note alteration");
+            } else if (!alterations.includes(alteration)) {
+                throw new InvalidArgumentError("'" + alteration + "' is not a valid note alteration");
             }
-        }
-        this.alteration = alteration;
 
-        if ((typeof octave) === (typeof '')) {
-            const o = parseInt(octave);
-            if (isNaN(o)) {
-                throw new TypeError("'" + o + "' is not a valid note octave");
-            }
-            octave = o;
+            this.alteration = alteration;
         }
-        if ((typeof octave) === (typeof 1)) {
-            if (octave < 0) {
-                throw new InvalidArgumentError("" + octave + " is not a valid note octave");
+
+        if (octave) {
+            if ((typeof octave) === (typeof '')) {
+                const o = parseInt(octave);
+                if (isNaN(o)) {
+                    throw new TypeError("'" + o + "' is not a valid note octave");
+                }
+                octave = o;
             }
-        } else {
-            throw new TypeError('' + octave + ' is not a valid note octave');
+            if ((typeof octave) === (typeof 1)) {
+                if (octave < 0) {
+                    throw new InvalidArgumentError("" + octave + " is not a valid note octave");
+                }
+            } else {
+                throw new TypeError('' + octave + ' is not a valid note octave');
+            }
+            this.octave = octave;
         }
-        this.octave = octave;
+    }
+
+    if (((this.alteration === '##') && ((this.letter === 'E') || (this.letter === 'B')))
+        && ((this.alteration === 'bb') && ((this.letter === 'C') || (this.letter === 'F')))) {
+        throw new InvalidArgumentError(this.toString() + " is not a note")
     }
 
     return this;
@@ -90,7 +106,7 @@ Note.prototype.incr = function() {
     } else if (!this.alteration || this.alteration === '') {
         note.alteration = '#';
     } else if (this.alteration === '#') {
-        note.letter = letters[(letters.indexOf(this.letter) + 1) % letters.length];
+        note.letter = nextLetter(this.letter);
         note.alteration = undefined;
     }
 
@@ -116,7 +132,7 @@ Note.prototype.decr = function() {
     } else if (!this.alteration || this.alteration === '') {
         note.alteration = 'b';
     } else if (this.alteration === 'b') {
-        note.letter = letters[(letters.indexOf(this.letter) + letter.length - 1) % letters.length];
+        note.letter = prevLetter(this.letter);
         note.alteration = undefined;
     }
 
@@ -146,7 +162,7 @@ Note.prototype.enharmonic = function() {
         } else if (this.letter === 'B') {
             return new Note('C', '', this.octave + 1);
         } else {
-            return new Note(letters[(letters.indexOf(this.letter) + 1) % letters.length], 'b', this.octave);
+            return new Note('A', 'b', this.octave);
         }
     } else if (this.alteration === 'b') {
         if (this.letter === 'F') {
@@ -154,7 +170,7 @@ Note.prototype.enharmonic = function() {
         } else if (this.letter === 'C') {
             return new Note('B', '', this.octave - 1);
         } else {
-            return new Note(letters[(letters.indexOf(this.letter)  + letters.length - 1) % letters.length], '#', this.octave);
+            return new Note(prevLetter(this.letter), '#', this.octave);
         }
     } else {
         if (this.letter === 'E') {
@@ -170,6 +186,77 @@ Note.prototype.enharmonic = function() {
         }
     }
 };
+
+Note.prototype.equivalent = function(alteration) {
+    console.log(this.alteration === alteration);
+    if (alteration === this.alteration) {
+        return new Note(this);
+    }
+    
+    var d = 0;
+    if (alteration === '') {
+        if ((this.alteration === '##')
+            || ((this.alteration === '#') && (this.letter === 'E' || this.letter === 'B'))) {
+            d = 1;
+        } else if ((this.alteration === 'bb')
+                   || ((this.alteration === 'b') && (this.letter === 'F' || this.letter === 'C'))) {
+            d = -1;
+        }
+    } else if (alteration === '#') {
+        if ((this.alteration === '')
+            && (this.letter === 'F' || this.letter === 'C')) {
+            d = -1;
+        } else if ((this.alteration === 'b')
+                   && (this.letter !== 'F' && this.letter === 'C')) {
+            d = -1; 
+        } else if ((this.alteration === 'bb')
+                   && (this.letter === 'G' || this.letter === 'D')) {
+            d = -2; 
+        }
+    } else if (alteration === 'b') {
+        if ((this.alteration === '')
+            && (this.letter === 'E' || this.letter === 'B')) {
+            d = 1;
+        } else if ((this.alteration === '#')
+                   && (this.letter !== 'E' && this.letter === 'B')) {
+            d = 1; 
+        } else if ((this.alteration === '##')
+                   && (this.letter === 'D' || this.letter === 'A')) {
+            d = 2; 
+        }
+    } else if (alteration === '##') {
+        if (this.alteration === '') {
+            d = -2;
+        }
+    } else if (alteration === 'bb') {
+        if (this.alteration === '') {
+            d = 2; 
+        }
+    }
+
+    var letter = this.letter;
+    var octave = this.octave;
+    if (d > 0) {
+        for (var i = 0; i < d; i++) {
+            letter = nextLetter(this.letter);
+            if (octave && letter === letters[0]) {
+                octave++;
+            }
+        }
+        return new Note(letter, alteration, octave);
+    } else if (d < 0) {
+        for (var i = 0; i < -d; i++) {
+            letter = prevLetter(this.letter);
+            if (octave && letter === letters[letters.length-1]) {
+                octave++;
+            }
+        }
+        return new Note(letter, alteration, octave);
+    } else {
+        return null;
+    }
+
+}
 
 Note.prototype.toString = function() {
     return this.letter + (this.alteration ? this.alteration : '') + this.octave.toString();

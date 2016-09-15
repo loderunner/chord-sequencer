@@ -14,7 +14,13 @@ for (var m in Scale.modes) {
             scale.push(note.toString());
             var prevNote = note;
             note = note.add(i);
-            if (note.letter === prevNote.letter) {
+            if ((k.length === 2) && (note.alteration !== k[1])) {
+                try {
+                    note = note.enharmonic();
+                } catch (e) {
+                }
+            } else if ((note.letter !== Note.letters[(Note.letters.indexOf(prevNote.letter) + 1) % Note.letters.length])) {
+                
                 try {
                     note = note.enharmonic();
                 } catch (e) {
