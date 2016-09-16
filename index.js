@@ -36038,24 +36038,24 @@
 	    if (note.alteration === '##' || note.alteration === 'bb') {
 	        note = note.equivalent('');
 	    }
-	    if ((this.letter === 'E') && (this.alteration === '')) {
+	    if ((note.letter === 'E') && (note.alteration === '')) {
 	        note.letter = 'F';
-	    } else if ((this.letter === 'E') && (this.alteration === '#')) {
+	    } else if ((note.letter === 'E') && (note.alteration === '#')) {
 	        note.letter = 'F';
 	        note.alteration = '#';
-	    } else if (this.letter === 'B' && (this.alteration === '')){
+	    } else if (note.letter === 'B' && (note.alteration === '')){
 	        note.letter = 'C';
-	        note.octave = this.octave + 1;
-	    } else if (this.letter === 'B' && this.alteration === '#'){
+	        note.octave = note.octave + 1;
+	    } else if (note.letter === 'B' && note.alteration === '#'){
 	        note.letter = 'C';
 	        note.alteration = '#';
-	        note.octave = this.octave + 1;
-	    } else if (this.alteration === 'b') {
+	        note.octave = note.octave + 1;
+	    } else if (note.alteration === 'b') {
 	        note.alteration = '';
-	    } else if (this.alteration === '') {
+	    } else if (note.alteration === '') {
 	        note.alteration = '#';
-	    } else if (this.alteration === '#') {
-	        note.letter = nextLetter(this.letter);
+	    } else if (note.alteration === '#') {
+	        note.letter = nextLetter(note.letter);
 	        note.alteration = '';
 	    }
 	
@@ -36067,24 +36067,24 @@
 	    if (note.alteration === '##' || note.alteration === 'bb') {
 	        note = note.equivalent('');
 	    }
-	    if (this.letter === 'C' && (this.alteration === '')) {
+	    if (note.letter === 'C' && (note.alteration === '')) {
 	        note.letter = 'B';
-	        note.octave = this.octave - 1;
-	    } else if (this.letter === 'C' && this.alteration === 'b') {
+	        note.octave = note.octave - 1;
+	    } else if (note.letter === 'C' && note.alteration === 'b') {
 	        note.letter = 'B';
 	        note.alteration = 'b';
-	        note.octave = this.octave - 1;
-	    } else if (this.letter === 'F' && (this.alteration === '')){
+	        note.octave = note.octave - 1;
+	    } else if (note.letter === 'F' && (note.alteration === '')){
 	        note.letter = 'E';
-	    } else if (this.letter === 'F' && this.alteration === 'b'){
+	    } else if (note.letter === 'F' && note.alteration === 'b'){
 	        note.letter = 'E';
 	        note.alteration = 'b';
-	    } else if (this.alteration === '#') {
+	    } else if (note.alteration === '#') {
 	        note.alteration = '';
-	    } else if (this.alteration === '') {
+	    } else if (note.alteration === '') {
 	        note.alteration = 'b';
-	    } else if (this.alteration === 'b') {
-	        note.letter = prevLetter(this.letter);
+	    } else if (note.alteration === 'b') {
+	        note.letter = prevLetter(note.letter);
 	        note.alteration = '';
 	    }
 	
