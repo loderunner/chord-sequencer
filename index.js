@@ -36035,12 +36035,15 @@
 	
 	Note.prototype.incr = function() {
 	    var note = new Note(this);
-	    if ((this.letter === 'E') && (!this.alteration || this.alteration === '')) {
+	    if (note.alteration === '##' || note.alteration === 'bb') {
+	        note = note.equivalent('');
+	    }
+	    if ((this.letter === 'E') && (this.alteration === '')) {
 	        note.letter = 'F';
 	    } else if ((this.letter === 'E') && (this.alteration === '#')) {
 	        note.letter = 'F';
 	        note.alteration = '#';
-	    } else if (this.letter === 'B' && (!this.alteration || this.alteration === '')){
+	    } else if (this.letter === 'B' && (this.alteration === '')){
 	        note.letter = 'C';
 	        note.octave = this.octave + 1;
 	    } else if (this.letter === 'B' && this.alteration === '#'){
@@ -36048,12 +36051,12 @@
 	        note.alteration = '#';
 	        note.octave = this.octave + 1;
 	    } else if (this.alteration === 'b') {
-	        note.alteration = undefined;
-	    } else if (!this.alteration || this.alteration === '') {
+	        note.alteration = '';
+	    } else if (this.alteration === '') {
 	        note.alteration = '#';
 	    } else if (this.alteration === '#') {
 	        note.letter = nextLetter(this.letter);
-	        note.alteration = undefined;
+	        note.alteration = '';
 	    }
 	
 	    return note;
@@ -36061,25 +36064,28 @@
 	
 	Note.prototype.decr = function() {
 	    var note = new Note(this);
-	    if (this.letter === 'C' && (!this.alteration || this.alteration === '')) {
+	    if (note.alteration === '##' || note.alteration === 'bb') {
+	        note = note.equivalent('');
+	    }
+	    if (this.letter === 'C' && (this.alteration === '')) {
 	        note.letter = 'B';
 	        note.octave = this.octave - 1;
 	    } else if (this.letter === 'C' && this.alteration === 'b') {
 	        note.letter = 'B';
 	        note.alteration = 'b';
 	        note.octave = this.octave - 1;
-	    } else if (this.letter === 'F' && (!this.alteration || this.alteration === '')){
+	    } else if (this.letter === 'F' && (this.alteration === '')){
 	        note.letter = 'E';
 	    } else if (this.letter === 'F' && this.alteration === 'b'){
 	        note.letter = 'E';
 	        note.alteration = 'b';
 	    } else if (this.alteration === '#') {
-	        note.alteration = undefined;
-	    } else if (!this.alteration || this.alteration === '') {
+	        note.alteration = '';
+	    } else if (this.alteration === '') {
 	        note.alteration = 'b';
 	    } else if (this.alteration === 'b') {
 	        note.letter = prevLetter(this.letter);
-	        note.alteration = undefined;
+	        note.alteration = '';
 	    }
 	
 	    return note;

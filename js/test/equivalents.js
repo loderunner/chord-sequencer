@@ -36,7 +36,6 @@ describe('Note', function() {
             }
 
             var index = equivalents.indexOf(note.toString()) - Note.alterations.indexOf(a);
-            console.log(index);
 
             it(note.toString() + ' natural equivalent should be ' + equivalents[index],
                 assertEqual(note.equivalent(''), equivalents[index]));
