@@ -70,10 +70,10 @@ AudioController.prototype.updateChord = function(chord) {
 AudioController.prototype.updateKeyMode = function() {
     this.scale = Tonality.Scale(this.sequence.get('key'), this.sequence.get('mode'));
     this.notes = [this.scale.key + '3'];
-    for (var i = 0; i < 8; i ++) {
-        this.notes.push(this.scale.next(this.notes[i]).toString());
-    }
-    console.log(this.notes);
+    // for (var i = 0; i < 8; i ++) {
+    //     this.notes.push(this.scale.next(this.notes[i]).toString());
+    // }
+    // console.log(this.notes);
 }
 
 module.exports = AudioController;

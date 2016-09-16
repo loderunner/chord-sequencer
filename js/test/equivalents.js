@@ -17,6 +17,12 @@ const equivalents = [
     "B1",   null,   "Cb2",  "A##1", null  
 ];
 
+function assertEqual(actual, expected) {
+    return function() {
+        assert.equal(actual ? actual.toString() : actual, expected);
+    }
+}
+
 describe('Note', function() {
   describe('#equivalent()', function() {
     for (var l of Note.letters) {
@@ -24,34 +30,21 @@ describe('Note', function() {
             const note = new Note(l, a, 1);
 
             var index = equivalents.indexOf(note.toString()) - Note.alterations.indexOf(a);
-            var expect = equivalents[index];
-            it(note.toString() + ' natural equivalent should be ' + expect, function() {
-                assert.equal(note.equivalent('').toString(), expect);
-            });
 
-            index = equivalents.indexOf(note.toString()) - Note.alterations.indexOf(a) + 1;
-            expect = equivalents[index];
-            it(note.toString() + ' # equivalent should be ' + expect, function() {
-                assert.equal(note.equivalent('#').toString(), expect);
-            });
+            it(note.toString() + ' natural equivalent should be ' + equivalents[index],
+                assertEqual(note.equivalent(''), equivalents[index]));
 
-            index = equivalents.indexOf(note.toString()) - Note.alterations.indexOf(a) + 2;
-            expect = equivalents[index];
-            it(note.toString() + ' b equivalent should be ' + expect, function() {
-                assert.equal(note.equivalent('b').toString(), expect);
-            });
+            it(note.toString() + ' # equivalent should be ' + equivalents[index + 1], 
+                assertEqual(note.equivalent('#'), equivalents[index + 1]));
 
-            index = equivalents.indexOf(note.toString()) - Note.alterations.indexOf(a) + 3;
-            expect = equivalents[index];
-            it(note.toString() + ' ## equivalent should be ' + expect, function() {
-                assert.equal(note.equivalent('##').toString(), expect);
-            });
+            it(note.toString() + ' b equivalent should be ' + equivalents[index + 2], 
+                assertEqual(note.equivalent('b'), equivalents[index + 2]));
 
-            index = equivalents.indexOf(note.toString()) - Note.alterations.indexOf(a) + 4;
-            expect = equivalents[index];
-            it(note.toString() + ' bb equivalent should be ' + expect, function() {
-                assert.equal(note.equivalent('bb').toString(), expect);
-            });
+            it(note.toString() + ' ## equivalent should be ' + equivalents[index + 3], 
+                assertEqual(note.equivalent('##'), equivalents[index + 3]));
+
+            it(note.toString() + ' bb equivalent should be ' + equivalents[index + 4], 
+                assertEqual(note.equivalent('bb'), equivalents[index + 4]));
         }
     }
   });

@@ -4,6 +4,7 @@ const $ = require('jquery');
 const Song = require('model/song.js');
 const SongView = require('view/song-view.js');
 const Audio = require('audio/controller.js');
+const Tonality = require('audio/tonality/tonality.js');
 
 
 
@@ -32,4 +33,5 @@ $(window).on('load', function() {
     });
 
     this.song = song;
+    this.Tonality = Tonality;
 });

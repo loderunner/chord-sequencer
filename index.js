@@ -50,6 +50,7 @@
 	const Song = __webpack_require__(3);
 	const SongView = __webpack_require__(10);
 	const Audio = __webpack_require__(28);
+	const Tonality = __webpack_require__(19);
 	
 	
 	
@@ -78,6 +79,7 @@
 	    });
 	
 	    this.song = song;
+	    this.Tonality = Tonality;
 	});
 
 /***/ },
@@ -35949,11 +35951,11 @@
 	const regex = /([A-G])((?:#|b){0,2})(\d*)/;
 	
 	function nextLetter(l) {
-	    letters[(letters.indexOf(l) + 1) % letters.length];
+	    return letters[(letters.indexOf(l) + 1) % letters.length];
 	}
 	
 	function prevLetter(l) {
-	    letters[(letters.indexOf(l) + letters.length - 1) % letters.length];
+	    return letters[(letters.indexOf(l) + letters.length - 1) % letters.length];
 	}
 	
 	function Note(letter, alteration, octave) {
@@ -35976,7 +35978,7 @@
 	        if (values)
 	        {
 	            this.letter = values[1];
-	            this.alteration = values[2];
+	            this.alteration = values[2] ? values[2] : '';
 	            this.octave = values[3] ? parseInt(values[3]) : undefined;
 	        } else {
 	            throw new InvalidArgumentError("'" + letter + "' is not a valid note string");
@@ -35991,17 +35993,15 @@
 	        }
 	        this.letter = letter;
 	
-	        if (alteration) {
-	            if ((typeof alteration) !== (typeof '')) {
-	                throw new TypeError('' + alteration + ' is not a valid note alteration');
-	            } else if (!alterations.includes(alteration)) {
-	                throw new InvalidArgumentError("'" + alteration + "' is not a valid note alteration");
-	            }
-	
-	            this.alteration = alteration;
+	        if ((typeof alteration) !== (typeof '')) {
+	            throw new TypeError('' + alteration + ' is not a valid note alteration');
+	        } else if (!alterations.includes(alteration)) {
+	            throw new InvalidArgumentError("'" + alteration + "' is not a valid note alteration");
 	        }
 	
-	        if (octave) {
+	        this.alteration = alteration;
+	
+	        if (octave !== undefined) {
 	            if ((typeof octave) === (typeof '')) {
 	                const o = parseInt(octave);
 	                if (isNaN(o)) {
@@ -36132,7 +36132,6 @@
 	};
 	
 	Note.prototype.equivalent = function(alteration) {
-	    console.log(this.alteration === alteration);
 	    if (alteration === this.alteration) {
 	        return new Note(this);
 	    }
@@ -36182,7 +36181,7 @@
 	    var octave = this.octave;
 	    if (d > 0) {
 	        for (var i = 0; i < d; i++) {
-	            letter = nextLetter(this.letter);
+	            letter = nextLetter(letter);
 	            if (octave && letter === letters[0]) {
 	                octave++;
 	            }
@@ -36190,9 +36189,9 @@
 	        return new Note(letter, alteration, octave);
 	    } else if (d < 0) {
 	        for (var i = 0; i < -d; i++) {
-	            letter = prevLetter(this.letter);
+	            letter = prevLetter(letter);
 	            if (octave && letter === letters[letters.length-1]) {
-	                octave++;
+	                octave--;
 	            }
 	        }
 	        return new Note(letter, alteration, octave);
@@ -36203,7 +36202,7 @@
 	}
 	
 	Note.prototype.toString = function() {
-	    return this.letter + (this.alteration ? this.alteration : '') + this.octave.toString();
+	    return this.letter + this.alteration + this.octave;
 	}
 	
 	module.exports = Note;
@@ -36597,10 +36596,10 @@
 	AudioController.prototype.updateKeyMode = function() {
 	    this.scale = Tonality.Scale(this.sequence.get('key'), this.sequence.get('mode'));
 	    this.notes = [this.scale.key + '3'];
-	    for (var i = 0; i < 8; i ++) {
-	        this.notes.push(this.scale.next(this.notes[i]).toString());
-	    }
-	    console.log(this.notes);
+	    // for (var i = 0; i < 8; i ++) {
+	    //     this.notes.push(this.scale.next(this.notes[i]).toString());
+	    // }
+	    // console.log(this.notes);
 	}
 	
 	module.exports = AudioController;
