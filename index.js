@@ -35967,7 +35967,7 @@
 	        return this;
 	    }
 	
-	    if (!alteration && !octave) {
+	    if ((alteration === undefined) && (octave === undefined)) {
 	
 	        if ((typeof letter) !== (typeof '')) {
 	            throw new TypeError('' + letter + ' is not a string');
@@ -35979,7 +35979,9 @@
 	        {
 	            this.letter = values[1];
 	            this.alteration = values[2] ? values[2] : '';
-	            this.octave = values[3] ? parseInt(values[3]) : undefined;
+	            if (values[3] !== undefined) {
+	                this.octave = parseInt(values[3]);
+	            }
 	        } else {
 	            throw new InvalidArgumentError("'" + letter + "' is not a valid note string");
 	        }
@@ -36021,8 +36023,8 @@
 	    }
 	
 	    if (((this.alteration === '##') && ((this.letter === 'E') || (this.letter === 'B')))
-	        && ((this.alteration === 'bb') && ((this.letter === 'C') || (this.letter === 'F')))) {
-	        throw new InvalidArgumentError(this.toString() + " is not a note")
+	        || ((this.alteration === 'bb') && ((this.letter === 'C') || (this.letter === 'F')))) {
+	        throw new InvalidArgumentError(this.toString() + " is not a note");
 	    }
 	
 	    return this;
@@ -36150,7 +36152,7 @@
 	            && (this.letter === 'F' || this.letter === 'C')) {
 	            d = -1;
 	        } else if ((this.alteration === 'b')
-	                   && (this.letter !== 'F' && this.letter === 'C')) {
+	                   && (this.letter !== 'F' && this.letter !== 'C')) {
 	            d = -1; 
 	        } else if ((this.alteration === 'bb')
 	                   && (this.letter === 'G' || this.letter === 'D')) {
@@ -36161,19 +36163,33 @@
 	            && (this.letter === 'E' || this.letter === 'B')) {
 	            d = 1;
 	        } else if ((this.alteration === '#')
-	                   && (this.letter !== 'E' && this.letter === 'B')) {
+	                   && (this.letter !== 'E' && this.letter !== 'B')) {
 	            d = 1; 
 	        } else if ((this.alteration === '##')
 	                   && (this.letter === 'D' || this.letter === 'A')) {
 	            d = 2; 
 	        }
 	    } else if (alteration === '##') {
-	        if (this.alteration === '') {
+	        if (this.alteration === ''
+	            && (this.letter !== 'C' && this.letter !== 'F')) {
+	            d = -1;
+	        } else if (this.alteration === 'b'
+	                   && (this.letter === 'C' || this.letter === 'F')) {
+	            d = -2;
+	        } else if (this.alteration === 'bb'
+	                   && (this.letter !== 'D' && this.letter !== 'G')) {
 	            d = -2;
 	        }
 	    } else if (alteration === 'bb') {
-	        if (this.alteration === '') {
+	        if (this.alteration === ''
+	            && (this.letter !== 'E' && this.letter !== 'B')) {
+	            d = 1; 
+	        } else if (this.alteration === '#'
+	            && (this.letter === 'E' || this.letter === 'B')) {
 	            d = 2; 
+	        } else if (this.alteration === '##'
+	                   && (this.letter !== 'D' && this.letter !== 'A')) {
+	            d = 2
 	        }
 	    }
 	
@@ -36202,7 +36218,11 @@
 	}
 	
 	Note.prototype.toString = function() {
-	    return this.letter + this.alteration + this.octave;
+	    if (this.octave === undefined) {
+	        return this.letter + this.alteration;
+	    } else {
+	        return this.letter + this.alteration + this.octave;
+	    }
 	}
 	
 	module.exports = Note;
