@@ -157,33 +157,11 @@ Note.prototype.sub = function(val) {
 
 Note.prototype.enharmonic = function() {
     if (this.alteration === '#') {
-        if (this.letter === 'E') {
-            return new Note('F', '', this.octave);
-        } else if (this.letter === 'B') {
-            return new Note('C', '', this.octave + 1);
-        } else {
-            return new Note('A', 'b', this.octave);
-        }
+        return this.equivalent('b');
     } else if (this.alteration === 'b') {
-        if (this.letter === 'F') {
-            return new Note('E', '', this.octave);
-        } else if (this.letter === 'C') {
-            return new Note('B', '', this.octave - 1);
-        } else {
-            return new Note(prevLetter(this.letter), '#', this.octave);
-        }
+        return this.equivalent('#');
     } else {
-        if (this.letter === 'E') {
-            return new Note('F', 'b', this.octave);
-        } else if (this.letter === 'F') {
-            return new Note('E', '#', this.octave);
-        } else if (this.letter === 'B') {
-            return new Note('C', 'b', this.octave + 1);
-        } else if (this.letter === 'C') {
-            return new Note('B', '#', this.octave - 1);
-        } else {
-            return new Note(this);
-        }
+        return null;
     }
 };
 
