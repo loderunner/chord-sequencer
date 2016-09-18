@@ -36657,7 +36657,8 @@
 	        note = self.scale.add(note, event.get('step'));
 	        note.octave = 3;
 	        self.synth.triggerAttackRelease(note.toString(), event.get('duration'), time);
-	        for (var i = 0; i < 3; i ++) {
+	        var numberOfNotes = event.get('seventh') ? 4 : 3;
+	        for (var i = 0; i < numberOfNotes; i ++) {
 	            note.octave = 4;
 	            self.synth.triggerAttackRelease(note.toString(), event.get('duration'), time);
 	            note = self.scale.add(note, 2);
