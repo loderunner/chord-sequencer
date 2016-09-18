@@ -65,18 +65,20 @@
 	$('body').prepend(songView.$el);
 	
 	$(window).on('load', function() {
-	    song.set({
-	        title : 'New Song',
-	        sequence : {
-	            key : 'C',
-	            mode : 'Major',
-	            tempo : 120,
-	            loopLength : '1m',
-	            chordList : [],
-	            grid : '16n',
-	            zoom : '1m'
-	        }
-	    });
+	    // song.set({
+	    //     title : 'New Song',
+	    //     instrument : 'pad',
+	    //     sequence : {
+	    //         key : 'C',
+	    //         mode : 'Major',
+	    //         tempo : 120,
+	    //         loopLength : '1m',
+	    //         chordList : [],
+	    //         grid : '16n',
+	    //         zoom : '1m'
+	    //     }
+	    // });
+	    song.set({"sequence":{"chordList":[{"step":0,"seventh":true,"start":"0","duration":"4n"},{"step":"2","seventh":true,"start":"4n","duration":"4n"},{"step":"1","seventh":true,"start":"2n","duration":"4n"},{"step":"4","seventh":true,"start":"2n + 4n","duration":"4n"}],"key":"D","mode":"Dorian","tempo":46,"loopLength":"1m","grid":"16n","zoom":"1m"},"title":"New Song","instrument":"pad"});
 	
 	    this.song = song;
 	    this.Tonality = Tonality;
@@ -31154,6 +31156,7 @@
 	 *
 	 * @property {string}   title       - The title of the song. Defaults to `'New Song'`
 	 * @property {Sequence} sequence    - The musical data of the song.
+	 * @property {string}   instrument  - Id of the instrument the song plays.
 	 *
 	 * @extends Backbone.Model
 	 */
@@ -36645,24 +36648,16 @@
 	const Tone = __webpack_require__(1);
 	
 	const Tonality = __webpack_require__(19);
+	const Instruments = __webpack_require__(29);
 	
 	function AudioController(song) {
 	    _.extend(this, Backbone.Events);
 	
-	    this.synth = new Tone.PolySynth(8, Tone.Synth).toMaster();
+	    this.instrument = Instruments['pad'];
 	
 	    const self = this;
 	    this.part = new Tone.Part(function(time, event) {
-	        var note = Tonality.Note(self.scale.key + '3');
-	        note = self.scale.add(note, event.get('step'));
-	        note.octave = 3;
-	        self.synth.triggerAttackRelease(note.toString(), event.get('duration'), time);
-	        var numberOfNotes = event.get('seventh') ? 4 : 3;
-	        for (var i = 0; i < numberOfNotes; i ++) {
-	            note.octave = 4;
-	            self.synth.triggerAttackRelease(note.toString(), event.get('duration'), time);
-	            note = self.scale.add(note, 2);
-	        }
+	        self.instrument.play(self, time, event);
 	    });
 	    this.part.start('0m');
 	    this.part.stop('8m');
@@ -36717,6 +36712,59 @@
 	}
 	
 	module.exports = AudioController;
+
+/***/ },
+/* 29 */
+/***/ function(module, exports, __webpack_require__) {
+
+	const Tone = __webpack_require__(1);
+	
+	const padSynth = new Tone.PolySynth(8, Tone.MonoSynth).toMaster();
+	padSynth.set({
+	    oscillator : {
+	        type : "fatsawtooth",
+	        spread : 30,
+	        count : 7
+	    },
+	    filter : {
+	        Q : 0,
+	        type : "lowpass",
+	        rolloff : -24
+	    },
+	    envelope : {
+	        attack : 0.3,
+	        decay : 0.1,
+	        sustain : 0.9,
+	        release : 2,
+	    },
+	    filterEnvelope:{
+	        attack : 0.06,
+	        decay : 0.2,
+	        sustain : 0.5,
+	        release : 2,
+	        baseFrequency : 2000,
+	        octaves : 0,
+	        exponent : 2
+	    }
+	});
+	
+	module.exports = {
+	    'pad' : {
+	        synth : padSynth,
+	        play : function(controller, time, event) {
+	            var note = Tonality.Note(controller.scale.key + '3');
+	            note = controller.scale.add(note, event.get('step'));
+	            note.octave = 3;
+	            this.synth.triggerAttackRelease(note.toString(), event.get('duration'), time);
+	            var numberOfNotes = event.get('seventh') ? 4 : 3;
+	            for (var i = 0; i < numberOfNotes; i ++) {
+	                note.octave = 4;
+	                this.synth.triggerAttackRelease(note.toString(), event.get('duration'), time);
+	                note = controller.scale.add(note, 2);
+	            }
+	        }
+	    }
+	}
 
 /***/ }
 /******/ ]);

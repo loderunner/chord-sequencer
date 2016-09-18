@@ -3,24 +3,16 @@ const Backbone = require('backbone-nested-models');
 const Tone = require('tone');
 
 const Tonality = require('audio/tonality/tonality.js');
+const Instruments = require('audio/instruments.js');
 
 function AudioController(song) {
     _.extend(this, Backbone.Events);
 
-    this.synth = new Tone.PolySynth(8, Tone.Synth).toMaster();
+    this.instrument = Instruments['pad'];
 
     const self = this;
     this.part = new Tone.Part(function(time, event) {
-        var note = Tonality.Note(self.scale.key + '3');
-        note = self.scale.add(note, event.get('step'));
-        note.octave = 3;
-        self.synth.triggerAttackRelease(note.toString(), event.get('duration'), time);
-        var numberOfNotes = event.get('seventh') ? 4 : 3;
-        for (var i = 0; i < numberOfNotes; i ++) {
-            note.octave = 4;
-            self.synth.triggerAttackRelease(note.toString(), event.get('duration'), time);
-            note = self.scale.add(note, 2);
-        }
+        self.instrument.play(self, time, event);
     });
     this.part.start('0m');
     this.part.stop('8m');

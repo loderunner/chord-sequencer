@@ -19,18 +19,20 @@ const songView = new SongView({
 $('body').prepend(songView.$el);
 
 $(window).on('load', function() {
-    song.set({
-        title : 'New Song',
-        sequence : {
-            key : 'C',
-            mode : 'Major',
-            tempo : 120,
-            loopLength : '1m',
-            chordList : [],
-            grid : '16n',
-            zoom : '1m'
-        }
-    });
+    // song.set({
+    //     title : 'New Song',
+    //     instrument : 'pad',
+    //     sequence : {
+    //         key : 'C',
+    //         mode : 'Major',
+    //         tempo : 120,
+    //         loopLength : '1m',
+    //         chordList : [],
+    //         grid : '16n',
+    //         zoom : '1m'
+    //     }
+    // });
+    song.set({"sequence":{"chordList":[{"step":0,"seventh":true,"start":"0","duration":"4n"},{"step":"2","seventh":true,"start":"4n","duration":"4n"},{"step":"1","seventh":true,"start":"2n","duration":"4n"},{"step":"4","seventh":true,"start":"2n + 4n","duration":"4n"}],"key":"D","mode":"Dorian","tempo":46,"loopLength":"1m","grid":"16n","zoom":"1m"},"title":"New Song","instrument":"pad"});
 
     this.song = song;
     this.Tonality = Tonality;
