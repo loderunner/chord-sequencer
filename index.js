@@ -35166,7 +35166,7 @@
 	        'keyDown .edit' : 'keyDownEdit'
 	    },
 	
-	    clickTitle : function() {
+	    clickTitle : function(e) {
 	        e.stopPropagation();
 	        
 	        this.$edit.attr('value', this.model.get('title'));
