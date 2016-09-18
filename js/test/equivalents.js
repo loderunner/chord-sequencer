@@ -51,6 +51,33 @@ describe('Note', function() {
 
             it(note.toString() + ' bb equivalent should be ' + equivalents[index + 4], 
                 assertEqual(note.equivalent('bb'), equivalents[index + 4]));
+
+            var prevLetter = Note.prevLetter(note.letter);
+            var nextLetter = Note.nextLetter(note.letter);
+            for (var l2 of Note.letters) {
+                if (l2 === note.letter) {
+                    var note2 = equivalents.slice(index, index + 5).find(function(equiv) {
+                        return (equiv && (equiv[0] === note.letter));
+                    }) || null;
+                    it(note.toString() + ' ' + l2 + ' equivalent should be ' + note2,
+                        assertEqual(note.equivalent(l2), note2));
+                } else if (l2 === prevLetter) {
+                    var note2 = equivalents.slice(index, index + 5).find(function(equiv) {
+                        return (equiv && (equiv[0] === prevLetter));
+                    }) || null;
+                    it(note.toString() + ' ' + l2 + ' equivalent should be ' + note2,
+                        assertEqual(note.equivalent(l2), note2));
+                } else if (l2 === nextLetter) {
+                    var note2 = equivalents.slice(index, index + 5).find(function(equiv) {
+                        return (equiv && (equiv[0] === nextLetter));
+                    }) || null;
+                    it(note.toString() + ' ' + l2 + ' equivalent should be ' + note2,
+                        assertEqual(note.equivalent(l2), note2));
+                } else {
+                    it(note.toString() + ' ' + l2 + ' equivalent should be null',
+                        assertEqual(note.equivalent(l2), null));
+                }
+            }
         }
     }
   });

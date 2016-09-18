@@ -36032,6 +36032,8 @@
 	
 	Note.letters = letters;
 	Note.alterations = alterations;
+	Note.prevLetter = prevLetter;
+	Note.nextLetter = nextLetter;
 	
 	Note.prototype.incr = function() {
 	    var note = new Note(this);
@@ -36117,7 +36119,17 @@
 	    }
 	};
 	
-	Note.prototype.equivalent = function(alteration) {
+	Note.prototype.equivalent = function(eq) {
+	    if (alterations.includes(eq)) {
+	        return this._equivalentAlteration(eq);
+	    } else if (letters.includes(eq)) {
+	        return this._equivalentLetter(eq);
+	    } else {
+	        return null;
+	    }
+	}
+	
+	Note.prototype._equivalentAlteration = function(alteration) {
 	    if (alteration === this.alteration) {
 	        return new Note(this);
 	    }
@@ -36182,7 +36194,7 @@
 	    if (d > 0) {
 	        for (var i = 0; i < d; i++) {
 	            letter = nextLetter(letter);
-	            if (octave && letter === letters[0]) {
+	            if (octave !== undefined && letter === letters[0]) {
 	                octave++;
 	            }
 	        }
@@ -36190,7 +36202,7 @@
 	    } else if (d < 0) {
 	        for (var i = 0; i < -d; i++) {
 	            letter = prevLetter(letter);
-	            if (octave && letter === letters[letters.length-1]) {
+	            if (octave !== undefined && letter === letters[letters.length-1]) {
 	                octave--;
 	            }
 	        }
@@ -36198,7 +36210,60 @@
 	    } else {
 	        return null;
 	    }
+	}
 	
+	Note.prototype._equivalentLetter = function(letter) {
+	    if (this.letter === letter) {
+	        return new Note(this);
+	    }
+	
+	    var alteration;
+	    var octave = this.octave;
+	    if (letter === prevLetter(this.letter)) {
+	        if (this.alteration === 'b') {
+	            if (this.letter === 'F' || this.letter === 'C') {
+	                alteration = '';
+	            } else {
+	                alteration = '#';
+	            }
+	        } else if (this.alteration === '') {
+	            if (this.letter === 'F' || this.letter === 'C') {
+	                alteration = '#';
+	            } else {
+	                alteration = '##';
+	            }
+	        } else if (this.alteration === 'bb') {
+	            alteration = '';
+	        }
+	        if (octave !== undefined && letter === letters[letters.length-1]) {
+	            octave--;
+	        }
+	    } else if (letter === nextLetter(this.letter)) {
+	        if (this.alteration === '#') {
+	            if (this.letter === 'E' || this.letter === 'B') {
+	                alteration = '';
+	            } else {
+	                alteration = 'b';
+	            }
+	        } else if (this.alteration === '') {
+	            if (this.letter === 'E' || this.letter === 'B') {
+	                alteration = 'b';
+	            } else {
+	                alteration = 'bb';
+	            }
+	        } else if (this.alteration === '##') {
+	            alteration = '';
+	        }
+	        if (octave !== undefined && letter === letters[0]) {
+	            octave++;
+	        }
+	    }
+	
+	    if (alteration !== undefined) {
+	        return new Note(letter, alteration, octave);
+	    } else {
+	        return null;
+	    }
 	}
 	
 	Note.prototype.toString = function() {
@@ -36275,6 +36340,20 @@
 	    }
 	    this.mode = mode;
 	
+	    // const intervals = modes[this.mode];
+	    // const root = new Note(this.key[0]);
+	    // this.notes = [root];
+	    // for (var i = 0; i < intervals.length; i++) {
+	    //     var note = this.notes[i].add(intervals[i]);
+	    //     if (note.letter !== Note.nextLetter(note.letter)) {
+	    //         nextNote = nextNote.enharmonic();
+	    //     }
+	    //     if (note.letter === prevNote.letter) {
+	    //         return nextNote;
+	    //     }
+	    //     prevNote = nextNote;
+	    // }
+	
 	    return this;
 	}
 	
@@ -36294,9 +36373,9 @@
 	    var prevNote = new Note(this.key[0], this.key[1], octave);
 	    for (var i = 0; i < intervals.length; i++) {
 	        var nextNote = prevNote.add(intervals[i]);
-	        // if (nextNote.letter !== Note.letters[(Note.letters.indexOf(prevNote.letter) + 1) % Note.letters.length]) {
-	        //     nextNote = nextNote.enharmonic();
-	        // }
+	        if (nextNote.letter !== Note.letters[(Note.letters.indexOf(prevNote.letter) + 1) % Note.letters.length]) {
+	            nextNote = nextNote.enharmonic();
+	        }
 	        if (note.letter === prevNote.letter) {
 	            return nextNote;
 	        }
