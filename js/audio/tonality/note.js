@@ -32,10 +32,8 @@ function Note(letter, alteration, octave) {
         if (values)
         {
             this.letter = values[1];
-            this.alteration = values[2] ? values[2] : '';
-            if (values[3] !== undefined) {
-                this.octave = parseInt(values[3]);
-            }
+            this.alteration = values[2];
+            this.octave = (values[3] !== '') ? parseInt(values[3]) : undefined;
         } else {
             throw new InvalidArgumentError("'" + letter + "' is not a valid note string");
         }
@@ -101,11 +99,15 @@ Note.prototype.incr = function() {
         note.alteration = '#';
     } else if (note.letter === 'B' && (note.alteration === '')){
         note.letter = 'C';
-        note.octave = note.octave + 1;
+        if (note.octave !== undefined) {
+            note.octave = note.octave + 1;
+        }
     } else if (note.letter === 'B' && note.alteration === '#'){
         note.letter = 'C';
         note.alteration = '#';
-        note.octave = note.octave + 1;
+        if (note.octave !== undefined) {
+            note.octave = note.octave + 1;
+        }
     } else if (note.alteration === 'b') {
         note.alteration = '';
     } else if (note.alteration === '') {
@@ -125,11 +127,15 @@ Note.prototype.decr = function() {
     }
     if (note.letter === 'C' && (note.alteration === '')) {
         note.letter = 'B';
-        note.octave = note.octave - 1;
+        if (note.octave !== undefined) {
+            note.octave = note.octave - 1;
+        }
     } else if (note.letter === 'C' && note.alteration === 'b') {
         note.letter = 'B';
         note.alteration = 'b';
-        note.octave = note.octave - 1;
+        if (note.octave !== undefined) {
+            note.octave = note.octave - 1;
+        }
     } else if (note.letter === 'F' && (note.alteration === '')){
         note.letter = 'E';
     } else if (note.letter === 'F' && note.alteration === 'b'){
@@ -162,6 +168,15 @@ Note.prototype.sub = function(val) {
     }
     return note;
 };
+
+Note.prototype.equals = function(note) {
+    if (!(note instanceof Note)) {
+        note = new Note(note);
+    }
+    return (this.letter === note.letter
+            && this.alteration === note.alteration
+            && this.octave === note.octave);
+}
 
 Note.prototype.enharmonic = function() {
     if (this.alteration === '#') {

@@ -35978,10 +35978,8 @@
 	        if (values)
 	        {
 	            this.letter = values[1];
-	            this.alteration = values[2] ? values[2] : '';
-	            if (values[3] !== undefined) {
-	                this.octave = parseInt(values[3]);
-	            }
+	            this.alteration = values[2];
+	            this.octave = (values[3] !== '') ? parseInt(values[3]) : undefined;
 	        } else {
 	            throw new InvalidArgumentError("'" + letter + "' is not a valid note string");
 	        }
@@ -36047,11 +36045,15 @@
 	        note.alteration = '#';
 	    } else if (note.letter === 'B' && (note.alteration === '')){
 	        note.letter = 'C';
-	        note.octave = note.octave + 1;
+	        if (note.octave !== undefined) {
+	            note.octave = note.octave + 1;
+	        }
 	    } else if (note.letter === 'B' && note.alteration === '#'){
 	        note.letter = 'C';
 	        note.alteration = '#';
-	        note.octave = note.octave + 1;
+	        if (note.octave !== undefined) {
+	            note.octave = note.octave + 1;
+	        }
 	    } else if (note.alteration === 'b') {
 	        note.alteration = '';
 	    } else if (note.alteration === '') {
@@ -36071,11 +36073,15 @@
 	    }
 	    if (note.letter === 'C' && (note.alteration === '')) {
 	        note.letter = 'B';
-	        note.octave = note.octave - 1;
+	        if (note.octave !== undefined) {
+	            note.octave = note.octave - 1;
+	        }
 	    } else if (note.letter === 'C' && note.alteration === 'b') {
 	        note.letter = 'B';
 	        note.alteration = 'b';
-	        note.octave = note.octave - 1;
+	        if (note.octave !== undefined) {
+	            note.octave = note.octave - 1;
+	        }
 	    } else if (note.letter === 'F' && (note.alteration === '')){
 	        note.letter = 'E';
 	    } else if (note.letter === 'F' && note.alteration === 'b'){
@@ -36108,6 +36114,15 @@
 	    }
 	    return note;
 	};
+	
+	Note.prototype.equals = function(note) {
+	    if (!(note instanceof Note)) {
+	        note = new Note(note);
+	    }
+	    return (this.letter === note.letter
+	            && this.alteration === note.alteration
+	            && this.octave === note.octave);
+	}
 	
 	Note.prototype.enharmonic = function() {
 	    if (this.alteration === '#') {
@@ -36340,19 +36355,12 @@
 	    }
 	    this.mode = mode;
 	
-	    // const intervals = modes[this.mode];
-	    // const root = new Note(this.key[0]);
-	    // this.notes = [root];
-	    // for (var i = 0; i < intervals.length; i++) {
-	    //     var note = this.notes[i].add(intervals[i]);
-	    //     if (note.letter !== Note.nextLetter(note.letter)) {
-	    //         nextNote = nextNote.enharmonic();
-	    //     }
-	    //     if (note.letter === prevNote.letter) {
-	    //         return nextNote;
-	    //     }
-	    //     prevNote = nextNote;
-	    // }
+	    const intervals = modes[this.mode];
+	    this.notes = [new Note(this.key)];
+	    for (var i = 0; i < (intervals.length - 1); i++) {
+	        var note = this.notes[i].add(intervals[i]).equivalent(Note.nextLetter(this.notes[i].letter));
+	        this.notes.push(note);
+	    }
 	
 	    return this;
 	}
@@ -36361,28 +36369,53 @@
 	Scale.modes = modes;
 	
 	Scale.prototype.next = function(note) {
-	    note = new Note(note);
-	
-	    if (Note.letters.indexOf(note.letter) >= Note.letters.indexOf(this.key[0])) {
-	        var octave = note.octave;
-	    } else {
-	        var octave = note.octave - 1;
+	    if (!(note instanceof Note)) {
+	        note = new Note(note);
+	    }
+	    for (var i = 0; i < 12; i ++) {
+	        note = note.incr();
+	        for (alteration of Note.alterations) {
+	            var test = note.equivalent(alteration);
+	            if (test !== null
+	                && this.notes.some(function (n) { return n.equals(new Note(test.letter, test.alteration)); })) {
+	                return test;
+	            }
+	        }
 	    }
 	
-	    const intervals = modes[this.mode];
-	    var prevNote = new Note(this.key[0], this.key[1], octave);
-	    for (var i = 0; i < intervals.length; i++) {
-	        var nextNote = prevNote.add(intervals[i]);
-	        if (nextNote.letter !== Note.letters[(Note.letters.indexOf(prevNote.letter) + 1) % Note.letters.length]) {
-	            nextNote = nextNote.enharmonic();
+	    return null;
+	}
+	
+	Scale.prototype.prev = function(note) {
+	    if (!(note instanceof Note)) {
+	        note = new Note(note);
+	    }
+	    for (var i = 0; i < 12; i ++) {
+	        note = note.decr();
+	        for (alteration of Note.alterations) {
+	            var test = note.equivalent(alteration);
+	            if (test !== null
+	                && this.notes.some(function (n) { return n.equals(new Note(test.letter, test.alteration)); })) {
+	                return test;
+	            }
 	        }
-	        if (note.letter === prevNote.letter) {
-	            return nextNote;
-	        }
-	        prevNote = nextNote;
 	    }
 	
-	    return nextNote;
+	    return null;
+	}
+	
+	Scale.prototype.add = function(note, val) {
+	    for (var i = 0; i < val; i ++) {
+	        note = this.next(note);
+	    }
+	    return note;
+	}
+	
+	Scale.prototype.sub = function(note, val) {
+	    for (var i = 0; i < -val; i ++) {
+	        note = this.prev(note);
+	    }
+	    return note;
 	}
 	
 	module.exports = Scale;
