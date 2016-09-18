@@ -10,17 +10,19 @@ function AudioController(song) {
     this.synth = new Tone.PolySynth(8, Tone.Synth).toMaster();
 
     const self = this;
-    var step = 0;
     this.part = new Tone.Part(function(time, event) {
-        note = self.notes[step];
+        var note = Tonality.Note(self.scale.key + '3');
+        note = self.scale.add(note, event.get('step'));
+        note.octave = 3;
         self.synth.triggerAttackRelease(note.toString(), event.get('duration'), time);
-        step = (step + 1) % 8;
+        for (var i = 0; i < 3; i ++) {
+            note.octave = 4;
+            self.synth.triggerAttackRelease(note.toString(), event.get('duration'), time);
+            note = self.scale.add(note, 2);
+        }
     });
     this.part.start('0m');
     this.part.stop('8m');
-    // part.loopStart = '0m';
-    // part.loopEnd = '8m';
-    // part.loop = true;
 
     Tone.Transport.loopStart = "0m";
     Tone.Transport.loopEnd = "8m";
@@ -69,11 +71,6 @@ AudioController.prototype.updateChord = function(chord) {
 
 AudioController.prototype.updateKeyMode = function() {
     this.scale = Tonality.Scale(this.sequence.get('key'), this.sequence.get('mode'));
-    this.notes = [this.scale.key + '3'];
-    // for (var i = 0; i < 8; i ++) {
-    //     this.notes.push(this.scale.next(this.notes[i]).toString());
-    // }
-    // console.log(this.notes);
 }
 
 module.exports = AudioController;
