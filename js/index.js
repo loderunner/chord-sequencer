@@ -32,7 +32,7 @@ $(window).on('load', function() {
     //         zoom : '1m'
     //     }
     // });
-    song.set({"sequence":{"chordList":[{"step":0,"seventh":true,"start":"0","duration":"4n"},{"step":"2","seventh":true,"start":"4n","duration":"4n"},{"step":"1","seventh":true,"start":"2n","duration":"4n"},{"step":"4","seventh":true,"start":"2n + 4n","duration":"4n"}],"key":"D","mode":"Dorian","tempo":46,"loopLength":"1m","grid":"16n","zoom":"1m"},"title":"New Song","instrument":"pad"});
+    song.set({"sequence":{"chordList":[{"step":0,"seventh":true,"start":"0","duration":"4n"},{"step":"1","seventh":true,"start":"2n","duration":"4n"}],"key":"D","mode":"Dorian","tempo":46,"loopLength":"1m","grid":"16n","zoom":"1m"},"title":"New Song","instrument":"pad"})
 
     this.song = song;
     this.Tonality = Tonality;

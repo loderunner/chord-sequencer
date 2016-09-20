@@ -3,7 +3,9 @@ const Backbone = require('backbone-nested-models');
 const Tone = require('tone');
 
 const Tonality = require('audio/tonality/tonality.js');
-const Instruments = require('audio/instruments.js');
+const Instruments = {
+    'pad' : require('audio/instrument/pad.js')
+}
 
 function AudioController(song) {
     _.extend(this, Backbone.Events);
@@ -20,6 +22,8 @@ function AudioController(song) {
     Tone.Transport.loopStart = "0m";
     Tone.Transport.loopEnd = "8m";
     Tone.Transport.loop = true;
+
+    Tone.Master.volume.value = -12;
 
     this.song = song;
 

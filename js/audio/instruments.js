@@ -1,33 +1,41 @@
 const Tone = require('tone');
 
-const padSynth = new Tone.PolySynth(8, Tone.MonoSynth).toMaster();
+const padSynth = new Tone.PolySynth(8, Tone.MonoSynth);
 padSynth.set({
     oscillator : {
-        type : "fatsawtooth",
-        spread : 30,
-        count : 7
+        type : "sawtooth"
     },
     filter : {
-        Q : 0,
+        Q : 1,
         type : "lowpass",
-        rolloff : -24
+        rolloff : -12
     },
     envelope : {
-        attack : 0.3,
-        decay : 0.1,
-        sustain : 0.9,
-        release : 2,
+        attack : 2.5,
+        attackCurve : 'linear',
+        decay : 1,
+        sustain : 1,
+        release : 2.5,
+        releaseCurve : 'exponential'
     },
     filterEnvelope:{
-        attack : 0.06,
-        decay : 0.2,
-        sustain : 0.5,
-        release : 2,
-        baseFrequency : 2000,
-        octaves : 0,
+        attack : 1,
+        decay : 1,
+        sustain : 0.25,
+        release : 3,
+        baseFrequency : 1500,
+        octaves : 0.4,
         exponent : 2
     }
 });
+
+const reverb = new Tone.JCReverb().toMaster();
+reverb.set({
+    roomSize : 0.6,
+    wet : 0.6
+});
+
+padSynth.connect(reverb);
 
 module.exports = {
     'pad' : {
