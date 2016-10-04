@@ -4,13 +4,14 @@ const Tone = require('tone');
 
 const Tonality = require('audio/tonality/tonality.js');
 const Instruments = {
-    'pad' : require('audio/instrument/pad.js')
+    'pad' : require('audio/instrument/pad.js'),
+    'eight-bit-arp' : require('audio/instrument/eight-bit-arp.js')
 }
 
 function AudioController(song) {
     _.extend(this, Backbone.Events);
 
-    this.instrument = Instruments['pad'];
+    this.instrument = Instruments['eight-bit-arp'];
 
     const self = this;
     this.part = new Tone.Part(function(time, event) {

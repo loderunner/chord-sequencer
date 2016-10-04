@@ -21,9 +21,9 @@ module.exports = Backbone.View.extend({
         this.listenTo(chordList, "add", this.addChord);
 
         var self = this;
-        Tone.Transport.scheduleRepeat(function(time) {
-            self.updateTime(time);
-        }, "1i");
+        // Tone.Transport.scheduleRepeat(function(time) {
+        //     self.updateTime(time);
+        // }, "1i");
         this.initEvents();
     },
 
@@ -32,6 +32,8 @@ module.exports = Backbone.View.extend({
         this.$el.append(html);
 
         this.$chordSequencer = this.$('.chord-sequencer');
+        this.chordSequencer = this.$chordSequencer.get(0);
+        this.positionIndicator = this.$chordSequencer.find('.position-indicator').get(0);
     },
 
     // Model events
@@ -59,6 +61,10 @@ module.exports = Backbone.View.extend({
         }
         $backgrounds.append($chords);
 
+        // cache loopLength for realtime position computation
+        this._loopLength = Math.max(Tone.Time(this.model.get('loopLength')).toTicks(), Tone.Time(this.model.get('zoom')).toTicks());
+        this._scrollWidth = this.chordSequencer.scrollWidth;
+
         this.updateScroll();
     },
 
@@ -83,8 +89,8 @@ module.exports = Backbone.View.extend({
 
     updateTime : function() {
         const x = this.offsetForTime(Tone.Time(Tone.Transport.position));
-        const $positionIndicator = this.$chordSequencer.find('.position-indicator');
-        $positionIndicator.css('left', x.toString() + 'px');
+        // this.positionIndicator.style['left'] = x.toString() + 'px';
+        this.positionIndicator.style.transform = 'translateX(' + x.toString() + 'px)';
     },
 
     // UI events
@@ -104,7 +110,7 @@ module.exports = Backbone.View.extend({
 
     clickScrollIndicator : function(e) {
         const left = $(e.currentTarget).hasClass('scroll-indicator-left');
-        const deltaScroll = (left?-1:1) * this.$chordSequencer.get(0).clientWidth;
+        const deltaScroll = (left?-1:1) * this.chordSequencer.clientWidth;
         this.$chordSequencer.animate(
             { scrollLeft : this.$chordSequencer.scrollLeft() + deltaScroll},
             500,
@@ -113,8 +119,8 @@ module.exports = Backbone.View.extend({
     },
 
     updateScroll : function(e) {
-        const scrollLeft = this.$chordSequencer.get(0).scrollLeft;
-        const maxScroll = this.$chordSequencer.get(0).scrollWidth - this.$chordSequencer.get(0).clientWidth;
+        const scrollLeft = this.chordSequencer.scrollLeft;
+        const maxScroll = this._scrollWidth - this.chordSequencer.clientWidth;
 
         const $scrollIndicatorLeft = this.$('.scroll-indicator-left');
         if (scrollLeft > 0) {
@@ -149,8 +155,6 @@ module.exports = Backbone.View.extend({
 
     // Helpers
     timeForOffset : function(x, quantize) {
-        const loopLength = this.model.get('loopLength');
-
         const loopTime = Tone.Time(this.model.get('loopLength'));
         const zoomTime = Tone.Time(this.model.get('zoom'));
         if (loopTime.toTicks() < zoomTime.toTicks()) {
@@ -158,8 +162,8 @@ module.exports = Backbone.View.extend({
         } else {
             var time = loopTime;
         }
-        var maxTime = Math.max(Tone.Time(this.model.get('loopLength')).toTicks(), Tone.Time(this.model.get('zoom')).toTicks());;
-        var xRatio = x / Math.max(this.$chordSequencer.get(0).scrollWidth, this.$chordSequencer.innerWidth());
+
+        var xRatio = x / Math.max(this.chordSequencer.scrollWidth, this.$chordSequencer.innerWidth());
         time.mult(xRatio);
         if (quantize === 'floor') {
             time.sub(Tone.Time(this.model.get('grid')).div(2));
@@ -174,7 +178,7 @@ module.exports = Backbone.View.extend({
 
     offsetForTime : function(time) {
         const position = time.toTicks();
-        const loopLength = Math.max(Tone.Time(this.model.get('loopLength')).toTicks(), Tone.Time(this.model.get('zoom')).toTicks());
-        return (this.$chordSequencer.get(0).scrollWidth * position / loopLength);
+        const offset = this.chordSequencer.scrollWidth * position / this._loopLength;
+        return offset;
     }
 });

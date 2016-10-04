@@ -24,7 +24,7 @@ module.exports = Backbone.View.extend({
         const html = require('html!view/html/transport.html');
         this.$el.append(html);
         this.$viewControl = this.$('.view-control');
-        this.$transportControl = this.$('.transport-control');
+        this.counter = this.$('.transport-control .counter').get(0);
         this.$loopControl = this.$('.loop-control');
 
         Draggable(this.$loopControl.find('.tempo.value')[0]);
@@ -33,9 +33,9 @@ module.exports = Backbone.View.extend({
         };
 
         var self = this;
-        Tone.Transport.scheduleRepeat(function(time) {
-            self.updateTime(time);
-        }, "1i");
+        // Tone.Transport.scheduleRepeat(function(time) {
+        //     self.updateTime(time);
+        // }, "16n");
     },
 
     // Model events
@@ -61,12 +61,15 @@ module.exports = Backbone.View.extend({
         this.$viewControl.find('.grid .value').html(selectedItem.html());
     },
 
-    updateTime : function(time) {
-        const barsBeatsSixteenths = _.map(Tone.Transport.position.split(':'), function(n) {
-            n = parseInt(n);
-            return ((n < 10) ? '0' : '') + n.toString();
-        });
-        this.$transportControl.find('.counter').html(barsBeatsSixteenths.join(':'));
+    updateTime : function() {
+        const bbs = Tone.Transport.position.split(':');
+        for (var i = 0; i < 3; i++) {
+            const n = parseInt(bbs[i]);
+            if (n < 10) {
+                bbs[i] = '0' + n.toString();
+            }
+        }
+        this.counter.innerText = bbs.join(':');
     },
 
     // UI events

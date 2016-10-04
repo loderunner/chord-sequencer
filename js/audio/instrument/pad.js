@@ -52,7 +52,7 @@ PadSynth.prototype.setNote = function(note, time) {
     this.lfo.frequency.value = freq / 350;
 }
 
-const padSynth = new Tone.PolySynth(8, PadSynth).toMaster();
+const padSynth = new Tone.PolySynth(16, PadSynth);
 padSynth.set({
     oscillator : {
         type : "fatsawtooth",
@@ -69,7 +69,7 @@ padSynth.set({
         attackCurve : 'linear',
         decay : 1,
         sustain : 1,
-        release : 2.5,
+        release : 3,
         releaseCurve : 'exponential'
     },
     filterEnvelope : {
@@ -77,10 +77,10 @@ padSynth.set({
         attackCurve : 'linear',
         decay : .75,
         sustain : 0.25,
-        release : 3,
+        release : 1.25,
         releaseCurve : 'exponential',
         baseFrequency : 2000,
-        octaves : 0,
+        octaves : 0.25,
         exponent : 1
     }
 });
@@ -95,16 +95,15 @@ reverb.set({
 padSynth.connect(reverb);
 
 module.exports = {
-    synth : padSynth,
     play : function(controller, time, event) {
         var note = Tonality.Note(controller.scale.key + '3');
         note = controller.scale.add(note, event.get('step'));
         note.octave = 3;
-        this.synth.triggerAttackRelease(note.toString(), event.get('duration'), time);
+        padSynth.triggerAttackRelease(note.toString(), event.get('duration'), time);
         var numberOfNotes = event.get('seventh') ? 4 : 3;
         for (var i = 0; i < numberOfNotes; i ++) {
             note.octave = 4;
-            this.synth.triggerAttackRelease(note.toString(), event.get('duration'), time);
+            padSynth.triggerAttackRelease(note.toString(), event.get('duration'), time);
             note = controller.scale.add(note, 2);
         }
     }

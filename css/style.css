@@ -303,10 +303,11 @@ chord .control {
 .position-indicator {
     position : absolute;
     bottom: 0px;
-    -webkit-transform : translateX(-50%);
-            transform : translateX(-50%);
+    /* -webkit-transform : translateX(-50%); */
+    transform : translateX(-50%);
     color: #000000;
     z-index: 1002;
+    will-change: transform;
 }
 
 .scroll-indicator {
