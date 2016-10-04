@@ -95,6 +95,8 @@ reverb.set({
 padSynth.connect(reverb);
 
 module.exports = {
+    id : 'panda-pad',
+    name: 'Panda Pad',
     play : function(controller, time, event) {
         var note = Tonality.Note(controller.scale.key + '3');
         note = controller.scale.add(note, event.get('step'));

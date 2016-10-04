@@ -78,7 +78,7 @@
 	    //         zoom : '1m'
 	    //     }
 	    // });
-	    song.set({"sequence":{"chordList":[{"step":0,"seventh":false,"start":"0","duration":"4n + 16n"},{"step":"3","seventh":false,"start":"4n + 8n","duration":"2n + 16n"},{"step":"2","seventh":false,"start":"1m","duration":"4n + 16n"},{"step":"4","seventh":false,"start":"1m + 4n + 8n","duration":"2n + 16n"}],"key":"A","mode":"Minor","tempo":137,"loopLength":"2m","grid":"16n","zoom":"2m"},"title":"New Song","instrument":"pad"})
+	    song.set({"sequence":{"instrument":"panda-pad","chordList":[{"step":0,"seventh":false,"start":"0","duration":"4n + 16n"},{"step":"3","seventh":false,"start":"4n + 8n","duration":"2n + 16n"},{"step":"2","seventh":false,"start":"1m","duration":"4n + 16n"},{"step":"4","seventh":false,"start":"1m + 4n + 8n","duration":"2n + 16n"}],"key":"A","mode":"Minor","tempo":137,"loopLength":"2m","grid":"16n","zoom":"2m"},"title":"New Song","instrument":"pad"})
 	
 	    this.song = song;
 	    this.Tonality = Tonality;
@@ -31156,7 +31156,6 @@
 	 *
 	 * @property {string}   title       - The title of the song. Defaults to `'New Song'`
 	 * @property {Sequence} sequence    - The musical data of the song.
-	 * @property {string}   instrument  - Id of the instrument the song plays.
 	 *
 	 * @extends Backbone.Model
 	 */
@@ -34871,6 +34870,7 @@
 	 * @property {ChordList}    chordList   - The actual list of {@link Chord} events in the sequence.
 	 * @property {string}       grid        - The current grid subdivision in Tone.js musical time notation.
 	 * @property {string}       zoom        - The length of the part displayed in the chord sequencer in Tone.js musical time notation.
+	 * @property {string}       instrument  - Id of the instrument the song plays.
 	 *
 	 * @extends Backbone.Model
 	 */
@@ -36655,15 +36655,17 @@
 	const Tone = __webpack_require__(1);
 	
 	const Tonality = __webpack_require__(19);
-	const Instruments = {
-	    'pad' : __webpack_require__(29),
-	    'eight-bit-arp' : __webpack_require__(30)
-	}
+	var Instruments = {};
+	
+	
+	var instrument = __webpack_require__(29);
+	Instruments[instrument.id] = instrument;
+	
+	instrument = __webpack_require__(30);
+	Instruments[instrument.id] = instrument;
 	
 	function AudioController(song) {
 	    _.extend(this, Backbone.Events);
-	
-	    this.instrument = Instruments['eight-bit-arp'];
 	
 	    const self = this;
 	    this.part = new Tone.Part(function(time, event) {
@@ -36681,6 +36683,7 @@
 	    this.song = song;
 	
 	    this.sequence = song.get('sequence');
+	    this.listenTo(this.sequence, 'change:instrument', this.updateInstrument);
 	    this.listenTo(this.sequence, 'change:tempo', this.updateTempo);
 	    this.listenTo(this.sequence, 'change:loopLength', this.updateLoopLength);
 	    this.listenTo(this.sequence, 'change:key', this.updateKeyMode);
@@ -36691,6 +36694,10 @@
 	    this.listenTo(this.chordList, 'change', this.updateChord);
 	
 	    return this;
+	}
+	
+	AudioController.prototype.updateInstrument = function(sequence) {
+	    this.instrument = Instruments[sequence.get('instrument')];
 	}
 	
 	AudioController.prototype.updateTempo = function(sequence) {
@@ -36826,6 +36833,8 @@
 	padSynth.connect(reverb);
 	
 	module.exports = {
+	    id : 'panda-pad',
+	    name: 'Panda Pad',
 	    play : function(controller, time, event) {
 	        var note = Tonality.Note(controller.scale.key + '3');
 	        note = controller.scale.add(note, event.get('step'));
@@ -36902,6 +36911,8 @@
 	});
 	
 	module.exports = {
+	    id : 'eight-bit-arp',
+	    name : '8-bit arpeggiator',
 	    play : function(controller, time, event) {
 	        var note = Tonality.Note(controller.scale.key);
 	        note = controller.scale.add(note, event.get('step'));

@@ -16,6 +16,7 @@ const ChordList = require('model/chord-list.js');
  * @property {ChordList}    chordList   - The actual list of {@link Chord} events in the sequence.
  * @property {string}       grid        - The current grid subdivision in Tone.js musical time notation.
  * @property {string}       zoom        - The length of the part displayed in the chord sequencer in Tone.js musical time notation.
+ * @property {string}       instrument  - Id of the instrument the song plays.
  *
  * @extends Backbone.Model
  */

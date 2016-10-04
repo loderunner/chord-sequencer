@@ -32,7 +32,7 @@ $(window).on('load', function() {
     //         zoom : '1m'
     //     }
     // });
-    song.set({"sequence":{"chordList":[{"step":0,"seventh":false,"start":"0","duration":"4n + 16n"},{"step":"3","seventh":false,"start":"4n + 8n","duration":"2n + 16n"},{"step":"2","seventh":false,"start":"1m","duration":"4n + 16n"},{"step":"4","seventh":false,"start":"1m + 4n + 8n","duration":"2n + 16n"}],"key":"A","mode":"Minor","tempo":137,"loopLength":"2m","grid":"16n","zoom":"2m"},"title":"New Song","instrument":"pad"})
+    song.set({"sequence":{"instrument":"panda-pad","chordList":[{"step":0,"seventh":false,"start":"0","duration":"4n + 16n"},{"step":"3","seventh":false,"start":"4n + 8n","duration":"2n + 16n"},{"step":"2","seventh":false,"start":"1m","duration":"4n + 16n"},{"step":"4","seventh":false,"start":"1m + 4n + 8n","duration":"2n + 16n"}],"key":"A","mode":"Minor","tempo":137,"loopLength":"2m","grid":"16n","zoom":"2m"},"title":"New Song","instrument":"pad"})
 
     this.song = song;
     this.Tonality = Tonality;

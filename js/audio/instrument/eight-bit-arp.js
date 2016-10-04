@@ -55,6 +55,8 @@ arpSynth.set({
 });
 
 module.exports = {
+    id : 'eight-bit-arp',
+    name : '8-bit arpeggiator',
     play : function(controller, time, event) {
         var note = Tonality.Note(controller.scale.key);
         note = controller.scale.add(note, event.get('step'));
