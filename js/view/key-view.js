@@ -19,7 +19,7 @@ module.exports = Backbone.View.extend({
         this.$el.append('<h2 class="subtitle">Key</h2><div class="radio-group"></div>');
         this.$radioGroup = this.$('.radio-group');
         for (var key of Tonality.keys) {
-            this.$radioGroup.append('<span data-value="' + key + '"">' + key + '</span>');
+            this.$radioGroup.append('<span data-value="' + key + '">' + key + '</span>');
         }
     },
 

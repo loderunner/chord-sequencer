@@ -3,14 +3,7 @@ const Backbone = require('backbone-nested-models');
 const Tone = require('tone');
 
 const Tonality = require('audio/tonality/tonality.js');
-var Instruments = {};
 
-
-var instrument = require('audio/instrument/pad.js');
-Instruments[instrument.id] = instrument;
-
-instrument = require('audio/instrument/eight-bit-arp.js');
-Instruments[instrument.id] = instrument;
 
 function AudioController(song) {
     _.extend(this, Backbone.Events);
@@ -44,8 +37,15 @@ function AudioController(song) {
     return this;
 }
 
+AudioController.Instruments = {};
+var instrument = require('audio/instrument/pad.js');
+AudioController.Instruments[instrument.id] = instrument;
+
+instrument = require('audio/instrument/eight-bit-arp.js');
+AudioController.Instruments[instrument.id] = instrument;
+
 AudioController.prototype.updateInstrument = function(sequence) {
-    this.instrument = Instruments[sequence.get('instrument')];
+    this.instrument = AudioController.Instruments[sequence.get('instrument')];
 }
 
 AudioController.prototype.updateTempo = function(sequence) {

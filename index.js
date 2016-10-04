@@ -35117,6 +35117,7 @@
 	const _ = __webpack_require__(6);
 	const Backbone = __webpack_require__(4);
 	
+	const InstrumentView = __webpack_require__(31);
 	const SequencerView = __webpack_require__(11);
 	const KeyView = __webpack_require__(18);
 	const ModeView = __webpack_require__(23);
@@ -35142,11 +35143,15 @@
 	
 	        const sequence = this.model.get('sequence');
 	
+	
 	        const container = this.$('.row-container');
 	        const keyView = new KeyView({ model : sequence });
 	        container.append(keyView.$el);
 	        const modeView = new ModeView({ model : sequence });
 	        container.append(modeView.$el);
+	
+	        const instrumentView = new InstrumentView({ model : sequence });
+	        container.before(instrumentView.$el);
 	
 	        const sequencerView = new SequencerView({ model : sequence });
 	        container.before(sequencerView.$el);
@@ -35908,7 +35913,7 @@
 	        this.$el.append('<h2 class="subtitle">Key</h2><div class="radio-group"></div>');
 	        this.$radioGroup = this.$('.radio-group');
 	        for (var key of Tonality.keys) {
-	            this.$radioGroup.append('<span data-value="' + key + '"">' + key + '</span>');
+	            this.$radioGroup.append('<span data-value="' + key + '">' + key + '</span>');
 	        }
 	    },
 	
@@ -36451,7 +36456,7 @@
 	        this.$el.append('<h2 class="subtitle">Mode</h2><div class="radio-group"></div>');
 	        this.$radioGroup = this.$('.radio-group');
 	        for (var mode of Tonality.modes) {
-	            this.$radioGroup.append('<span data-value="' + mode + '"">' + mode + '</span>');
+	            this.$radioGroup.append('<span data-value="' + mode + '">' + mode + '</span>');
 	        }
 	    },
 	
@@ -36655,14 +36660,7 @@
 	const Tone = __webpack_require__(1);
 	
 	const Tonality = __webpack_require__(19);
-	var Instruments = {};
 	
-	
-	var instrument = __webpack_require__(29);
-	Instruments[instrument.id] = instrument;
-	
-	instrument = __webpack_require__(30);
-	Instruments[instrument.id] = instrument;
 	
 	function AudioController(song) {
 	    _.extend(this, Backbone.Events);
@@ -36696,8 +36694,15 @@
 	    return this;
 	}
 	
+	AudioController.Instruments = {};
+	var instrument = __webpack_require__(29);
+	AudioController.Instruments[instrument.id] = instrument;
+	
+	instrument = __webpack_require__(30);
+	AudioController.Instruments[instrument.id] = instrument;
+	
 	AudioController.prototype.updateInstrument = function(sequence) {
-	    this.instrument = Instruments[sequence.get('instrument')];
+	    this.instrument = AudioController.Instruments[sequence.get('instrument')];
 	}
 	
 	AudioController.prototype.updateTempo = function(sequence) {
@@ -36938,6 +36943,55 @@
 	    }
 	}
 	   
+
+/***/ },
+/* 31 */
+/***/ function(module, exports, __webpack_require__) {
+
+	const $ = __webpack_require__(2);
+	const _ = __webpack_require__(6);
+	const Backbone = __webpack_require__(4);
+	
+	const Audio = __webpack_require__(28);
+	
+	module.exports = Backbone.View.extend({
+	    tagName : 'section',
+	    className : 'instrument',
+	
+	    // Lifecycle
+	    initialize : function() {
+	        this.create();
+	        
+	        this.listenTo(this.model, "change:instrument", this.updateInstrument);
+	    },
+	
+	    create : function() {
+	        this.$el.append('<h2 class="subtitle">Instrument</h2><div class="radio-group"></div>');
+	        this.$radioGroup = this.$('.radio-group');
+	        for (var instrumentId in Audio.Instruments) {
+	            const instrument = Audio.Instruments[instrumentId];
+	            this.$radioGroup.append('<span data-value="' + instrumentId + '">' + instrument.name + '</span>');
+	        }
+	    },
+	
+	    // Model events
+	    updateInstrument : function() {
+	        const instrument = this.model.get('instrument');
+	        this.$radioGroup.children('.selected').removeClass('selected');
+	        this.$radioGroup.children('[data-value="' + instrument + '"]').addClass('selected');
+	    },
+	
+	    // UI events
+	    events : {
+	        'click .radio-group>span' : 'clickRadio'
+	    },
+	
+	    clickRadio : function(e) {
+	        e.stopPropagation();
+	        
+	        this.model.set('instrument', $(e.currentTarget).attr('data-value'));
+	    }
+	});
 
 /***/ }
 /******/ ]);

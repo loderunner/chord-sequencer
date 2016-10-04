@@ -2,6 +2,7 @@ const $ = require('jquery');
 const _ = require('underscore');
 const Backbone = require('backbone-nested-models');
 
+const InstrumentView = require('view/instrument-view.js');
 const SequencerView = require('view/sequencer-view.js');
 const KeyView = require('view/key-view.js');
 const ModeView = require('view/mode-view.js');
@@ -27,11 +28,15 @@ module.exports = Backbone.View.extend({
 
         const sequence = this.model.get('sequence');
 
+
         const container = this.$('.row-container');
         const keyView = new KeyView({ model : sequence });
         container.append(keyView.$el);
         const modeView = new ModeView({ model : sequence });
         container.append(modeView.$el);
+
+        const instrumentView = new InstrumentView({ model : sequence });
+        container.before(instrumentView.$el);
 
         const sequencerView = new SequencerView({ model : sequence });
         container.before(sequencerView.$el);
