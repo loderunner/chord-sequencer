@@ -4,7 +4,7 @@ var defaults = {
     "frequency" : "C4",
     "detune" : 0,
     "oscillator" : {
-        "type" : "square6"
+        "type" : "square"
     },
     "filter" : {
         "Q" : 6,
@@ -67,7 +67,7 @@ function PandaPad() {
             rolloff : -12
         },
         envelope : {
-            attack : 2.5,
+            attack : 1.5,
             attackCurve : 'linear',
             decay : 1,
             sustain : 1,

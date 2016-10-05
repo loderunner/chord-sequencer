@@ -42,7 +42,7 @@ function EightBitArp() {
         envelope : {
             attack : .001,
             decay : .001,
-            sustain : 1,
+            sustain : .9,
             release : .01
         },
         filterEnvelope : {
