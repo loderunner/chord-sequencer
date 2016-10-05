@@ -10,7 +10,9 @@ function AudioController(song) {
 
     const self = this;
     this.part = new Tone.Part(function(time, event) {
-        self.instrument.play(self, time, event);
+        if (self.instrument) {
+            self.instrument.play(self, time, event);
+        }
     });
     this.part.start('0m');
     this.part.stop('8m');
@@ -38,14 +40,21 @@ function AudioController(song) {
 }
 
 AudioController.Instruments = {};
-var instrument = require('audio/instrument/pad.js');
+
+var instrument = require('audio/instrument/noop.js');
+AudioController.Instruments[instrument.id] = instrument;
+
+instrument = require('audio/instrument/pad.js');
 AudioController.Instruments[instrument.id] = instrument;
 
 instrument = require('audio/instrument/eight-bit-arp.js');
 AudioController.Instruments[instrument.id] = instrument;
 
 AudioController.prototype.updateInstrument = function(sequence) {
-    this.instrument = AudioController.Instruments[sequence.get('instrument')];
+    if (this.instrument) {
+        this.instrument.dispose();
+    }
+    this.instrument = AudioController.Instruments[sequence.get('instrument')].createInstrument();
 }
 
 AudioController.prototype.updateTempo = function(sequence) {

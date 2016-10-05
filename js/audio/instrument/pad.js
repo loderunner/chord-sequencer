@@ -4,7 +4,7 @@ var defaults = {
     "frequency" : "C4",
     "detune" : 0,
     "oscillator" : {
-        "type" : "square"
+        "type" : "square6"
     },
     "filter" : {
         "Q" : 6,
@@ -52,62 +52,72 @@ PadSynth.prototype.setNote = function(note, time) {
     this.lfo.frequency.value = freq / 350;
 }
 
-const padSynth = new Tone.PolySynth(16, PadSynth);
-padSynth.set({
-    oscillator : {
-        type : "fatsawtooth",
-        spread : 30,
-        count : 7
-    },
-    filter : {
-        Q : 1,
-        type : "lowpass",
-        rolloff : -12
-    },
-    envelope : {
-        attack : 2.5,
-        attackCurve : 'linear',
-        decay : 1,
-        sustain : 1,
-        release : 3,
-        releaseCurve : 'exponential'
-    },
-    filterEnvelope : {
-        attack : .75,
-        attackCurve : 'linear',
-        decay : .75,
-        sustain : 0.25,
-        release : 1.25,
-        releaseCurve : 'exponential',
-        baseFrequency : 2000,
-        octaves : 0.25,
-        exponent : 1
+function PandaPad() {
+
+    this.padSynth = new Tone.PolySynth(12, PadSynth);
+    this.padSynth.set({
+        oscillator : {
+            type : "fatsawtooth",
+            spread : 30,
+            count : 7
+        },
+        filter : {
+            Q : 1,
+            type : "lowpass",
+            rolloff : -12
+        },
+        envelope : {
+            attack : 2.5,
+            attackCurve : 'linear',
+            decay : 1,
+            sustain : 1,
+            release : 3,
+            releaseCurve : 'exponential'
+        },
+        filterEnvelope : {
+            attack : .75,
+            attackCurve : 'linear',
+            decay : .75,
+            sustain : 0.25,
+            release : 1.25,
+            releaseCurve : 'exponential',
+            baseFrequency : 2000,
+            octaves : 0.25,
+            exponent : 1
+        }
+    });
+
+    this.reverb = new Tone.Freeverb().toMaster();
+    this.reverb.set({
+        roomSize : 0.6,
+        dampening : 2000,
+        wet : 0.6
+    });
+
+    this.padSynth.connect(this.reverb);
+}
+
+PandaPad.prototype.play = function(controller, time, event) {
+    var note = Tonality.Note(controller.scale.key + '3');
+    note = controller.scale.add(note, event.get('step'));
+    note.octave = 3;
+    this.padSynth.triggerAttackRelease(note.toString(), event.get('duration'), time);
+    var numberOfNotes = event.get('seventh') ? 4 : 3;
+    for (var i = 0; i < numberOfNotes; i ++) {
+        note.octave = 4;
+        this.padSynth.triggerAttackRelease(note.toString(), event.get('duration'), time);
+        note = controller.scale.add(note, 2);
     }
-});
+}
 
-const reverb = new Tone.Freeverb().toMaster();
-reverb.set({
-    roomSize : 0.6,
-    dampening : 2000,
-    wet : 0.6
-});
-
-padSynth.connect(reverb);
+PandaPad.prototype.dispose = function() {
+    this.reverb.dispose();
+    this.padSynth.dispose();
+}
 
 module.exports = {
     id : 'panda-pad',
     name: 'Panda Pad',
-    play : function(controller, time, event) {
-        var note = Tonality.Note(controller.scale.key + '3');
-        note = controller.scale.add(note, event.get('step'));
-        note.octave = 3;
-        padSynth.triggerAttackRelease(note.toString(), event.get('duration'), time);
-        var numberOfNotes = event.get('seventh') ? 4 : 3;
-        for (var i = 0; i < numberOfNotes; i ++) {
-            note.octave = 4;
-            padSynth.triggerAttackRelease(note.toString(), event.get('duration'), time);
-            note = controller.scale.add(note, 2);
-        }
-    }
+    createInstrument : function() { return new PandaPad(); }
 }
    

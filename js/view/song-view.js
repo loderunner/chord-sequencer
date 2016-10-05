@@ -28,7 +28,6 @@ module.exports = Backbone.View.extend({
 
         const sequence = this.model.get('sequence');
 
-
         const container = this.$('.row-container');
         const keyView = new KeyView({ model : sequence });
         container.append(keyView.$el);

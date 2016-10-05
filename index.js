@@ -78,7 +78,7 @@
 	    //         zoom : '1m'
 	    //     }
 	    // });
-	    song.set({"sequence":{"instrument":"panda-pad","chordList":[{"step":0,"seventh":false,"start":"0","duration":"4n + 16n"},{"step":"3","seventh":false,"start":"4n + 8n","duration":"2n + 16n"},{"step":"2","seventh":false,"start":"1m","duration":"4n + 16n"},{"step":"4","seventh":false,"start":"1m + 4n + 8n","duration":"2n + 16n"}],"key":"A","mode":"Minor","tempo":137,"loopLength":"2m","grid":"16n","zoom":"2m"},"title":"New Song","instrument":"pad"})
+	    song.set({"sequence":{"chordList":[{"step":0,"seventh":false,"start":"0","duration":"4n + 16n"},{"step":"3","seventh":false,"start":"4n + 8n","duration":"2n + 16n"},{"step":"2","seventh":false,"start":"1m","duration":"4n + 16n"},{"step":"4","seventh":false,"start":"1m + 4n + 8n","duration":"2n + 16n"}],"key":"A","mode":"Minor","tempo":137,"loopLength":"2m","grid":"16n","zoom":"2m"},"title":"New Song","instrument":"pad"})
 	
 	    this.song = song;
 	    this.Tonality = Tonality;
@@ -35143,7 +35143,6 @@
 	
 	        const sequence = this.model.get('sequence');
 	
-	
 	        const container = this.$('.row-container');
 	        const keyView = new KeyView({ model : sequence });
 	        container.append(keyView.$el);
@@ -36667,7 +36666,9 @@
 	
 	    const self = this;
 	    this.part = new Tone.Part(function(time, event) {
-	        self.instrument.play(self, time, event);
+	        if (self.instrument) {
+	            self.instrument.play(self, time, event);
+	        }
 	    });
 	    this.part.start('0m');
 	    this.part.stop('8m');
@@ -36695,14 +36696,21 @@
 	}
 	
 	AudioController.Instruments = {};
-	var instrument = __webpack_require__(29);
+	
+	var instrument = __webpack_require__(32);
+	AudioController.Instruments[instrument.id] = instrument;
+	
+	instrument = __webpack_require__(29);
 	AudioController.Instruments[instrument.id] = instrument;
 	
 	instrument = __webpack_require__(30);
 	AudioController.Instruments[instrument.id] = instrument;
 	
 	AudioController.prototype.updateInstrument = function(sequence) {
-	    this.instrument = AudioController.Instruments[sequence.get('instrument')];
+	    if (this.instrument) {
+	        this.instrument.dispose();
+	    }
+	    this.instrument = AudioController.Instruments[sequence.get('instrument')].createInstrument();
 	}
 	
 	AudioController.prototype.updateTempo = function(sequence) {
@@ -36747,7 +36755,7 @@
 	    "frequency" : "C4",
 	    "detune" : 0,
 	    "oscillator" : {
-	        "type" : "square"
+	        "type" : "square6"
 	    },
 	    "filter" : {
 	        "Q" : 6,
@@ -36795,63 +36803,73 @@
 	    this.lfo.frequency.value = freq / 350;
 	}
 	
-	const padSynth = new Tone.PolySynth(16, PadSynth);
-	padSynth.set({
-	    oscillator : {
-	        type : "fatsawtooth",
-	        spread : 30,
-	        count : 7
-	    },
-	    filter : {
-	        Q : 1,
-	        type : "lowpass",
-	        rolloff : -12
-	    },
-	    envelope : {
-	        attack : 2.5,
-	        attackCurve : 'linear',
-	        decay : 1,
-	        sustain : 1,
-	        release : 3,
-	        releaseCurve : 'exponential'
-	    },
-	    filterEnvelope : {
-	        attack : .75,
-	        attackCurve : 'linear',
-	        decay : .75,
-	        sustain : 0.25,
-	        release : 1.25,
-	        releaseCurve : 'exponential',
-	        baseFrequency : 2000,
-	        octaves : 0.25,
-	        exponent : 1
+	function PandaPad() {
+	
+	    this.padSynth = new Tone.PolySynth(12, PadSynth);
+	    this.padSynth.set({
+	        oscillator : {
+	            type : "fatsawtooth",
+	            spread : 30,
+	            count : 7
+	        },
+	        filter : {
+	            Q : 1,
+	            type : "lowpass",
+	            rolloff : -12
+	        },
+	        envelope : {
+	            attack : 2.5,
+	            attackCurve : 'linear',
+	            decay : 1,
+	            sustain : 1,
+	            release : 3,
+	            releaseCurve : 'exponential'
+	        },
+	        filterEnvelope : {
+	            attack : .75,
+	            attackCurve : 'linear',
+	            decay : .75,
+	            sustain : 0.25,
+	            release : 1.25,
+	            releaseCurve : 'exponential',
+	            baseFrequency : 2000,
+	            octaves : 0.25,
+	            exponent : 1
+	        }
+	    });
+	
+	    this.reverb = new Tone.Freeverb().toMaster();
+	    this.reverb.set({
+	        roomSize : 0.6,
+	        dampening : 2000,
+	        wet : 0.6
+	    });
+	
+	    this.padSynth.connect(this.reverb);
+	}
+	
+	PandaPad.prototype.play = function(controller, time, event) {
+	    var note = Tonality.Note(controller.scale.key + '3');
+	    note = controller.scale.add(note, event.get('step'));
+	    note.octave = 3;
+	    this.padSynth.triggerAttackRelease(note.toString(), event.get('duration'), time);
+	    var numberOfNotes = event.get('seventh') ? 4 : 3;
+	    for (var i = 0; i < numberOfNotes; i ++) {
+	        note.octave = 4;
+	        this.padSynth.triggerAttackRelease(note.toString(), event.get('duration'), time);
+	        note = controller.scale.add(note, 2);
 	    }
-	});
+	}
 	
-	const reverb = new Tone.Freeverb().toMaster();
-	reverb.set({
-	    roomSize : 0.6,
-	    dampening : 2000,
-	    wet : 0.6
-	});
-	
-	padSynth.connect(reverb);
+	PandaPad.prototype.dispose = function() {
+	    this.reverb.dispose();
+	    this.padSynth.dispose();
+	}
 	
 	module.exports = {
 	    id : 'panda-pad',
 	    name: 'Panda Pad',
-	    play : function(controller, time, event) {
-	        var note = Tonality.Note(controller.scale.key + '3');
-	        note = controller.scale.add(note, event.get('step'));
-	        note.octave = 3;
-	        padSynth.triggerAttackRelease(note.toString(), event.get('duration'), time);
-	        var numberOfNotes = event.get('seventh') ? 4 : 3;
-	        for (var i = 0; i < numberOfNotes; i ++) {
-	            note.octave = 4;
-	            padSynth.triggerAttackRelease(note.toString(), event.get('duration'), time);
-	            note = controller.scale.add(note, 2);
-	        }
-	    }
+	    createInstrument : function() { return new PandaPad(); }
 	}
 	   
 
@@ -36861,86 +36879,96 @@
 
 	const Tone = __webpack_require__(1);
 	
-	const bassSynth = new Tone.MonoSynth().toMaster();
-	bassSynth.set({
-	    oscillator : {
-	        type : "triangle"
-	    },
-	    filter : {
-	        Q : 0,
-	        type : "lowpass",
-	        rolloff : -12
-	    },
-	    envelope : {
-	        attack : .001,
-	        decay : .001,
-	        sustain : 1,
-	        release : .01
-	    },
-	    filterEnvelope : {
-	        attack : .001,
-	        decay : 1,
-	        sustain : 1,
-	        release : 1,
-	        baseFrequency : 2000,
-	        octaves : 0,
-	        exponent : 1
-	    }
-	});
+	function EightBitArp() {
 	
-	const arpSynth = new Tone.MonoSynth().toMaster();
-	arpSynth.set({
-	    oscillator : {
-	        type : "square"
-	    },
-	    filter : {
-	        Q : 0,
-	        type : "lowpass",
-	        rolloff : -12
-	    },
-	    envelope : {
-	        attack : .001,
-	        decay : .001,
-	        sustain : 1,
-	        release : .01
-	    },
-	    filterEnvelope : {
-	        attack : .001,
-	        decay : 1,
-	        sustain : 1,
-	        release : 1,
-	        baseFrequency : 5000,
-	        octaves : 0,
-	        exponent : 1
-	    }
-	});
+	    this.bassSynth = new Tone.MonoSynth().toMaster();
+	    this.bassSynth.set({
+	        oscillator : {
+	            type : "square6"
+	        },
+	        filter : {
+	            Q : 0,
+	            type : "lowpass",
+	            rolloff : -12
+	        },
+	        envelope : {
+	            attack : .001,
+	            decay : .001,
+	            sustain : 1,
+	            release : .01
+	        },
+	        filterEnvelope : {
+	            attack : .001,
+	            decay : 1,
+	            sustain : 1,
+	            release : 1,
+	            baseFrequency : 2000,
+	            octaves : 0,
+	            exponent : 1
+	        }
+	    });
+	
+	    this.arpSynth = new Tone.MonoSynth().toMaster();
+	    this.arpSynth.set({
+	        oscillator : {
+	            type : "square24"
+	        },
+	        filter : {
+	            Q : 0,
+	            type : "lowpass",
+	            rolloff : -12
+	        },
+	        envelope : {
+	            attack : .001,
+	            decay : .001,
+	            sustain : 1,
+	            release : .01
+	        },
+	        filterEnvelope : {
+	            attack : .001,
+	            decay : 1,
+	            sustain : 1,
+	            release : 1,
+	            baseFrequency : 5000,
+	            octaves : 0,
+	            exponent : 1
+	        }
+	    });
+	}
+	
+	EightBitArp.prototype.play = function(controller, time, event) {
+	    var note = Tonality.Note(controller.scale.key);
+	    note = controller.scale.add(note, event.get('step'));
+	    note.octave = 2;
+	    this.bassSynth.triggerAttackRelease(note.toString(), event.get('duration'), time);
+	
+	    var endTime = Tone.Time(time).add(event.get('duration')).toSeconds();
+	    time = Tone.Time(time);
+	    if (event.get('seventh')) {
+	        var intervals = [4, 6, 7, 9];
+	    } else {
+	        var intervals = [4, 7, 9, 11];
+	    }       
+	    var rootNote = Tonality.Note(note);
+	    rootNote.octave = 4;
+	    var i = 0;
+	    do {
+	        note = controller.scale.add(rootNote, intervals[i % intervals.length]);
+	        this.arpSynth.triggerAttackRelease(note.toString(), '64n', time);
+	        time.add('64n');
+	        i++;
+	    } while (time.toSeconds() < endTime);
+	}
+	
+	EightBitArp.prototype.dispose = function() {
+	    this.bassSynth.dispose();
+	    this.arpSynth.dispose();
+	}
 	
 	module.exports = {
 	    id : 'eight-bit-arp',
 	    name : '8-bit arpeggiator',
-	    play : function(controller, time, event) {
-	        var note = Tonality.Note(controller.scale.key);
-	        note = controller.scale.add(note, event.get('step'));
-	        note.octave = 2;
-	        bassSynth.triggerAttackRelease(note.toString(), event.get('duration'), time);
-	
-	        var endTime = Tone.Time(time).add(event.get('duration')).toSeconds();
-	        time = Tone.Time(time);
-	        if (event.get('seventh')) {
-	            var intervals = [4, 6, 7, 9];
-	        } else {
-	            var intervals = [4, 7, 9, 11];
-	        }       
-	        var rootNote = Tonality.Note(note);
-	        rootNote.octave = 4;
-	        var i = 0;
-	        do {
-	            note = controller.scale.add(rootNote, intervals[i % intervals.length]);
-	            arpSynth.triggerAttackRelease(note.toString(), '64n', time);
-	            time.add('64n');
-	            i++;
-	        } while (time.toSeconds() < endTime);
-	    }
+	    createInstrument : function() { return new EightBitArp(); }
 	}
 	   
 
@@ -36992,6 +37020,21 @@
 	        this.model.set('instrument', $(e.currentTarget).attr('data-value'));
 	    }
 	});
+
+/***/ },
+/* 32 */
+/***/ function(module, exports) {
+
+	module.exports = {
+	    id : 'noop',
+	    name: 'None',
+	    createInstrument : function() { 
+	        return { 
+	            play : function() {},
+	            dispose : function() {}
+	        };
+	    }
+	}
 
 /***/ }
 /******/ ]);
