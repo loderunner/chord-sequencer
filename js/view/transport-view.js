@@ -77,7 +77,6 @@ module.exports = Backbone.View.extend({
         'click button.play' : 'clickPlay',
         'click button.stop' : 'clickStop',
         'draggable-drag .tempo.value' : 'dragTempo',
-        'click .dropdown-menu' : 'clickDropdownMenu',
         'select .dropdown-menu.zoom' : 'selectZoom',
         'select .dropdown-menu.grid' : 'selectGrid',
         'select .dropdown-menu.loop-length' : 'selectLoopLength'

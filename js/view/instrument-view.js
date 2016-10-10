@@ -22,6 +22,9 @@ module.exports = Backbone.View.extend({
             const instrument = Audio.Instruments[instrumentId];
             this.$radioGroup.append('<span data-value="' + instrumentId + '">' + instrument.name + '</span>');
         }
+
+        this.$el.append('<div class="instrument-view"></div>');
+        this.$instrumentView = this.$('.instrument-view');
     },
 
     // Model events
@@ -29,25 +32,19 @@ module.exports = Backbone.View.extend({
         this.$radioGroup.children('.selected').removeClass('selected');
         this.$radioGroup.children('[data-value="' + this.model.get('id') + '"]').addClass('selected');
 
-        if (this.$instrumentView) {
-            this.stopListening(this.$instrumentView);
-            this.$el.children().remove('.instrument-view');
-            delete(this.$instrumentView);
-        }
+        this.$instrumentView.children().remove();
 
         const instrumentId = this.model.get('id');
         if (instrumentId in Audio.Instruments) {
             const instrument = Audio.Instruments[instrumentId];
-            this.$el.append(instrument.createView());
-            this.$instrumentView = this.$el.children().last();
-            this.$instrumentView.addClass('instrument-view');
+            this.$instrumentView.append(instrument.createView());
         }
     },
 
     // UI events
     events : {
         'click .radio-group>span' : 'clickRadio',
-        'change .instrument-view' : 'changeInstrument'
+        'change .instrument-view' : 'changeParam'
     },
 
     clickRadio : function(e) {

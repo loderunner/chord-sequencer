@@ -1,4 +1,5 @@
 const Tone = require('tone');
+const DropdownMenu = require('view/dropdown-menu.js');
 
 function EightBitArp() {
 
@@ -112,16 +113,11 @@ EightBitArp.prototype.getParams = function() {
 
 function EightBitArpView() {
     this.element = document.createElement('div');
-    this.element.innerHTML =                                                                     
-        '<div class="dropdown-menu">                                                               \
-            <div><span class="value">1/16</span><span class="fa fa-caret-down"></span></div>       \
-            <ul>                                                                                   \
-            <li class="menu-item" data-value="64n">64n</li>                                        \
-            <li class="menu-item" data-value="32n">32n</li>                                        \
-            <li class="menu-item" data-value="16n">16n</li>                                        \
-            <li class="menu-item" data-value="8n">8n</li>                                          \
-            </ul>                                                                                  \
-        </div>';
+    this.element.innerHTML = require('html!./eight-bit-arp.html');
+
+    for (var dropdown of this.element.querySelectorAll('.dropdown-menu')) {
+        DropdownMenu(dropdown);
+    }
 
     return this.element;
 }

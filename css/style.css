@@ -59,6 +59,38 @@ section h2 {
     margin-top: 0;
 }
 
+subsection .control>div {
+    padding: 0 0.25em;
+}
+
+subsection .control div.label {
+    width: 100px;
+    font-variant: small-caps;
+    font-weight: bold;
+}
+
+subsection .control div {
+    display: flex;
+}
+
+subsection .control span,
+subsection .control li {
+    margin: 1px;
+    padding: 5px;
+    background-color: white;
+    border: 1px solid #CCD1D4;
+}
+
+subsection .control ul {
+    width: calc(100% - 8px);
+}
+
+subsection .control {
+    padding: 0.25em;
+    display: flex;
+    align-items: baseline;
+}
+
 .row-container section {
     flex: 1;
     margin: 0 3px;
@@ -88,42 +120,12 @@ section h2 {
     padding: 5px;
 }
 
-.transport subsection .control {
-    padding: 0.25em;
-    display: flex;
-    align-items: baseline;
-}
-
 .transport subsection.view-control .control {
     justify-content: flex-start;
 }
 
 .transport subsection.loop-control .control {
     justify-content: flex-end;
-}
-
-.transport subsection .control>div {
-    padding: 0 0.25em;
-}
-
-.transport subsection .control div.label {
-    width: 100px;
-}
-
-.transport subsection .control div {
-    display: flex;
-}
-
-.transport subsection .control span,
-.transport subsection .control li {
-    margin: 1px;
-    padding: 5px;
-    background-color: white;
-    border: 1px solid #CCD1D4;
-}
-
-.transport subsection .control ul {
-    width: calc(100% - 8px);
 }
 
 .transport subsection.loop-control .control div {

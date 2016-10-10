@@ -35239,6 +35239,9 @@
 	            const instrument = Audio.Instruments[instrumentId];
 	            this.$radioGroup.append('<span data-value="' + instrumentId + '">' + instrument.name + '</span>');
 	        }
+	
+	        this.$el.append('<div class="instrument-view"></div>');
+	        this.$instrumentView = this.$('.instrument-view');
 	    },
 	
 	    // Model events
@@ -35246,25 +35249,19 @@
 	        this.$radioGroup.children('.selected').removeClass('selected');
 	        this.$radioGroup.children('[data-value="' + this.model.get('id') + '"]').addClass('selected');
 	
-	        if (this.$instrumentView) {
-	            this.stopListening(this.$instrumentView);
-	            this.$el.children().remove('.instrument-view');
-	            delete(this.$instrumentView);
-	        }
+	        this.$instrumentView.children().remove();
 	
 	        const instrumentId = this.model.get('id');
 	        if (instrumentId in Audio.Instruments) {
 	            const instrument = Audio.Instruments[instrumentId];
-	            this.$el.append(instrument.createView());
-	            this.$instrumentView = this.$el.children().last();
-	            this.$instrumentView.addClass('instrument-view');
+	            this.$instrumentView.append(instrument.createView());
 	        }
 	    },
 	
 	    // UI events
 	    events : {
 	        'click .radio-group>span' : 'clickRadio',
-	        'change .instrument-view' : 'changeInstrument'
+	        'change .instrument-view' : 'changeParam'
 	    },
 	
 	    clickRadio : function(e) {
@@ -36019,6 +36016,7 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	const Tone = __webpack_require__(1);
+	const DropdownMenu = __webpack_require__(30);
 	
 	function EightBitArp() {
 	
@@ -36132,16 +36130,11 @@
 	
 	function EightBitArpView() {
 	    this.element = document.createElement('div');
-	    this.element.innerHTML =                                                                     
-	        '<div class="dropdown-menu">                                                               \
-	            <div><span class="value">1/16</span><span class="fa fa-caret-down"></span></div>       \
-	            <ul>                                                                                   \
-	            <li class="menu-item" data-value="64n">64n</li>                                        \
-	            <li class="menu-item" data-value="32n">32n</li>                                        \
-	            <li class="menu-item" data-value="16n">16n</li>                                        \
-	            <li class="menu-item" data-value="8n">8n</li>                                          \
-	            </ul>                                                                                  \
-	        </div>';
+	    this.element.innerHTML = __webpack_require__(34);
+	
+	    for (var dropdown of this.element.querySelectorAll('.dropdown-menu')) {
+	        DropdownMenu(dropdown);
+	    }
 	
 	    return this.element;
 	}
@@ -37011,7 +37004,6 @@
 	        'click button.play' : 'clickPlay',
 	        'click button.stop' : 'clickStop',
 	        'draggable-drag .tempo.value' : 'dragTempo',
-	        'click .dropdown-menu' : 'clickDropdownMenu',
 	        'select .dropdown-menu.zoom' : 'selectZoom',
 	        'select .dropdown-menu.grid' : 'selectGrid',
 	        'select .dropdown-menu.loop-length' : 'selectLoopLength'
@@ -37119,6 +37111,12 @@
 	 */
 	module.exports = Backbone.Model.extend({
 	});
+
+/***/ },
+/* 34 */
+/***/ function(module, exports) {
+
+	module.exports = "<subsection class=\"subdivision-control\">\n    <div class=\"control\">\n        <div class=\"label\">Subdivision</div><div class=\"dropdown-menu\">\n            <div><span class=\"value\">64n</span><span class=\"fa fa-caret-down\"></span></div>\n            <ul>                                                                           \n            <li class=\"menu-item\" data-value=\"64n\">64n</li>                                \n            <li class=\"menu-item\" data-value=\"32n\">32n</li>                                \n            <li class=\"menu-item\" data-value=\"16n\">16n</li>                                \n            <li class=\"menu-item\" data-value=\"8n\">8n</li>                                  \n            </ul>                                                                          \n        </div>\n    </div> \n</subsection>";
 
 /***/ }
 /******/ ]);
