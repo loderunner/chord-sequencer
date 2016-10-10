@@ -12,7 +12,7 @@ module.exports = Backbone.View.extend({
     initialize : function() {
         this.create();
         
-        this.listenTo(this.model, "change:instrument", this.updateInstrument);
+        this.listenTo(this.model, "change:id", this.updateId);
     },
 
     create : function() {
@@ -25,20 +25,34 @@ module.exports = Backbone.View.extend({
     },
 
     // Model events
-    updateInstrument : function() {
-        const instrument = this.model.get('instrument');
+    updateId : function() {
         this.$radioGroup.children('.selected').removeClass('selected');
-        this.$radioGroup.children('[data-value="' + instrument + '"]').addClass('selected');
+        this.$radioGroup.children('[data-value="' + this.model.get('id') + '"]').addClass('selected');
+
+        if (this.$instrumentView) {
+            this.stopListening(this.$instrumentView);
+            this.$el.children().remove('.instrument-view');
+            delete(this.$instrumentView);
+        }
+
+        const instrumentId = this.model.get('id');
+        if (instrumentId in Audio.Instruments) {
+            const instrument = Audio.Instruments[instrumentId];
+            this.$el.append(instrument.createView());
+            this.$instrumentView = this.$el.children().last();
+            this.$instrumentView.addClass('instrument-view');
+        }
     },
 
     // UI events
     events : {
-        'click .radio-group>span' : 'clickRadio'
+        'click .radio-group>span' : 'clickRadio',
+        'change .instrument-view' : 'changeInstrument'
     },
 
     clickRadio : function(e) {
         e.stopPropagation();
         
-        this.model.set('instrument', $(e.currentTarget).attr('data-value'));
+        this.model.set('id', $(e.currentTarget).attr('data-value'));
     }
 });

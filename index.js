@@ -49,8 +49,8 @@
 	const $ = __webpack_require__(2);
 	const Song = __webpack_require__(3);
 	const SongView = __webpack_require__(10);
-	const Audio = __webpack_require__(28);
-	const Tonality = __webpack_require__(19);
+	const Audio = __webpack_require__(12);
+	const Tonality = __webpack_require__(13);
 	
 	
 	
@@ -78,7 +78,7 @@
 	    //         zoom : '1m'
 	    //     }
 	    // });
-	    song.set({"sequence":{"chordList":[{"step":0,"seventh":false,"start":"0","duration":"4n + 16n"},{"step":"3","seventh":false,"start":"4n + 8n","duration":"2n + 16n"},{"step":"2","seventh":false,"start":"1m","duration":"4n + 16n"},{"step":"4","seventh":false,"start":"1m + 4n + 8n","duration":"2n + 16n"}],"key":"A","mode":"Minor","tempo":137,"loopLength":"2m","grid":"16n","zoom":"2m"},"title":"New Song","instrument":"pad"})
+	    song.set({"sequence":{"chordList":[{"step":0,"seventh":false,"start":"0","duration":"4n + 16n"},{"step":"3","seventh":false,"start":"4n + 8n","duration":"2n + 16n"},{"step":"2","seventh":false,"start":"1m","duration":"4n + 16n"},{"step":"4","seventh":false,"start":"1m + 4n + 8n","duration":"2n + 16n"}],"key":"A","mode":"Minor","tempo":137,"loopLength":"2m","grid":"16n","zoom":"2m"},"title":"New Song","instrument":{}})
 	
 	    this.song = song;
 	    this.Tonality = Tonality;
@@ -34855,6 +34855,7 @@
 	const Backbone = __webpack_require__(4);
 	
 	const ChordList = __webpack_require__(8);
+	const Instrument = __webpack_require__(33);
 	
 	/**
 	 * @module Sequence
@@ -34870,13 +34871,14 @@
 	 * @property {ChordList}    chordList   - The actual list of {@link Chord} events in the sequence.
 	 * @property {string}       grid        - The current grid subdivision in Tone.js musical time notation.
 	 * @property {string}       zoom        - The length of the part displayed in the chord sequencer in Tone.js musical time notation.
-	 * @property {string}       instrument  - Id of the instrument the song plays.
+	 * @property {Instrument}   instrument  - Id of the instrument the song plays.
 	 *
 	 * @extends Backbone.Model
 	 */
 	module.exports = Backbone.Model.extend({
 	    relations : {
-	        'chordList' : ChordList
+	        'chordList' : ChordList,
+	        'instrument' : Instrument
 	    },
 	
 	    defaults : {
@@ -35117,11 +35119,11 @@
 	const _ = __webpack_require__(6);
 	const Backbone = __webpack_require__(4);
 	
-	const InstrumentView = __webpack_require__(31);
-	const SequencerView = __webpack_require__(11);
-	const KeyView = __webpack_require__(18);
-	const ModeView = __webpack_require__(23);
-	const TransportView = __webpack_require__(24);
+	const InstrumentView = __webpack_require__(11);
+	const SequencerView = __webpack_require__(20);
+	const KeyView = __webpack_require__(27);
+	const ModeView = __webpack_require__(28);
+	const TransportView = __webpack_require__(29);
 	
 	module.exports = Backbone.View.extend({
 	    tagName : 'div',
@@ -35135,7 +35137,7 @@
 	    },
 	
 	    create : function() {
-	        const html = __webpack_require__(27);
+	        const html = __webpack_require__(32);
 	        this.$el.append(html);
 	
 	        this.$title = this.$('.title');
@@ -35214,733 +35216,165 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	const $ = __webpack_require__(2);
-	const Easing = __webpack_require__(12);
-	const _ = __webpack_require__(6);
-	const Backbone = __webpack_require__(4);
-	const Tone = __webpack_require__(1);
-	
-	const ChordView = __webpack_require__(13);
-	
-	module.exports = Backbone.View.extend({
-	    tagName : 'div',
-	    className : 'sequencer-container',
-	
-	    // Lifecycle
-	    initialize : function() {
-	        this.create();
-	        
-	        const chordList = this.model.get('chordList');
-	        this.listenTo(this.model, "change:loopLength", this.updateLoop);
-	        this.listenTo(this.model, "change:zoom", this.updateLoop);
-	        this.listenTo(this.model, "change:grid", this.updateLoop);
-	        this.listenTo(chordList, "add", this.addChord);
-	
-	        var self = this;
-	        // Tone.Transport.scheduleRepeat(function(time) {
-	        //     self.updateTime(time);
-	        // }, "1i");
-	        this.initEvents();
-	    },
-	
-	    create : function() {
-	        const html = __webpack_require__(17);
-	        this.$el.append(html);
-	
-	        this.$chordSequencer = this.$('.chord-sequencer');
-	        this.chordSequencer = this.$chordSequencer.get(0);
-	        this.positionIndicator = this.$chordSequencer.find('.position-indicator').get(0);
-	    },
-	
-	    // Model events
-	    updateLoop : function(sequence) {
-	        const $backgrounds = this.$('.chord-background');
-	        $backgrounds.empty();
-	
-	        const loopLength = sequence.get('loopLength');
-	
-	        const viewInTicks = Tone.Time(this.model.get('zoom')).toTicks();
-	        const gridInTicks = Tone.Time(this.model.get('grid')).toTicks();
-	        const numberOfSubdivisions = Tone.Time(loopLength).toTicks() / gridInTicks;
-	        var $chords = $();
-	        for (var i = 0; i < numberOfSubdivisions; i++) {
-	            const $chordBackground = $('<chord class="chord-background">');
-	            const beat = parseInt(Tone.Time(this.model.get('grid')).mult(i).toBarsBeatsSixteenths().split(':')[1]);
-	            if (beat&1)
-	            {
-	                $chordBackground.addClass('offbeat');
-	            }
-	            const startInTicks = gridInTicks * i;
-	            $chordBackground.css('left', 'calc(100% * ' + startInTicks + ' / ' + viewInTicks + ')');
-	            $chordBackground.css('width', 'calc(100% * ' + gridInTicks + ' / ' + viewInTicks + ' - 2px)');
-	            $chords = $chords.add($chordBackground);
-	        }
-	        $backgrounds.append($chords);
-	
-	        // cache loopLength for realtime position computation
-	        this._loopLength = Math.max(Tone.Time(this.model.get('loopLength')).toTicks(), Tone.Time(this.model.get('zoom')).toTicks());
-	        this._scrollWidth = this.chordSequencer.scrollWidth;
-	
-	        this.updateScroll();
-	    },
-	
-	    updateChordList : function(sequence) {
-	    },
-	
-	    addChord : function(chord, chordList, options) {
-	        const chordView = new ChordView({ model : chord, parent : this });
-	        this.$chordSequencer.append(chordView.$el);
-	
-	        if (options && options.event) {
-	            const dragZone = chordView.$('.drag-zone-right');
-	            const event = new MouseEvent('mousedown', {
-	                screenX : dragZone.offset().left,
-	                screenY : dragZone.offset().top,
-	                clientX : 0,
-	                clientY : 0
-	            });
-	            dragZone[0].dispatchEvent(event);
-	        }
-	    },
-	
-	    updateTime : function() {
-	        const x = this.offsetForTime(Tone.Time(Tone.Transport.position));
-	        // this.positionIndicator.style['left'] = x.toString() + 'px';
-	        this.positionIndicator.style.transform = 'translateX(' + x.toString() + 'px)';
-	    },
-	
-	    // UI events
-	    events : {
-	        'mousedown .chord-sequencer' : 'mouseDownChordSequencer'
-	    },
-	
-	    initEvents : function() {
-	        this.$chordSequencer.scroll(this.updateScroll.bind(this));
-	
-	        const $scrollIndicatorLeft = this.$('.scroll-indicator-left');
-	        $scrollIndicatorLeft.click(this.clickScrollIndicator.bind(this));
-	
-	        const $scrollIndicatorRight = this.$('.scroll-indicator-right');
-	        $scrollIndicatorRight.click(this.clickScrollIndicator.bind(this));
-	    },
-	
-	    clickScrollIndicator : function(e) {
-	        const left = $(e.currentTarget).hasClass('scroll-indicator-left');
-	        const deltaScroll = (left?-1:1) * this.chordSequencer.clientWidth;
-	        this.$chordSequencer.animate(
-	            { scrollLeft : this.$chordSequencer.scrollLeft() + deltaScroll},
-	            500,
-	            'easeOutCirc'
-	        );
-	    },
-	
-	    updateScroll : function(e) {
-	        const scrollLeft = this.chordSequencer.scrollLeft;
-	        const maxScroll = this._scrollWidth - this.chordSequencer.clientWidth;
-	
-	        const $scrollIndicatorLeft = this.$('.scroll-indicator-left');
-	        if (scrollLeft > 0) {
-	            $scrollIndicatorLeft.removeClass('hidden');
-	        } else {
-	            $scrollIndicatorLeft.addClass('hidden');
-	        }
-	
-	        const $scrollIndicatorRight = this.$('.scroll-indicator-right');
-	        if (scrollLeft >= maxScroll) {
-	            $scrollIndicatorRight.addClass('hidden');
-	        } else {
-	            $scrollIndicatorRight.removeClass('hidden');
-	        }
-	    },
-	
-	    mouseDownChordSequencer : function(e) {
-	        var x = e.clientX + this.$chordSequencer.scrollLeft() - this.$chordSequencer.offset().left;
-	        const time = this.timeForOffset(x, 'floor');
-	        
-	        const chordList = this.model.get('chordList');
-	        chordList.add({
-	            step : 0,
-	            seventh : false,
-	            start : time.toNotation(),
-	            duration : this.model.get('grid')
-	        },
-	        {
-	            event : e
-	        });
-	    },
-	
-	    // Helpers
-	    timeForOffset : function(x, quantize) {
-	        const loopTime = Tone.Time(this.model.get('loopLength'));
-	        const zoomTime = Tone.Time(this.model.get('zoom'));
-	        if (loopTime.toTicks() < zoomTime.toTicks()) {
-	            var time = zoomTime;
-	        } else {
-	            var time = loopTime;
-	        }
-	
-	        var xRatio = x / Math.max(this.chordSequencer.scrollWidth, this.$chordSequencer.innerWidth());
-	        time.mult(xRatio);
-	        if (quantize === 'floor') {
-	            time.sub(Tone.Time(this.model.get('grid')).div(2));
-	            time.quantize(Tone.Time(this.model.get('grid')));
-	        }
-	        else if (quantize === true || quantize === 'quantize') {
-	            time.quantize(Tone.Time(this.model.get('grid')));
-	        }
-	        
-	        return time;
-	    },
-	
-	    offsetForTime : function(time) {
-	        const position = time.toTicks();
-	        const offset = this.chordSequencer.scrollWidth * position / this._loopLength;
-	        return offset;
-	    }
-	});
-
-
-/***/ },
-/* 12 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*
-	 * jQuery Easing v1.4.1 - http://gsgd.co.uk/sandbox/jquery/easing/
-	 * Open source under the BSD License.
-	 * Copyright © 2008 George McGinley Smith
-	 * All rights reserved.
-	 * https://raw.github.com/gdsmith/jquery-easing/master/LICENSE
-	*/
-	
-	(function (factory) {
-		if (true) {
-			!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(2)], __WEBPACK_AMD_DEFINE_RESULT__ = function ($) {
-				return factory($);
-			}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-		} else if (typeof module === "object" && typeof module.exports === "object") {
-			exports = factory(require('jquery'));
-		} else {
-			factory(jQuery);
-		}
-	})(function($){
-	
-	// Preserve the original jQuery "swing" easing as "jswing"
-	$.easing.jswing = $.easing.swing;
-	
-	var pow = Math.pow,
-		sqrt = Math.sqrt,
-		sin = Math.sin,
-		cos = Math.cos,
-		PI = Math.PI,
-		c1 = 1.70158,
-		c2 = c1 * 1.525,
-		c3 = c1 + 1,
-		c4 = ( 2 * PI ) / 3,
-		c5 = ( 2 * PI ) / 4.5;
-	
-	// x is the fraction of animation progress, in the range 0..1
-	function bounceOut(x) {
-		var n1 = 7.5625,
-			d1 = 2.75;
-		if ( x < 1/d1 ) {
-			return n1*x*x;
-		} else if ( x < 2/d1 ) {
-			return n1*(x-=(1.5/d1))*x + 0.75;
-		} else if ( x < 2.5/d1 ) {
-			return n1*(x-=(2.25/d1))*x + 0.9375;
-		} else {
-			return n1*(x-=(2.625/d1))*x + 0.984375;
-		}
-	}
-	
-	$.extend( $.easing,
-	{
-		def: 'easeOutQuad',
-		swing: function (x) {
-			return $.easing[$.easing.def](x);
-		},
-		easeInQuad: function (x) {
-			return x * x;
-		},
-		easeOutQuad: function (x) {
-			return 1 - ( 1 - x ) * ( 1 - x );
-		},
-		easeInOutQuad: function (x) {
-			return x < 0.5 ?
-				2 * x * x :
-				1 - pow( -2 * x + 2, 2 ) / 2;
-		},
-		easeInCubic: function (x) {
-			return x * x * x;
-		},
-		easeOutCubic: function (x) {
-			return 1 - pow( 1 - x, 3 );
-		},
-		easeInOutCubic: function (x) {
-			return x < 0.5 ?
-				4 * x * x * x :
-				1 - pow( -2 * x + 2, 3 ) / 2;
-		},
-		easeInQuart: function (x) {
-			return x * x * x * x;
-		},
-		easeOutQuart: function (x) {
-			return 1 - pow( 1 - x, 4 );
-		},
-		easeInOutQuart: function (x) {
-			return x < 0.5 ?
-				8 * x * x * x * x :
-				1 - pow( -2 * x + 2, 4 ) / 2;
-		},
-		easeInQuint: function (x) {
-			return x * x * x * x * x;
-		},
-		easeOutQuint: function (x) {
-			return 1 - pow( 1 - x, 5 );
-		},
-		easeInOutQuint: function (x) {
-			return x < 0.5 ?
-				16 * x * x * x * x * x :
-				1 - pow( -2 * x + 2, 5 ) / 2;
-		},
-		easeInSine: function (x) {
-			return 1 - cos( x * PI/2 );
-		},
-		easeOutSine: function (x) {
-			return sin( x * PI/2 );
-		},
-		easeInOutSine: function (x) {
-			return -( cos( PI * x ) - 1 ) / 2;
-		},
-		easeInExpo: function (x) {
-			return x === 0 ? 0 : pow( 2, 10 * x - 10 );
-		},
-		easeOutExpo: function (x) {
-			return x === 1 ? 1 : 1 - pow( 2, -10 * x );
-		},
-		easeInOutExpo: function (x) {
-			return x === 0 ? 0 : x === 1 ? 1 : x < 0.5 ?
-				pow( 2, 20 * x - 10 ) / 2 :
-				( 2 - pow( 2, -20 * x + 10 ) ) / 2;
-		},
-		easeInCirc: function (x) {
-			return 1 - sqrt( 1 - pow( x, 2 ) );
-		},
-		easeOutCirc: function (x) {
-			return sqrt( 1 - pow( x - 1, 2 ) );
-		},
-		easeInOutCirc: function (x) {
-			return x < 0.5 ?
-				( 1 - sqrt( 1 - pow( 2 * x, 2 ) ) ) / 2 :
-				( sqrt( 1 - pow( -2 * x + 2, 2 ) ) + 1 ) / 2;
-		},
-		easeInElastic: function (x) {
-			return x === 0 ? 0 : x === 1 ? 1 :
-				-pow( 2, 10 * x - 10 ) * sin( ( x * 10 - 10.75 ) * c4 );
-		},
-		easeOutElastic: function (x) {
-			return x === 0 ? 0 : x === 1 ? 1 :
-				pow( 2, -10 * x ) * sin( ( x * 10 - 0.75 ) * c4 ) + 1;
-		},
-		easeInOutElastic: function (x) {
-			return x === 0 ? 0 : x === 1 ? 1 : x < 0.5 ?
-				-( pow( 2, 20 * x - 10 ) * sin( ( 20 * x - 11.125 ) * c5 )) / 2 :
-				pow( 2, -20 * x + 10 ) * sin( ( 20 * x - 11.125 ) * c5 ) / 2 + 1;
-		},
-		easeInBack: function (x) {
-			return c3 * x * x * x - c1 * x * x;
-		},
-		easeOutBack: function (x) {
-			return 1 + c3 * pow( x - 1, 3 ) + c1 * pow( x - 1, 2 );
-		},
-		easeInOutBack: function (x) {
-			return x < 0.5 ?
-				( pow( 2 * x, 2 ) * ( ( c2 + 1 ) * 2 * x - c2 ) ) / 2 :
-				( pow( 2 * x - 2, 2 ) *( ( c2 + 1 ) * ( x * 2 - 2 ) + c2 ) + 2 ) / 2;
-		},
-		easeInBounce: function (x) {
-			return 1 - bounceOut( 1 - x );
-		},
-		easeOutBounce: bounceOut,
-		easeInOutBounce: function (x) {
-			return x < 0.5 ?
-				( 1 - bounceOut( 1 - 2 * x ) ) / 2 :
-				( 1 + bounceOut( 2 * x - 1 ) ) / 2;
-		}
-	});
-	
-	});
-
-
-/***/ },
-/* 13 */
-/***/ function(module, exports, __webpack_require__) {
-
-	const $ = __webpack_require__(2);
-	const Easing = __webpack_require__(12);
-	const _ = __webpack_require__(6);
-	const Backbone = __webpack_require__(4);
-	const Tone = __webpack_require__(1);
-	
-	const Utils = __webpack_require__(14);
-	const Draggable = __webpack_require__(15);
-	
-	module.exports = Backbone.View.extend({
-	    tagName: 'chord',
-	
-	    // Lifecycle
-	    initialize : function(options) {
-	        this.parent = options.parent;
-	
-	        this.sequence = this.model.collection.parent;
-	
-	        this.create();
-	
-	        this.listenTo(this.model, "change:start", this.updateStart);
-	        this.updateStart();
-	        this.listenTo(this.model, "change:duration", this.updateDuration);
-	        this.updateDuration();
-	        this.listenTo(this.model, "change:step", this.updateStep);
-	        this.updateStep();
-	        this.listenTo(this.model, "change:seventh", this.updateSeventh);
-	        this.updateSeventh();
-	        this.listenTo(this.model, "change:ninth", this.updateNinth);
-	        this.updateNinth();
-	
-	        this.listenTo(this.sequence, "change:zoom", this.updatePosition);
-	        this.listenTo(this.model, "remove", this.removeChord);
-	    },
-	
-	    create : function() {
-	        const html = __webpack_require__(16);
-	        this.$el.append(html);
-	
-	        this.$radioGroup = this.$('.radio-group');
-	
-	        Draggable(this.$el.get(0));
-	        Draggable(this.$('.drag-zone-left').get(0));
-	        Draggable(this.$('.drag-zone-right').get(0));
-	    },
-	
-	    // Model events
-	    updateStart : function() {
-	        const viewInTicks = Tone.Time(this.sequence.get('zoom')).toTicks();
-	        const startInTicks = Tone.Time(this.model.get('start')).toTicks();
-	        this.$el.css('left', "calc(100% * " + startInTicks + " / " + viewInTicks + ")");
-	    },
-	
-	    updateDuration : function() {
-	        const viewInTicks = Tone.Time(this.sequence.get('zoom')).toTicks();
-	        const durationInTicks = Tone.Time(this.model.get('duration')).toTicks();
-	        this.$el.css('width', "calc(100% * " + durationInTicks + " / " + viewInTicks + " - 2px)");
-	    },
-	
-	    updateStep : function() {
-	        const step = this.model.get('step');
-	        this.$radioGroup.children('.selected').removeClass('selected');
-	        this.$radioGroup.children('[data-value=' + step + ']').addClass('selected');
-	    },
-	
-	    updateSeventh : function() {
-	        const $checkbox = this.$('.seventh-control .checkbox');
-	        if (this.model.get('seventh')) {
-	            $checkbox.removeClass('fa-square-o');
-	            $checkbox.addClass('fa-check-square-o');
-	        } else {
-	            $checkbox.addClass('fa-square-o');
-	            $checkbox.removeClass('fa-check-square-o');
-	        }
-	    },
-	
-	    updateNinth : function() {
-	        const $checkbox = this.$('.ninth-control .checkbox');
-	    },
-	
-	    updatePosition : function() {
-	        this.updateStart();
-	        this.updateDuration();
-	    },
-	
-	    removeChord : function() {
-	        this.$el.remove();
-	    },
-	
-	    // UI events
-	    events : {
-	        'click' :                           'clickChord',
-	        'click .step-group>span' :          'clickStep',
-	        'mousedown .step-group>span' :      Utils.stopPropagation,
-	        'click .seventh-control' :          'clickSeventh',
-	        'mousedown .seventh-control' :      Utils.stopPropagation,
-	        'draggable-begin' :                 'beginDragChord',
-	        'draggable-drag' :                  'dragChord',
-	        'draggable-end' :                   'endDragChord',
-	        'draggable-drag .drag-zone-left' :  'dragLeft',
-	        'draggable-drag .drag-zone-right' : 'dragRight'
-	    },
-	
-	    clickChord : function(e) {
-	        e.stopPropagation();
-	
-	        this.model.collection.remove(this.model);
-	    },
-	
-	    clickStep : function(e) {
-	        e.stopPropagation();
-	        
-	        this.model.set('step', $(e.currentTarget).attr('data-value'));
-	    },
-	
-	    clickSeventh : function(e) {
-	        e.stopPropagation();
-	        
-	        this.model.set('seventh', !this.model.get('seventh'));
-	    },
-	
-	    beginDragChord : function(e) {
-	        this.clickX = e.originalEvent.pageX - this.$el.offset().left;
-	        this.$el.addClass('dragging');
-	    },
-	
-	    dragChord : function(e) {
-	        e.stopPropagation();
-	        
-	        var x = e.originalEvent.pageX
-	                - this.clickX
-	                + this.parent.$chordSequencer.scrollLeft()
-	                - this.parent.$chordSequencer.offset().left;
-	        var time = this.parent.timeForOffset(x, true);
-	
-	        if (time.toTicks() >= 0) {
-	            this.model.set('start', time.toNotation());
-	        }
-	    },
-	
-	    endDragChord : function(e) {
-	        delete this.clickX;
-	        this.$el.removeClass('dragging');
-	
-	        for (var i = 0; i < this.model.collection.length; i++) {
-	            const chord = this.model.collection.at(i);
-	            if (chord === this.model) {
-	                continue;
-	            }
-	            const cutStart = Tone.Time(this.model.get('start'));
-	            const cutEnd = Tone.Time(cutStart).add(this.model.get('duration'));
-	            const cuts = chord.cutout(cutStart, cutEnd);
-	            if ((cuts.left === null) && (cuts.right === null)) {
-	                // left and right are null, chord has been deleted
-	                // decrement index
-	                i--;
-	            }
-	        }
-	    },
-	
-	    dragLeft : function(e) {
-	        e.stopPropagation();
-	
-	        var x = e.originalEvent.pageX + this.parent.$chordSequencer.scrollLeft() - this.parent.$chordSequencer.offset().left;
-	        var time = this.parent.timeForOffset(x, true);
-	
-	        var d = Tone.Time(this.model.get('start'))
-	                        .add(this.model.get('duration'))
-	                        .sub(time);
-	        if (d.toTicks() > 0) {
-	            this.model.set({
-	                start: time.toNotation(),
-	                duration: d.toNotation()
-	            });
-	        }
-	    },
-	
-	    dragRight : function(e) {
-	        e.stopPropagation();
-	        
-	        var x = e.originalEvent.pageX + this.parent.$chordSequencer.scrollLeft() - this.parent.$chordSequencer.offset().left;
-	        var time = this.parent.timeForOffset(x, true);
-	
-	        time.sub(Tone.Time(this.model.get('start')));
-	        if (time.toTicks() > 0) {
-	            this.model.set('duration', time.toNotation());
-	        }
-	    }
-	});
-
-/***/ },
-/* 14 */
-/***/ function(module, exports) {
-
-	module.exports = {
-	    stopPropagation : function(e) {
-	        e.stopImmediatePropagation();
-	        e.stopPropagation();
-	        e.preventDefault();
-	    }
-	}
-
-/***/ },
-/* 15 */
-/***/ function(module, exports) {
-
-	const DraggableEvent = function(type, e, target) {
-	    var dragEvent = new CustomEvent(type, {bubbles : true});
-	
-	    dragEvent.originX = target.dragOriginX;
-	    dragEvent.originY = target.dragOriginY;
-	    dragEvent.pageX = e.pageX;
-	    dragEvent.pageY = e.pageY;
-	    dragEvent.deltaX = e.pageX - target.dragOriginX;
-	    dragEvent.deltaY = e.pageY - target.dragOriginY;
-	    dragEvent.moveX = e.pageX - target.previousX;
-	    dragEvent.moveY = e.pageY - target.previousY;
-	
-	    return dragEvent;
-	}
-	
-	const onClick = function(e) {
-	    if (this.moved) {
-	        e.stopPropagation();
-	        e.preventDefault();
-	    }
-	
-	    document.removeEventListener('click', onClick, {capture : true});        
-	
-	    delete this.moved;
-	};
-	
-	const onMouseDown = function(e) {
-	    e.stopPropagation();
-	    e.stopImmediatePropagation();
-	    e.preventDefault();
-	
-	    this.moved = false;
-	    this.dragOriginX = e.pageX;
-	    this.dragOriginY = e.pageY;
-	    this.previousX = e.pageX;
-	    this.previousY = e.pageY;
-	    this.callback = onMouseMove.bind(this);
-	
-	    document.addEventListener('mousemove', this.callback, {capture : true});
-	
-	    var dragEvent = DraggableEvent('draggable-begin', e, this);
-	    this.dispatchEvent(dragEvent);
-	
-	    const self = this;
-	
-	    const doMouseUp = function(e) {
-	        onMouseUp.call(self, e);
-	        document.removeEventListener('mouseup', doMouseUp, {capture : true});
-	    };
-	    const doClick = function(e) {
-	        onClick.call(self, e);
-	        document.removeEventListener('click', doClick, {capture : true});
-	    };
-	
-	    document.addEventListener('mouseup', doMouseUp, {capture : true});
-	    document.addEventListener('click', doClick, {capture : true});
-	}
-	
-	const onMouseMove = function(e) {
-	    e.stopPropagation();
-	    e.preventDefault();
-	
-	    this.moved = true;
-	
-	    var dragEvent = DraggableEvent('draggable-drag', e, this);
-	    this.dispatchEvent(dragEvent);
-	
-	    this.previousX = e.pageX;
-	    this.previousY = e.pageY;
-	}
-	
-	const onMouseUp = function(e) {
-	    if (this.moved) {
-	        e.stopPropagation();
-	        e.preventDefault();
-	    }
-	
-	    var dragEvent = DraggableEvent('draggable-end', e, this);
-	    this.dispatchEvent(dragEvent);
-	
-	    document.removeEventListener('mousemove', this.callback, {capture : true});
-	
-	    delete this.dragOriginX;
-	    delete this.dragOriginY;
-	    delete this.previousX;
-	    delete this.previousY;
-	    delete this.callback;
-	}
-	
-	module.exports = function(target) {
-	    target.classList.add('draggable');
-	    target.addEventListener('mousedown', onMouseDown.bind(target));
-	}
-
-/***/ },
-/* 16 */
-/***/ function(module, exports) {
-
-	module.exports = "<div class=\"drag-zone drag-zone-left\"></div>\n<div class=\"drag-zone drag-zone-right\"></div>\n<div class=\"control seventh-control\"><span>7th </span><i class=\"checkbox fa fa-square-o\"></i></div>\n<div class=\"step-group radio-group\">\n    <span data-value=\"6\">VII</span>\n    <span data-value=\"5\">VI</span>\n    <span data-value=\"4\">V</span>\n    <span data-value=\"3\">IV</span>\n    <span data-value=\"2\">III</span>\n    <span data-value=\"1\">II</span>\n    <span data-value=\"0\">I</span>\n</div>";
-
-/***/ },
-/* 17 */
-/***/ function(module, exports) {
-
-	module.exports = "<div class=\"scroll-indicator scroll-indicator-left hidden\">\n  <i class=\"fa fa-chevron-left fa-4\"></i>\n</div>\n<div class=\"chord-sequencer\">\n  <div class=\"chord-background\">\n  </div>\n  <i class=\"position-indicator fa fa-caret-up fa-lg\"></i>\n</div>\n<div class=\"scroll-indicator scroll-indicator-right hidden\">\n  <i class=\"fa fa-chevron-right fa-4\"></i>\n</div>\n";
-
-/***/ },
-/* 18 */
-/***/ function(module, exports, __webpack_require__) {
-
-	const $ = __webpack_require__(2);
 	const _ = __webpack_require__(6);
 	const Backbone = __webpack_require__(4);
 	
-	const Tonality = __webpack_require__(19);
+	const Audio = __webpack_require__(12);
 	
 	module.exports = Backbone.View.extend({
 	    tagName : 'section',
-	    className : 'key',
+	    className : 'instrument',
 	
 	    // Lifecycle
 	    initialize : function() {
 	        this.create();
 	        
-	        this.listenTo(this.model, "change:key", this.updateKey);
+	        this.listenTo(this.model, "change:id", this.updateId);
 	    },
 	
 	    create : function() {
-	        this.$el.append('<h2 class="subtitle">Key</h2><div class="radio-group"></div>');
+	        this.$el.append('<h2 class="subtitle">Instrument</h2><div class="radio-group"></div>');
 	        this.$radioGroup = this.$('.radio-group');
-	        for (var key of Tonality.keys) {
-	            this.$radioGroup.append('<span data-value="' + key + '">' + key + '</span>');
+	        for (var instrumentId in Audio.Instruments) {
+	            const instrument = Audio.Instruments[instrumentId];
+	            this.$radioGroup.append('<span data-value="' + instrumentId + '">' + instrument.name + '</span>');
 	        }
 	    },
 	
 	    // Model events
-	    updateKey : function() {
-	        const key = this.model.get('key');
+	    updateId : function() {
 	        this.$radioGroup.children('.selected').removeClass('selected');
-	        this.$radioGroup.children('[data-value="' + key + '"]').addClass('selected');
+	        this.$radioGroup.children('[data-value="' + this.model.get('id') + '"]').addClass('selected');
+	
+	        if (this.$instrumentView) {
+	            this.stopListening(this.$instrumentView);
+	            this.$el.children().remove('.instrument-view');
+	            delete(this.$instrumentView);
+	        }
+	
+	        const instrumentId = this.model.get('id');
+	        if (instrumentId in Audio.Instruments) {
+	            const instrument = Audio.Instruments[instrumentId];
+	            this.$el.append(instrument.createView());
+	            this.$instrumentView = this.$el.children().last();
+	            this.$instrumentView.addClass('instrument-view');
+	        }
 	    },
 	
 	    // UI events
 	    events : {
-	        'click .radio-group>span' : 'clickRadio'
+	        'click .radio-group>span' : 'clickRadio',
+	        'change .instrument-view' : 'changeInstrument'
 	    },
 	
 	    clickRadio : function(e) {
 	        e.stopPropagation();
 	        
-	        this.model.set('key', $(e.currentTarget).attr('data-value'));
+	        this.model.set('id', $(e.currentTarget).attr('data-value'));
 	    }
 	});
 
 /***/ },
-/* 19 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
-	const Note = __webpack_require__(20);
-	const Scale = __webpack_require__(22);
+	const _ = __webpack_require__(6);
+	const Backbone = __webpack_require__(4);
+	const Tone = __webpack_require__(1);
+	
+	const Tonality = __webpack_require__(13);
+	
+	
+	function AudioController(song) {
+	    _.extend(this, Backbone.Events);
+	
+	    const self = this;
+	    this.part = new Tone.Part(function(time, event) {
+	        if (self.instrument) {
+	            self.instrument.play(self, time, event);
+	        }
+	    });
+	    this.part.start('0m');
+	    this.part.stop('8m');
+	
+	    Tone.Transport.loopStart = "0m";
+	    Tone.Transport.loopEnd = "8m";
+	    Tone.Transport.loop = true;
+	
+	    Tone.Master.volume.value = -12;
+	
+	    this.song = song;
+	
+	    this.sequence = song.get('sequence');
+	    this.listenTo(this.sequence, 'change:instrument', this.updateInstrument);
+	    this.listenTo(this.sequence, 'change:tempo', this.updateTempo);
+	    this.listenTo(this.sequence, 'change:loopLength', this.updateLoopLength);
+	    this.listenTo(this.sequence, 'change:key', this.updateKeyMode);
+	    this.listenTo(this.sequence, 'change:mode', this.updateKeyMode);
+	
+	    this.chordList = this.sequence.get('chordList');
+	    this.listenTo(this.chordList, 'update', this.updateChordList);
+	    this.listenTo(this.chordList, 'change', this.updateChord);
+	
+	    return this;
+	}
+	
+	AudioController.Instruments = {};
+	
+	var instrument = __webpack_require__(17);
+	AudioController.Instruments[instrument.id] = instrument;
+	
+	instrument = __webpack_require__(18);
+	AudioController.Instruments[instrument.id] = instrument;
+	
+	instrument = __webpack_require__(19);
+	AudioController.Instruments[instrument.id] = instrument;
+	
+	AudioController.prototype.updateInstrument = function(sequence) {
+	    if (this.instrument) {
+	        this.instrument.dispose();
+	    }
+	    this.instrument = AudioController.Instruments[sequence.get('instrument')].createInstrument();
+	}
+	
+	AudioController.prototype.updateTempo = function(sequence) {
+	    Tone.Transport.bpm.value = sequence.get('tempo');
+	}
+	
+	
+	AudioController.prototype.updateLoopLength = function(sequence) {
+	    Tone.Transport.loopEnd = sequence.get('loopLength');
+	}
+	
+	AudioController.prototype.updateChordList = function(chordList, options) {
+	    _.each(options.changes.added, function(chord) {
+	        this.part.add(chord.get('start'), chord);
+	    }, this);
+	
+	    _.each(options.changes.removed, function(chord) {
+	        this.part.remove(chord.get('start'), chord);
+	    }, this);
+	}
+	
+	AudioController.prototype.updateChord = function(chord) {
+	    if (chord.hasChanged('start')) {
+	        this.part.remove(chord.previous('start'), chord);
+	        this.part.add(chord.get('start'), chord);
+	    }
+	}
+	
+	AudioController.prototype.updateKeyMode = function() {
+	    this.scale = Tonality.Scale(this.sequence.get('key'), this.sequence.get('mode'));
+	}
+	
+	module.exports = AudioController;
+
+/***/ },
+/* 13 */
+/***/ function(module, exports, __webpack_require__) {
+
+	const Note = __webpack_require__(14);
+	const Scale = __webpack_require__(16);
 	
 	const Tonality = {
 	    Note : function(val) { return new Note(val); },
@@ -35952,10 +35386,10 @@
 	module.exports = Tonality;
 
 /***/ },
-/* 20 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
-	const InvalidArgumentError = __webpack_require__(21);
+	const InvalidArgumentError = __webpack_require__(15);
 	
 	const letters = 'CDEFGAB';
 	const alterations = ['', '#', 'b', '##', 'bb'];
@@ -36303,7 +35737,7 @@
 	module.exports = Note;
 
 /***/ },
-/* 21 */
+/* 15 */
 /***/ function(module, exports) {
 
 	function InvalidArgumentError(message) {
@@ -36324,11 +35758,11 @@
 	module.exports = InvalidArgumentError;
 
 /***/ },
-/* 22 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
-	const InvalidArgumentError = __webpack_require__(21);
-	const Note = __webpack_require__(20);
+	const InvalidArgumentError = __webpack_require__(15);
+	const Note = __webpack_require__(14);
 	
 	const keys = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
 	const modes = {
@@ -36432,321 +35866,25 @@
 	module.exports = Scale;
 
 /***/ },
-/* 23 */
-/***/ function(module, exports, __webpack_require__) {
+/* 17 */
+/***/ function(module, exports) {
 
-	const $ = __webpack_require__(2);
-	const _ = __webpack_require__(6);
-	const Backbone = __webpack_require__(4);
-	
-	const Tonality = __webpack_require__(19);
-	
-	module.exports = Backbone.View.extend({
-	    tagName : 'section',
-	    className : 'mode',
-	
-	    // Lifecycle
-	    initialize : function() {
-	        this.create();
-	        this.listenTo(this.model, "change:mode", this.updateMode);
-	    },
-	
-	    create : function() {
-	        this.$el.append('<h2 class="subtitle">Mode</h2><div class="radio-group"></div>');
-	        this.$radioGroup = this.$('.radio-group');
-	        for (var mode of Tonality.modes) {
-	            this.$radioGroup.append('<span data-value="' + mode + '">' + mode + '</span>');
-	        }
-	    },
-	
-	    // Model events
-	    updateMode : function() {
-	        const mode = this.model.get('mode');
-	        this.$radioGroup.children('.selected').removeClass('selected');
-	        this.$radioGroup.children('[data-value=' + mode + ']').addClass('selected');
-	    },
-	
-	    // UI events
-	    events : {
-	        'click .radio-group>span' : 'clickRadio'
-	    },
-	
-	    clickRadio : function(e) {
-	        e.stopPropagation();
-	        
-	        this.model.set('mode', $(e.currentTarget).attr('data-value'));
-	    }
-	});
-
-/***/ },
-/* 24 */
-/***/ function(module, exports, __webpack_require__) {
-
-	const $ = __webpack_require__(2);
-	const _ = __webpack_require__(6);
-	const Backbone = __webpack_require__(4);
-	const Tone = __webpack_require__(1);
-	
-	const Draggable = __webpack_require__(15);
-	const DropdownMenu = __webpack_require__(25);
-	
-	module.exports = Backbone.View.extend({
-	    tagName : 'section',
-	    className : 'transport',
-	
-	    // Lifecycle
-	    initialize : function() {
-	        this.create();
-	        
-	        this.listenTo(this.model, "change:tempo", this.updateTempo);
-	        this.listenTo(this.model, "change:loopLength", this.updateLoopLength);
-	        this.listenTo(this.model, "change:zoom", this.updateZoom);
-	        this.listenTo(this.model, "change:grid", this.updateGrid);
-	    },
-	
-	    create : function() {
-	        const html = __webpack_require__(26);
-	        this.$el.append(html);
-	        this.$viewControl = this.$('.view-control');
-	        this.counter = this.$('.transport-control .counter').get(0);
-	        this.$loopControl = this.$('.loop-control');
-	
-	        Draggable(this.$loopControl.find('.tempo.value')[0]);
-	        for (menu of this.$el.find('.dropdown-menu')) {
-	            DropdownMenu(menu);
+	module.exports = {
+	    id : 'noop',
+	    name: 'None',
+	    createInstrument : function() { 
+	        return { 
+	            play : function() {},
+	            dispose : function() {}
 	        };
-	
-	        var self = this;
-	        // Tone.Transport.scheduleRepeat(function(time) {
-	        //     self.updateTime(time);
-	        // }, "16n");
 	    },
-	
-	    // Model events
-	    updateTempo : function() {
-	        this.$loopControl.find('.tempo.value').html(this.model.get('tempo').toString() + ' bpm');
-	    },
-	
-	    updateLoopLength : function() {
-	        const loopLength = this.model.get('loopLength');
-	        const selectedItem = this.$loopControl.find('.loop-length li[data-value="' + loopLength + '"]');
-	        this.$loopControl.find('.loop-length .value').html(selectedItem.html());
-	    },
-	
-	    updateZoom : function() {
-	        const zoom = this.model.get('zoom');
-	        const selectedItem = this.$viewControl.find('.zoom li[data-value="' + zoom + '"]');
-	        this.$viewControl.find('.zoom .value').html(selectedItem.html());
-	    },
-	
-	    updateGrid : function() {
-	        const grid = this.model.get('grid');
-	        const selectedItem = this.$viewControl.find('.grid li[data-value="' + grid + '"]');
-	        this.$viewControl.find('.grid .value').html(selectedItem.html());
-	    },
-	
-	    updateTime : function() {
-	        const bbs = Tone.Transport.position.split(':');
-	        for (var i = 0; i < 3; i++) {
-	            const n = parseInt(bbs[i]);
-	            if (n < 10) {
-	                bbs[i] = '0' + n.toString();
-	            }
-	        }
-	        this.counter.innerText = bbs.join(':');
-	    },
-	
-	    // UI events
-	    events : {
-	        'click button.play' : 'clickPlay',
-	        'click button.stop' : 'clickStop',
-	        'draggable-drag .tempo.value' : 'dragTempo',
-	        'click .dropdown-menu' : 'clickDropdownMenu',
-	        'select .dropdown-menu.zoom' : 'selectZoom',
-	        'select .dropdown-menu.grid' : 'selectGrid',
-	        'select .dropdown-menu.loop-length' : 'selectLoopLength'
-	    },
-	
-	    clickPlay : function() {
-	        Tone.Transport.start();
-	    },
-	
-	    clickStop : function() {
-	        Tone.Transport.stop();
-	    },
-	
-	    dragTempo : function(e) {
-	        const tempo = this.model.get('tempo');
-	        const $tempoEl = this.$loopControl.find('.tempo.value');
-	        const bpmMin = parseInt($tempoEl.attr('data-min'));
-	        const bpmMax = parseInt($tempoEl.attr('data-max'));
-	        this.model.set('tempo', Math.min(bpmMax, Math.max(bpmMin, Math.round(tempo - e.originalEvent.moveY))));
-	    },
-	
-	    selectZoom : function(e) {
-	        this.model.set('zoom', e.target.getAttribute('data-value'));
-	    },
-	
-	
-	    selectGrid : function(e) {
-	        this.model.set('grid', e.target.getAttribute('data-value'));
-	    },
-	
-	    selectLoopLength : function(e) {
-	        this.model.set('loopLength', e.target.getAttribute('data-value'));
-	    }
-	});
-
-/***/ },
-/* 25 */
-/***/ function(module, exports) {
-
-	const onClickMenu = function(e) {
-	        e.stopPropagation();
-	
-	        const menu = e.currentTarget;
-	        if (menu.classList.contains('open')) {
-	            menu.classList.remove('open');
-	        } else {
-	            menu.classList.add('open');
-	            const list = menu.getElementsByTagName('ul')[0];
-	            const rect = list.getBoundingClientRect();
-	            const overlap = rect.bottom - window.innerHeight;
-	            if (overlap > 0) {
-	                list.style.top = 'calc(100% - ' + overlap + 'px)';
-	            }
-	            document.addEventListener('click', function(e) {
-	                    menu.classList.remove('open');
-	                },
-	                {once : true}
-	            );
-	        }
-	}
-	
-	const onClickItem = function(e) {
-	    const item = e.currentTarget;
-	    const selectEvent = new Event('select', {bubbles: true});
-	    item.dispatchEvent(selectEvent);
-	}
-	
-	module.exports = function(target) {
-	    target.classList.add('dropdown-menu');
-	    target.addEventListener('click', onClickMenu);
-	    const items = target.querySelectorAll('ul>li');
-	    for (item of items) {
-	        item.addEventListener('click', onClickItem);
+	    createView : function() {
+	        return '<div></div>';
 	    }
 	}
 
 /***/ },
-/* 26 */
-/***/ function(module, exports) {
-
-	module.exports = "<subsection class=\"view-control\">\n    <div class=\"control\">\n        <div class=\"label\">Grid</div>\n        <div class=\"grid dropdown-menu\">\n            <div><span class=\"value\">1/16</span><span class=\"fa fa-caret-down\"></span></div>\n            <ul>\n            <li class=\"menu-item\" data-value=\"16n\"><i class=\"mn mn-lg mn-note-sixteenth\"></i></li>\n            <li class=\"menu-item\" data-value=\"8t\"><i class=\"mn mn-lg mn-note-eighth-triplet\"></i></li>\n            <li class=\"menu-item\" data-value=\"8n\"><i class=\"mn mn-lg mn-note-eighth\"></i></li>\n            <!-- <li class=\"menu-item\" data-value=\"8n + 16n\"><i class=\"mn mn-lg mn-note-eighth-dot\"></i></li> -->\n            <li class=\"menu-item\" data-value=\"4t\"><i class=\"mn mn-lg mn-note-quarter-triplet\"></i></li>\n            <li class=\"menu-item\" data-value=\"4n\"><i class=\"mn mn-lg mn-note-quarter\"></i></li>\n            <!-- <li class=\"menu-item\" data-value=\"4n + 8n\"><i class=\"mn mn-lg mn-note-quarter-dot\"></i></li> -->\n            <li class=\"menu-item\" data-value=\"2t\"><i class=\"mn mn-lg mn-note-half-triplet\"></i></li>\n            <li class=\"menu-item\" data-value=\"2n\"><i class=\"mn mn-lg mn-note-half\"></i></li>\n            <!-- <li class=\"menu-item\" data-value=\"2n + 4n\"><i class=\"mn mn-lg mn-note-half-dot\"></i></li> -->\n            <li class=\"menu-item\" data-value=\"1n\"><i class=\"mn mn-lg mn-note-whole\"></i></li>\n            </ul>\n        </div>\n    </div>\n    <div class=\"control\">\n        <div class=\"label\">Zoom</div>\n        <div class=\"zoom dropdown-menu\">\n            <div><span class=\"value\">1 bar</span><span class=\"fa fa-caret-down\"></span></div>\n            <ul>\n            <li class=\"menu-item\" data-value=\"1m\">1 bar</li>\n            <li class=\"menu-item\" data-value=\"2m\">2 bars</li>\n            <li class=\"menu-item\" data-value=\"4m\">4 bars</li>\n            <li class=\"menu-item\" data-value=\"8m\">8 bars</li>\n            </ul>\n        </div>\n    </div>\n</subsection>\n<subsection class=\"transport-control\">\n    <div class=\"play-control\"><button class=\"play\"><i class=\"fa fa-play\"></i></button><button class=\"stop\"><i class=\"fa fa-stop\"></i></button></div>\n    <div class=\"counter\">00:00:00</div>\n</subsection>\n<subsection class=\"loop-control\">\n    <div class=\"control\">\n        <div><span class=\"tempo value\" data-min=\"40\" data-max=\"250\">120 bpm</span></div>\n        <div class=\"label\">Tempo</div>\n    </div>\n    <div class=\"control\">\n        <div class=\"loop-length dropdown-menu\">\n            <div><span class=\"fa fa-caret-down\"></span><span class=\"value\">1 bar</span></div>\n            <ul>\n            <li class=\"menu-item\" data-value=\"1m\">1 bar</li>\n            <li class=\"menu-item\" data-value=\"2m\">2 bars</li>\n            <li class=\"menu-item\" data-value=\"4m\">4 bars</li>\n            <li class=\"menu-item\" data-value=\"8m\">8 bars</li>\n            </ul>\n        </div>\n        <div class=\"label\">Loop length</div>\n    </div>\n</subsection>";
-
-/***/ },
-/* 27 */
-/***/ function(module, exports) {
-
-	module.exports = "<h1 class=\"title\"></h1>\n<input class=\"edit\">\n<div class=\"row-container\"></div>";
-
-/***/ },
-/* 28 */
-/***/ function(module, exports, __webpack_require__) {
-
-	const _ = __webpack_require__(6);
-	const Backbone = __webpack_require__(4);
-	const Tone = __webpack_require__(1);
-	
-	const Tonality = __webpack_require__(19);
-	
-	
-	function AudioController(song) {
-	    _.extend(this, Backbone.Events);
-	
-	    const self = this;
-	    this.part = new Tone.Part(function(time, event) {
-	        if (self.instrument) {
-	            self.instrument.play(self, time, event);
-	        }
-	    });
-	    this.part.start('0m');
-	    this.part.stop('8m');
-	
-	    Tone.Transport.loopStart = "0m";
-	    Tone.Transport.loopEnd = "8m";
-	    Tone.Transport.loop = true;
-	
-	    Tone.Master.volume.value = -12;
-	
-	    this.song = song;
-	
-	    this.sequence = song.get('sequence');
-	    this.listenTo(this.sequence, 'change:instrument', this.updateInstrument);
-	    this.listenTo(this.sequence, 'change:tempo', this.updateTempo);
-	    this.listenTo(this.sequence, 'change:loopLength', this.updateLoopLength);
-	    this.listenTo(this.sequence, 'change:key', this.updateKeyMode);
-	    this.listenTo(this.sequence, 'change:mode', this.updateKeyMode);
-	
-	    this.chordList = this.sequence.get('chordList');
-	    this.listenTo(this.chordList, 'update', this.updateChordList);
-	    this.listenTo(this.chordList, 'change', this.updateChord);
-	
-	    return this;
-	}
-	
-	AudioController.Instruments = {};
-	
-	var instrument = __webpack_require__(32);
-	AudioController.Instruments[instrument.id] = instrument;
-	
-	instrument = __webpack_require__(29);
-	AudioController.Instruments[instrument.id] = instrument;
-	
-	instrument = __webpack_require__(30);
-	AudioController.Instruments[instrument.id] = instrument;
-	
-	AudioController.prototype.updateInstrument = function(sequence) {
-	    if (this.instrument) {
-	        this.instrument.dispose();
-	    }
-	    this.instrument = AudioController.Instruments[sequence.get('instrument')].createInstrument();
-	}
-	
-	AudioController.prototype.updateTempo = function(sequence) {
-	    Tone.Transport.bpm.value = sequence.get('tempo');
-	}
-	
-	
-	AudioController.prototype.updateLoopLength = function(sequence) {
-	    Tone.Transport.loopEnd = sequence.get('loopLength');
-	}
-	
-	AudioController.prototype.updateChordList = function(chordList, options) {
-	    _.each(options.changes.added, function(chord) {
-	        this.part.add(chord.get('start'), chord);
-	    }, this);
-	
-	    _.each(options.changes.removed, function(chord) {
-	        this.part.remove(chord.get('start'), chord);
-	    }, this);
-	}
-	
-	AudioController.prototype.updateChord = function(chord) {
-	    if (chord.hasChanged('start')) {
-	        this.part.remove(chord.previous('start'), chord);
-	        this.part.add(chord.get('start'), chord);
-	    }
-	}
-	
-	AudioController.prototype.updateKeyMode = function() {
-	    this.scale = Tonality.Scale(this.sequence.get('key'), this.sequence.get('mode'));
-	}
-	
-	module.exports = AudioController;
-
-/***/ },
-/* 29 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
 	const Tone = __webpack_require__(1);
@@ -36869,17 +36007,23 @@
 	module.exports = {
 	    id : 'panda-pad',
 	    name: 'Panda Pad',
-	    createInstrument : function() { return new PandaPad(); }
+	    createInstrument : function() { return new PandaPad(); },
+	    createView : function() {
+	        return '<div></div>';
+	    }
 	}
 	   
 
 /***/ },
-/* 30 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
 	const Tone = __webpack_require__(1);
 	
 	function EightBitArp() {
+	
+	    this.octaves = 4;
+	    this.subdivisions = '64n';
 	
 	    this.bassSynth = new Tone.MonoSynth().toMaster();
 	    this.bassSynth.set({
@@ -36954,8 +36098,9 @@
 	    var i = 0;
 	    do {
 	        note = controller.scale.add(rootNote, intervals[i % intervals.length]);
-	        this.arpSynth.triggerAttackRelease(note.toString(), '64n', time);
-	        time.add('64n');
+	        note.octave = ((note.octave - rootNote.octave) % this.octaves) + rootNote.octave;
+	        this.arpSynth.triggerAttackRelease(note.toString(), this.subdivisions, time);
+	        time.add(this.subdivisions);
 	        i++;
 	    } while (time.toSeconds() < endTime);
 	}
@@ -36965,48 +36110,763 @@
 	    this.arpSynth.dispose();
 	}
 	
+	EightBitArp.prototype.set = function(param, value) {
+	    if (param === 'octaves') {
+	        this.octaves = value;
+	    } else if (param === 'subdivisions') {
+	        this.subdivisions = value;
+	    }
+	}
+	
+	EightBitArp.prototype.get = function(param) {
+	    if (param === 'octaves') {
+	        return this.octaves;
+	    } else if (param === 'subdivisions') {
+	        return this.subdivisions;
+	    }
+	}
+	
+	EightBitArp.prototype.getParams = function() {
+	    return { 'octaves' : this.octaves, 'subdivisions' : this.subdivisions }
+	}
+	
+	function EightBitArpView() {
+	    this.element = document.createElement('div');
+	    this.element.innerHTML =                                                                     
+	        '<div class="dropdown-menu">                                                               \
+	            <div><span class="value">1/16</span><span class="fa fa-caret-down"></span></div>       \
+	            <ul>                                                                                   \
+	            <li class="menu-item" data-value="64n">64n</li>                                        \
+	            <li class="menu-item" data-value="32n">32n</li>                                        \
+	            <li class="menu-item" data-value="16n">16n</li>                                        \
+	            <li class="menu-item" data-value="8n">8n</li>                                          \
+	            </ul>                                                                                  \
+	        </div>';
+	
+	    return this.element;
+	}
+	
 	module.exports = {
 	    id : 'eight-bit-arp',
 	    name : '8-bit arpeggiator',
-	    createInstrument : function() { return new EightBitArp(); }
+	    params : ['octaves', 'subdivisions'],
+	    createInstrument : function() { return new EightBitArp(); },
+	    createView : function() { return new EightBitArpView(); }
 	}
 	   
 
 /***/ },
-/* 31 */
+/* 20 */
+/***/ function(module, exports, __webpack_require__) {
+
+	const $ = __webpack_require__(2);
+	const Easing = __webpack_require__(21);
+	const _ = __webpack_require__(6);
+	const Backbone = __webpack_require__(4);
+	const Tone = __webpack_require__(1);
+	
+	const ChordView = __webpack_require__(22);
+	
+	module.exports = Backbone.View.extend({
+	    tagName : 'div',
+	    className : 'sequencer-container',
+	
+	    // Lifecycle
+	    initialize : function() {
+	        this.create();
+	        
+	        const chordList = this.model.get('chordList');
+	        this.listenTo(this.model, "change:loopLength", this.updateLoop);
+	        this.listenTo(this.model, "change:zoom", this.updateLoop);
+	        this.listenTo(this.model, "change:grid", this.updateLoop);
+	        this.listenTo(chordList, "add", this.addChord);
+	
+	        var self = this;
+	        // Tone.Transport.scheduleRepeat(function(time) {
+	        //     self.updateTime(time);
+	        // }, "1i");
+	        this.initEvents();
+	    },
+	
+	    create : function() {
+	        const html = __webpack_require__(26);
+	        this.$el.append(html);
+	
+	        this.$chordSequencer = this.$('.chord-sequencer');
+	        this.chordSequencer = this.$chordSequencer.get(0);
+	        this.positionIndicator = this.$chordSequencer.find('.position-indicator').get(0);
+	    },
+	
+	    // Model events
+	    updateLoop : function(sequence) {
+	        const $backgrounds = this.$('.chord-background');
+	        $backgrounds.empty();
+	
+	        const loopLength = sequence.get('loopLength');
+	
+	        const viewInTicks = Tone.Time(this.model.get('zoom')).toTicks();
+	        const gridInTicks = Tone.Time(this.model.get('grid')).toTicks();
+	        const numberOfSubdivisions = Tone.Time(loopLength).toTicks() / gridInTicks;
+	        var $chords = $();
+	        for (var i = 0; i < numberOfSubdivisions; i++) {
+	            const $chordBackground = $('<chord class="chord-background">');
+	            const beat = parseInt(Tone.Time(this.model.get('grid')).mult(i).toBarsBeatsSixteenths().split(':')[1]);
+	            if (beat&1)
+	            {
+	                $chordBackground.addClass('offbeat');
+	            }
+	            const startInTicks = gridInTicks * i;
+	            $chordBackground.css('left', 'calc(100% * ' + startInTicks + ' / ' + viewInTicks + ')');
+	            $chordBackground.css('width', 'calc(100% * ' + gridInTicks + ' / ' + viewInTicks + ' - 2px)');
+	            $chords = $chords.add($chordBackground);
+	        }
+	        $backgrounds.append($chords);
+	
+	        // cache loopLength for realtime position computation
+	        this._loopLength = Math.max(Tone.Time(this.model.get('loopLength')).toTicks(), Tone.Time(this.model.get('zoom')).toTicks());
+	        this._scrollWidth = this.chordSequencer.scrollWidth;
+	
+	        this.updateScroll();
+	    },
+	
+	    updateChordList : function(sequence) {
+	    },
+	
+	    addChord : function(chord, chordList, options) {
+	        const chordView = new ChordView({ model : chord, parent : this });
+	        this.$chordSequencer.append(chordView.$el);
+	
+	        if (options && options.event) {
+	            const dragZone = chordView.$('.drag-zone-right');
+	            const event = new MouseEvent('mousedown', {
+	                screenX : dragZone.offset().left,
+	                screenY : dragZone.offset().top,
+	                clientX : 0,
+	                clientY : 0
+	            });
+	            dragZone[0].dispatchEvent(event);
+	        }
+	    },
+	
+	    updateTime : function() {
+	        const x = this.offsetForTime(Tone.Time(Tone.Transport.position));
+	        // this.positionIndicator.style['left'] = x.toString() + 'px';
+	        this.positionIndicator.style.transform = 'translateX(' + x.toString() + 'px)';
+	    },
+	
+	    // UI events
+	    events : {
+	        'mousedown .chord-sequencer' : 'mouseDownChordSequencer'
+	    },
+	
+	    initEvents : function() {
+	        this.$chordSequencer.scroll(this.updateScroll.bind(this));
+	
+	        const $scrollIndicatorLeft = this.$('.scroll-indicator-left');
+	        $scrollIndicatorLeft.click(this.clickScrollIndicator.bind(this));
+	
+	        const $scrollIndicatorRight = this.$('.scroll-indicator-right');
+	        $scrollIndicatorRight.click(this.clickScrollIndicator.bind(this));
+	    },
+	
+	    clickScrollIndicator : function(e) {
+	        const left = $(e.currentTarget).hasClass('scroll-indicator-left');
+	        const deltaScroll = (left?-1:1) * this.chordSequencer.clientWidth;
+	        this.$chordSequencer.animate(
+	            { scrollLeft : this.$chordSequencer.scrollLeft() + deltaScroll},
+	            500,
+	            'easeOutCirc'
+	        );
+	    },
+	
+	    updateScroll : function(e) {
+	        const scrollLeft = this.chordSequencer.scrollLeft;
+	        const maxScroll = this._scrollWidth - this.chordSequencer.clientWidth;
+	
+	        const $scrollIndicatorLeft = this.$('.scroll-indicator-left');
+	        if (scrollLeft > 0) {
+	            $scrollIndicatorLeft.removeClass('hidden');
+	        } else {
+	            $scrollIndicatorLeft.addClass('hidden');
+	        }
+	
+	        const $scrollIndicatorRight = this.$('.scroll-indicator-right');
+	        if (scrollLeft >= maxScroll) {
+	            $scrollIndicatorRight.addClass('hidden');
+	        } else {
+	            $scrollIndicatorRight.removeClass('hidden');
+	        }
+	    },
+	
+	    mouseDownChordSequencer : function(e) {
+	        var x = e.clientX + this.$chordSequencer.scrollLeft() - this.$chordSequencer.offset().left;
+	        const time = this.timeForOffset(x, 'floor');
+	        
+	        const chordList = this.model.get('chordList');
+	        chordList.add({
+	            step : 0,
+	            seventh : false,
+	            start : time.toNotation(),
+	            duration : this.model.get('grid')
+	        },
+	        {
+	            event : e
+	        });
+	    },
+	
+	    // Helpers
+	    timeForOffset : function(x, quantize) {
+	        const loopTime = Tone.Time(this.model.get('loopLength'));
+	        const zoomTime = Tone.Time(this.model.get('zoom'));
+	        if (loopTime.toTicks() < zoomTime.toTicks()) {
+	            var time = zoomTime;
+	        } else {
+	            var time = loopTime;
+	        }
+	
+	        var xRatio = x / Math.max(this.chordSequencer.scrollWidth, this.$chordSequencer.innerWidth());
+	        time.mult(xRatio);
+	        if (quantize === 'floor') {
+	            time.sub(Tone.Time(this.model.get('grid')).div(2));
+	            time.quantize(Tone.Time(this.model.get('grid')));
+	        }
+	        else if (quantize === true || quantize === 'quantize') {
+	            time.quantize(Tone.Time(this.model.get('grid')));
+	        }
+	        
+	        return time;
+	    },
+	
+	    offsetForTime : function(time) {
+	        const position = time.toTicks();
+	        const offset = this.chordSequencer.scrollWidth * position / this._loopLength;
+	        return offset;
+	    }
+	});
+
+
+/***/ },
+/* 21 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*
+	 * jQuery Easing v1.4.1 - http://gsgd.co.uk/sandbox/jquery/easing/
+	 * Open source under the BSD License.
+	 * Copyright © 2008 George McGinley Smith
+	 * All rights reserved.
+	 * https://raw.github.com/gdsmith/jquery-easing/master/LICENSE
+	*/
+	
+	(function (factory) {
+		if (true) {
+			!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(2)], __WEBPACK_AMD_DEFINE_RESULT__ = function ($) {
+				return factory($);
+			}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+		} else if (typeof module === "object" && typeof module.exports === "object") {
+			exports = factory(require('jquery'));
+		} else {
+			factory(jQuery);
+		}
+	})(function($){
+	
+	// Preserve the original jQuery "swing" easing as "jswing"
+	$.easing.jswing = $.easing.swing;
+	
+	var pow = Math.pow,
+		sqrt = Math.sqrt,
+		sin = Math.sin,
+		cos = Math.cos,
+		PI = Math.PI,
+		c1 = 1.70158,
+		c2 = c1 * 1.525,
+		c3 = c1 + 1,
+		c4 = ( 2 * PI ) / 3,
+		c5 = ( 2 * PI ) / 4.5;
+	
+	// x is the fraction of animation progress, in the range 0..1
+	function bounceOut(x) {
+		var n1 = 7.5625,
+			d1 = 2.75;
+		if ( x < 1/d1 ) {
+			return n1*x*x;
+		} else if ( x < 2/d1 ) {
+			return n1*(x-=(1.5/d1))*x + 0.75;
+		} else if ( x < 2.5/d1 ) {
+			return n1*(x-=(2.25/d1))*x + 0.9375;
+		} else {
+			return n1*(x-=(2.625/d1))*x + 0.984375;
+		}
+	}
+	
+	$.extend( $.easing,
+	{
+		def: 'easeOutQuad',
+		swing: function (x) {
+			return $.easing[$.easing.def](x);
+		},
+		easeInQuad: function (x) {
+			return x * x;
+		},
+		easeOutQuad: function (x) {
+			return 1 - ( 1 - x ) * ( 1 - x );
+		},
+		easeInOutQuad: function (x) {
+			return x < 0.5 ?
+				2 * x * x :
+				1 - pow( -2 * x + 2, 2 ) / 2;
+		},
+		easeInCubic: function (x) {
+			return x * x * x;
+		},
+		easeOutCubic: function (x) {
+			return 1 - pow( 1 - x, 3 );
+		},
+		easeInOutCubic: function (x) {
+			return x < 0.5 ?
+				4 * x * x * x :
+				1 - pow( -2 * x + 2, 3 ) / 2;
+		},
+		easeInQuart: function (x) {
+			return x * x * x * x;
+		},
+		easeOutQuart: function (x) {
+			return 1 - pow( 1 - x, 4 );
+		},
+		easeInOutQuart: function (x) {
+			return x < 0.5 ?
+				8 * x * x * x * x :
+				1 - pow( -2 * x + 2, 4 ) / 2;
+		},
+		easeInQuint: function (x) {
+			return x * x * x * x * x;
+		},
+		easeOutQuint: function (x) {
+			return 1 - pow( 1 - x, 5 );
+		},
+		easeInOutQuint: function (x) {
+			return x < 0.5 ?
+				16 * x * x * x * x * x :
+				1 - pow( -2 * x + 2, 5 ) / 2;
+		},
+		easeInSine: function (x) {
+			return 1 - cos( x * PI/2 );
+		},
+		easeOutSine: function (x) {
+			return sin( x * PI/2 );
+		},
+		easeInOutSine: function (x) {
+			return -( cos( PI * x ) - 1 ) / 2;
+		},
+		easeInExpo: function (x) {
+			return x === 0 ? 0 : pow( 2, 10 * x - 10 );
+		},
+		easeOutExpo: function (x) {
+			return x === 1 ? 1 : 1 - pow( 2, -10 * x );
+		},
+		easeInOutExpo: function (x) {
+			return x === 0 ? 0 : x === 1 ? 1 : x < 0.5 ?
+				pow( 2, 20 * x - 10 ) / 2 :
+				( 2 - pow( 2, -20 * x + 10 ) ) / 2;
+		},
+		easeInCirc: function (x) {
+			return 1 - sqrt( 1 - pow( x, 2 ) );
+		},
+		easeOutCirc: function (x) {
+			return sqrt( 1 - pow( x - 1, 2 ) );
+		},
+		easeInOutCirc: function (x) {
+			return x < 0.5 ?
+				( 1 - sqrt( 1 - pow( 2 * x, 2 ) ) ) / 2 :
+				( sqrt( 1 - pow( -2 * x + 2, 2 ) ) + 1 ) / 2;
+		},
+		easeInElastic: function (x) {
+			return x === 0 ? 0 : x === 1 ? 1 :
+				-pow( 2, 10 * x - 10 ) * sin( ( x * 10 - 10.75 ) * c4 );
+		},
+		easeOutElastic: function (x) {
+			return x === 0 ? 0 : x === 1 ? 1 :
+				pow( 2, -10 * x ) * sin( ( x * 10 - 0.75 ) * c4 ) + 1;
+		},
+		easeInOutElastic: function (x) {
+			return x === 0 ? 0 : x === 1 ? 1 : x < 0.5 ?
+				-( pow( 2, 20 * x - 10 ) * sin( ( 20 * x - 11.125 ) * c5 )) / 2 :
+				pow( 2, -20 * x + 10 ) * sin( ( 20 * x - 11.125 ) * c5 ) / 2 + 1;
+		},
+		easeInBack: function (x) {
+			return c3 * x * x * x - c1 * x * x;
+		},
+		easeOutBack: function (x) {
+			return 1 + c3 * pow( x - 1, 3 ) + c1 * pow( x - 1, 2 );
+		},
+		easeInOutBack: function (x) {
+			return x < 0.5 ?
+				( pow( 2 * x, 2 ) * ( ( c2 + 1 ) * 2 * x - c2 ) ) / 2 :
+				( pow( 2 * x - 2, 2 ) *( ( c2 + 1 ) * ( x * 2 - 2 ) + c2 ) + 2 ) / 2;
+		},
+		easeInBounce: function (x) {
+			return 1 - bounceOut( 1 - x );
+		},
+		easeOutBounce: bounceOut,
+		easeInOutBounce: function (x) {
+			return x < 0.5 ?
+				( 1 - bounceOut( 1 - 2 * x ) ) / 2 :
+				( 1 + bounceOut( 2 * x - 1 ) ) / 2;
+		}
+	});
+	
+	});
+
+
+/***/ },
+/* 22 */
+/***/ function(module, exports, __webpack_require__) {
+
+	const $ = __webpack_require__(2);
+	const Easing = __webpack_require__(21);
+	const _ = __webpack_require__(6);
+	const Backbone = __webpack_require__(4);
+	const Tone = __webpack_require__(1);
+	
+	const Utils = __webpack_require__(23);
+	const Draggable = __webpack_require__(24);
+	
+	module.exports = Backbone.View.extend({
+	    tagName: 'chord',
+	
+	    // Lifecycle
+	    initialize : function(options) {
+	        this.parent = options.parent;
+	
+	        this.sequence = this.model.collection.parent;
+	
+	        this.create();
+	
+	        this.listenTo(this.model, "change:start", this.updateStart);
+	        this.updateStart();
+	        this.listenTo(this.model, "change:duration", this.updateDuration);
+	        this.updateDuration();
+	        this.listenTo(this.model, "change:step", this.updateStep);
+	        this.updateStep();
+	        this.listenTo(this.model, "change:seventh", this.updateSeventh);
+	        this.updateSeventh();
+	        this.listenTo(this.model, "change:ninth", this.updateNinth);
+	        this.updateNinth();
+	
+	        this.listenTo(this.sequence, "change:zoom", this.updatePosition);
+	        this.listenTo(this.model, "remove", this.removeChord);
+	    },
+	
+	    create : function() {
+	        const html = __webpack_require__(25);
+	        this.$el.append(html);
+	
+	        this.$radioGroup = this.$('.radio-group');
+	
+	        Draggable(this.$el.get(0));
+	        Draggable(this.$('.drag-zone-left').get(0));
+	        Draggable(this.$('.drag-zone-right').get(0));
+	    },
+	
+	    // Model events
+	    updateStart : function() {
+	        const viewInTicks = Tone.Time(this.sequence.get('zoom')).toTicks();
+	        const startInTicks = Tone.Time(this.model.get('start')).toTicks();
+	        this.$el.css('left', "calc(100% * " + startInTicks + " / " + viewInTicks + ")");
+	    },
+	
+	    updateDuration : function() {
+	        const viewInTicks = Tone.Time(this.sequence.get('zoom')).toTicks();
+	        const durationInTicks = Tone.Time(this.model.get('duration')).toTicks();
+	        this.$el.css('width', "calc(100% * " + durationInTicks + " / " + viewInTicks + " - 2px)");
+	    },
+	
+	    updateStep : function() {
+	        const step = this.model.get('step');
+	        this.$radioGroup.children('.selected').removeClass('selected');
+	        this.$radioGroup.children('[data-value=' + step + ']').addClass('selected');
+	    },
+	
+	    updateSeventh : function() {
+	        const $checkbox = this.$('.seventh-control .checkbox');
+	        if (this.model.get('seventh')) {
+	            $checkbox.removeClass('fa-square-o');
+	            $checkbox.addClass('fa-check-square-o');
+	        } else {
+	            $checkbox.addClass('fa-square-o');
+	            $checkbox.removeClass('fa-check-square-o');
+	        }
+	    },
+	
+	    updateNinth : function() {
+	        const $checkbox = this.$('.ninth-control .checkbox');
+	    },
+	
+	    updatePosition : function() {
+	        this.updateStart();
+	        this.updateDuration();
+	    },
+	
+	    removeChord : function() {
+	        this.$el.remove();
+	    },
+	
+	    // UI events
+	    events : {
+	        'click' :                           'clickChord',
+	        'click .step-group>span' :          'clickStep',
+	        'mousedown .step-group>span' :      Utils.stopPropagation,
+	        'click .seventh-control' :          'clickSeventh',
+	        'mousedown .seventh-control' :      Utils.stopPropagation,
+	        'draggable-begin' :                 'beginDragChord',
+	        'draggable-drag' :                  'dragChord',
+	        'draggable-end' :                   'endDragChord',
+	        'draggable-drag .drag-zone-left' :  'dragLeft',
+	        'draggable-drag .drag-zone-right' : 'dragRight'
+	    },
+	
+	    clickChord : function(e) {
+	        e.stopPropagation();
+	
+	        this.model.collection.remove(this.model);
+	    },
+	
+	    clickStep : function(e) {
+	        e.stopPropagation();
+	        
+	        this.model.set('step', $(e.currentTarget).attr('data-value'));
+	    },
+	
+	    clickSeventh : function(e) {
+	        e.stopPropagation();
+	        
+	        this.model.set('seventh', !this.model.get('seventh'));
+	    },
+	
+	    beginDragChord : function(e) {
+	        this.clickX = e.originalEvent.pageX - this.$el.offset().left;
+	        this.$el.addClass('dragging');
+	    },
+	
+	    dragChord : function(e) {
+	        e.stopPropagation();
+	        
+	        var x = e.originalEvent.pageX
+	                - this.clickX
+	                + this.parent.$chordSequencer.scrollLeft()
+	                - this.parent.$chordSequencer.offset().left;
+	        var time = this.parent.timeForOffset(x, true);
+	
+	        if (time.toTicks() >= 0) {
+	            this.model.set('start', time.toNotation());
+	        }
+	    },
+	
+	    endDragChord : function(e) {
+	        delete this.clickX;
+	        this.$el.removeClass('dragging');
+	
+	        for (var i = 0; i < this.model.collection.length; i++) {
+	            const chord = this.model.collection.at(i);
+	            if (chord === this.model) {
+	                continue;
+	            }
+	            const cutStart = Tone.Time(this.model.get('start'));
+	            const cutEnd = Tone.Time(cutStart).add(this.model.get('duration'));
+	            const cuts = chord.cutout(cutStart, cutEnd);
+	            if ((cuts.left === null) && (cuts.right === null)) {
+	                // left and right are null, chord has been deleted
+	                // decrement index
+	                i--;
+	            }
+	        }
+	    },
+	
+	    dragLeft : function(e) {
+	        e.stopPropagation();
+	
+	        var x = e.originalEvent.pageX + this.parent.$chordSequencer.scrollLeft() - this.parent.$chordSequencer.offset().left;
+	        var time = this.parent.timeForOffset(x, true);
+	
+	        var d = Tone.Time(this.model.get('start'))
+	                        .add(this.model.get('duration'))
+	                        .sub(time);
+	        if (d.toTicks() > 0) {
+	            this.model.set({
+	                start: time.toNotation(),
+	                duration: d.toNotation()
+	            });
+	        }
+	    },
+	
+	    dragRight : function(e) {
+	        e.stopPropagation();
+	        
+	        var x = e.originalEvent.pageX + this.parent.$chordSequencer.scrollLeft() - this.parent.$chordSequencer.offset().left;
+	        var time = this.parent.timeForOffset(x, true);
+	
+	        time.sub(Tone.Time(this.model.get('start')));
+	        if (time.toTicks() > 0) {
+	            this.model.set('duration', time.toNotation());
+	        }
+	    }
+	});
+
+/***/ },
+/* 23 */
+/***/ function(module, exports) {
+
+	module.exports = {
+	    stopPropagation : function(e) {
+	        e.stopImmediatePropagation();
+	        e.stopPropagation();
+	        e.preventDefault();
+	    }
+	}
+
+/***/ },
+/* 24 */
+/***/ function(module, exports) {
+
+	const DraggableEvent = function(type, e, target) {
+	    var dragEvent = new CustomEvent(type, {bubbles : true});
+	
+	    dragEvent.originX = target.dragOriginX;
+	    dragEvent.originY = target.dragOriginY;
+	    dragEvent.pageX = e.pageX;
+	    dragEvent.pageY = e.pageY;
+	    dragEvent.deltaX = e.pageX - target.dragOriginX;
+	    dragEvent.deltaY = e.pageY - target.dragOriginY;
+	    dragEvent.moveX = e.pageX - target.previousX;
+	    dragEvent.moveY = e.pageY - target.previousY;
+	
+	    return dragEvent;
+	}
+	
+	const onClick = function(e) {
+	    if (this.moved) {
+	        e.stopPropagation();
+	        e.preventDefault();
+	    }
+	
+	    document.removeEventListener('click', onClick, {capture : true});        
+	
+	    delete this.moved;
+	};
+	
+	const onMouseDown = function(e) {
+	    e.stopPropagation();
+	    e.stopImmediatePropagation();
+	    e.preventDefault();
+	
+	    this.moved = false;
+	    this.dragOriginX = e.pageX;
+	    this.dragOriginY = e.pageY;
+	    this.previousX = e.pageX;
+	    this.previousY = e.pageY;
+	    this.callback = onMouseMove.bind(this);
+	
+	    document.addEventListener('mousemove', this.callback, {capture : true});
+	
+	    var dragEvent = DraggableEvent('draggable-begin', e, this);
+	    this.dispatchEvent(dragEvent);
+	
+	    const self = this;
+	
+	    const doMouseUp = function(e) {
+	        onMouseUp.call(self, e);
+	        document.removeEventListener('mouseup', doMouseUp, {capture : true});
+	    };
+	    const doClick = function(e) {
+	        onClick.call(self, e);
+	        document.removeEventListener('click', doClick, {capture : true});
+	    };
+	
+	    document.addEventListener('mouseup', doMouseUp, {capture : true});
+	    document.addEventListener('click', doClick, {capture : true});
+	}
+	
+	const onMouseMove = function(e) {
+	    e.stopPropagation();
+	    e.preventDefault();
+	
+	    this.moved = true;
+	
+	    var dragEvent = DraggableEvent('draggable-drag', e, this);
+	    this.dispatchEvent(dragEvent);
+	
+	    this.previousX = e.pageX;
+	    this.previousY = e.pageY;
+	}
+	
+	const onMouseUp = function(e) {
+	    if (this.moved) {
+	        e.stopPropagation();
+	        e.preventDefault();
+	    }
+	
+	    var dragEvent = DraggableEvent('draggable-end', e, this);
+	    this.dispatchEvent(dragEvent);
+	
+	    document.removeEventListener('mousemove', this.callback, {capture : true});
+	
+	    delete this.dragOriginX;
+	    delete this.dragOriginY;
+	    delete this.previousX;
+	    delete this.previousY;
+	    delete this.callback;
+	}
+	
+	module.exports = function(target) {
+	    target.classList.add('draggable');
+	    target.addEventListener('mousedown', onMouseDown.bind(target));
+	}
+
+/***/ },
+/* 25 */
+/***/ function(module, exports) {
+
+	module.exports = "<div class=\"drag-zone drag-zone-left\"></div>\n<div class=\"drag-zone drag-zone-right\"></div>\n<div class=\"control seventh-control\"><span>7th </span><i class=\"checkbox fa fa-square-o\"></i></div>\n<div class=\"step-group radio-group\">\n    <span data-value=\"6\">VII</span>\n    <span data-value=\"5\">VI</span>\n    <span data-value=\"4\">V</span>\n    <span data-value=\"3\">IV</span>\n    <span data-value=\"2\">III</span>\n    <span data-value=\"1\">II</span>\n    <span data-value=\"0\">I</span>\n</div>";
+
+/***/ },
+/* 26 */
+/***/ function(module, exports) {
+
+	module.exports = "<div class=\"scroll-indicator scroll-indicator-left hidden\">\n  <i class=\"fa fa-chevron-left fa-4\"></i>\n</div>\n<div class=\"chord-sequencer\">\n  <div class=\"chord-background\">\n  </div>\n  <i class=\"position-indicator fa fa-caret-up fa-lg\"></i>\n</div>\n<div class=\"scroll-indicator scroll-indicator-right hidden\">\n  <i class=\"fa fa-chevron-right fa-4\"></i>\n</div>\n";
+
+/***/ },
+/* 27 */
 /***/ function(module, exports, __webpack_require__) {
 
 	const $ = __webpack_require__(2);
 	const _ = __webpack_require__(6);
 	const Backbone = __webpack_require__(4);
 	
-	const Audio = __webpack_require__(28);
+	const Tonality = __webpack_require__(13);
 	
 	module.exports = Backbone.View.extend({
 	    tagName : 'section',
-	    className : 'instrument',
+	    className : 'key',
 	
 	    // Lifecycle
 	    initialize : function() {
 	        this.create();
 	        
-	        this.listenTo(this.model, "change:instrument", this.updateInstrument);
+	        this.listenTo(this.model, "change:key", this.updateKey);
 	    },
 	
 	    create : function() {
-	        this.$el.append('<h2 class="subtitle">Instrument</h2><div class="radio-group"></div>');
+	        this.$el.append('<h2 class="subtitle">Key</h2><div class="radio-group"></div>');
 	        this.$radioGroup = this.$('.radio-group');
-	        for (var instrumentId in Audio.Instruments) {
-	            const instrument = Audio.Instruments[instrumentId];
-	            this.$radioGroup.append('<span data-value="' + instrumentId + '">' + instrument.name + '</span>');
+	        for (var key of Tonality.keys) {
+	            this.$radioGroup.append('<span data-value="' + key + '">' + key + '</span>');
 	        }
 	    },
 	
 	    // Model events
-	    updateInstrument : function() {
-	        const instrument = this.model.get('instrument');
+	    updateKey : function() {
+	        const key = this.model.get('key');
 	        this.$radioGroup.children('.selected').removeClass('selected');
-	        this.$radioGroup.children('[data-value="' + instrument + '"]').addClass('selected');
+	        this.$radioGroup.children('[data-value="' + key + '"]').addClass('selected');
 	    },
 	
 	    // UI events
@@ -37017,24 +36877,248 @@
 	    clickRadio : function(e) {
 	        e.stopPropagation();
 	        
-	        this.model.set('instrument', $(e.currentTarget).attr('data-value'));
+	        this.model.set('key', $(e.currentTarget).attr('data-value'));
 	    }
 	});
+
+/***/ },
+/* 28 */
+/***/ function(module, exports, __webpack_require__) {
+
+	const $ = __webpack_require__(2);
+	const _ = __webpack_require__(6);
+	const Backbone = __webpack_require__(4);
+	
+	const Tonality = __webpack_require__(13);
+	
+	module.exports = Backbone.View.extend({
+	    tagName : 'section',
+	    className : 'mode',
+	
+	    // Lifecycle
+	    initialize : function() {
+	        this.create();
+	        this.listenTo(this.model, "change:mode", this.updateMode);
+	    },
+	
+	    create : function() {
+	        this.$el.append('<h2 class="subtitle">Mode</h2><div class="radio-group"></div>');
+	        this.$radioGroup = this.$('.radio-group');
+	        for (var mode of Tonality.modes) {
+	            this.$radioGroup.append('<span data-value="' + mode + '">' + mode + '</span>');
+	        }
+	    },
+	
+	    // Model events
+	    updateMode : function() {
+	        const mode = this.model.get('mode');
+	        this.$radioGroup.children('.selected').removeClass('selected');
+	        this.$radioGroup.children('[data-value=' + mode + ']').addClass('selected');
+	    },
+	
+	    // UI events
+	    events : {
+	        'click .radio-group>span' : 'clickRadio'
+	    },
+	
+	    clickRadio : function(e) {
+	        e.stopPropagation();
+	        
+	        this.model.set('mode', $(e.currentTarget).attr('data-value'));
+	    }
+	});
+
+/***/ },
+/* 29 */
+/***/ function(module, exports, __webpack_require__) {
+
+	const $ = __webpack_require__(2);
+	const _ = __webpack_require__(6);
+	const Backbone = __webpack_require__(4);
+	const Tone = __webpack_require__(1);
+	
+	const Draggable = __webpack_require__(24);
+	const DropdownMenu = __webpack_require__(30);
+	
+	module.exports = Backbone.View.extend({
+	    tagName : 'section',
+	    className : 'transport',
+	
+	    // Lifecycle
+	    initialize : function() {
+	        this.create();
+	        
+	        this.listenTo(this.model, "change:tempo", this.updateTempo);
+	        this.listenTo(this.model, "change:loopLength", this.updateLoopLength);
+	        this.listenTo(this.model, "change:zoom", this.updateZoom);
+	        this.listenTo(this.model, "change:grid", this.updateGrid);
+	    },
+	
+	    create : function() {
+	        const html = __webpack_require__(31);
+	        this.$el.append(html);
+	        this.$viewControl = this.$('.view-control');
+	        this.counter = this.$('.transport-control .counter').get(0);
+	        this.$loopControl = this.$('.loop-control');
+	
+	        Draggable(this.$loopControl.find('.tempo.value')[0]);
+	        for (menu of this.$el.find('.dropdown-menu')) {
+	            DropdownMenu(menu);
+	        };
+	
+	        var self = this;
+	        // Tone.Transport.scheduleRepeat(function(time) {
+	        //     self.updateTime(time);
+	        // }, "16n");
+	    },
+	
+	    // Model events
+	    updateTempo : function() {
+	        this.$loopControl.find('.tempo.value').html(this.model.get('tempo').toString() + ' bpm');
+	    },
+	
+	    updateLoopLength : function() {
+	        const loopLength = this.model.get('loopLength');
+	        const selectedItem = this.$loopControl.find('.loop-length li[data-value="' + loopLength + '"]');
+	        this.$loopControl.find('.loop-length .value').html(selectedItem.html());
+	    },
+	
+	    updateZoom : function() {
+	        const zoom = this.model.get('zoom');
+	        const selectedItem = this.$viewControl.find('.zoom li[data-value="' + zoom + '"]');
+	        this.$viewControl.find('.zoom .value').html(selectedItem.html());
+	    },
+	
+	    updateGrid : function() {
+	        const grid = this.model.get('grid');
+	        const selectedItem = this.$viewControl.find('.grid li[data-value="' + grid + '"]');
+	        this.$viewControl.find('.grid .value').html(selectedItem.html());
+	    },
+	
+	    updateTime : function() {
+	        const bbs = Tone.Transport.position.split(':');
+	        for (var i = 0; i < 3; i++) {
+	            const n = parseInt(bbs[i]);
+	            if (n < 10) {
+	                bbs[i] = '0' + n.toString();
+	            }
+	        }
+	        this.counter.innerText = bbs.join(':');
+	    },
+	
+	    // UI events
+	    events : {
+	        'click button.play' : 'clickPlay',
+	        'click button.stop' : 'clickStop',
+	        'draggable-drag .tempo.value' : 'dragTempo',
+	        'click .dropdown-menu' : 'clickDropdownMenu',
+	        'select .dropdown-menu.zoom' : 'selectZoom',
+	        'select .dropdown-menu.grid' : 'selectGrid',
+	        'select .dropdown-menu.loop-length' : 'selectLoopLength'
+	    },
+	
+	    clickPlay : function() {
+	        Tone.Transport.start();
+	    },
+	
+	    clickStop : function() {
+	        Tone.Transport.stop();
+	    },
+	
+	    dragTempo : function(e) {
+	        const tempo = this.model.get('tempo');
+	        const $tempoEl = this.$loopControl.find('.tempo.value');
+	        const bpmMin = parseInt($tempoEl.attr('data-min'));
+	        const bpmMax = parseInt($tempoEl.attr('data-max'));
+	        this.model.set('tempo', Math.min(bpmMax, Math.max(bpmMin, Math.round(tempo - e.originalEvent.moveY))));
+	    },
+	
+	    selectZoom : function(e) {
+	        this.model.set('zoom', e.target.getAttribute('data-value'));
+	    },
+	
+	
+	    selectGrid : function(e) {
+	        this.model.set('grid', e.target.getAttribute('data-value'));
+	    },
+	
+	    selectLoopLength : function(e) {
+	        this.model.set('loopLength', e.target.getAttribute('data-value'));
+	    }
+	});
+
+/***/ },
+/* 30 */
+/***/ function(module, exports) {
+
+	const onClickMenu = function(e) {
+	        e.stopPropagation();
+	
+	        const menu = e.currentTarget;
+	        if (menu.classList.contains('open')) {
+	            menu.classList.remove('open');
+	        } else {
+	            menu.classList.add('open');
+	            const list = menu.getElementsByTagName('ul')[0];
+	            const rect = list.getBoundingClientRect();
+	            const overlap = rect.bottom - window.innerHeight;
+	            if (overlap > 0) {
+	                list.style.top = 'calc(100% - ' + overlap + 'px)';
+	            }
+	            document.addEventListener('click', function(e) {
+	                    menu.classList.remove('open');
+	                },
+	                {once : true}
+	            );
+	        }
+	}
+	
+	const onClickItem = function(e) {
+	    const item = e.currentTarget;
+	    const selectEvent = new Event('select', {bubbles: true});
+	    item.dispatchEvent(selectEvent);
+	}
+	
+	module.exports = function(target) {
+	    target.classList.add('dropdown-menu');
+	    target.addEventListener('click', onClickMenu);
+	    const items = target.querySelectorAll('ul>li');
+	    for (item of items) {
+	        item.addEventListener('click', onClickItem);
+	    }
+	}
+
+/***/ },
+/* 31 */
+/***/ function(module, exports) {
+
+	module.exports = "<subsection class=\"view-control\">\n    <div class=\"control\">\n        <div class=\"label\">Grid</div>\n        <div class=\"grid dropdown-menu\">\n            <div><span class=\"value\">1/16</span><span class=\"fa fa-caret-down\"></span></div>\n            <ul>\n            <li class=\"menu-item\" data-value=\"16n\"><i class=\"mn mn-lg mn-note-sixteenth\"></i></li>\n            <li class=\"menu-item\" data-value=\"8t\"><i class=\"mn mn-lg mn-note-eighth-triplet\"></i></li>\n            <li class=\"menu-item\" data-value=\"8n\"><i class=\"mn mn-lg mn-note-eighth\"></i></li>\n            <!-- <li class=\"menu-item\" data-value=\"8n + 16n\"><i class=\"mn mn-lg mn-note-eighth-dot\"></i></li> -->\n            <li class=\"menu-item\" data-value=\"4t\"><i class=\"mn mn-lg mn-note-quarter-triplet\"></i></li>\n            <li class=\"menu-item\" data-value=\"4n\"><i class=\"mn mn-lg mn-note-quarter\"></i></li>\n            <!-- <li class=\"menu-item\" data-value=\"4n + 8n\"><i class=\"mn mn-lg mn-note-quarter-dot\"></i></li> -->\n            <li class=\"menu-item\" data-value=\"2t\"><i class=\"mn mn-lg mn-note-half-triplet\"></i></li>\n            <li class=\"menu-item\" data-value=\"2n\"><i class=\"mn mn-lg mn-note-half\"></i></li>\n            <!-- <li class=\"menu-item\" data-value=\"2n + 4n\"><i class=\"mn mn-lg mn-note-half-dot\"></i></li> -->\n            <li class=\"menu-item\" data-value=\"1n\"><i class=\"mn mn-lg mn-note-whole\"></i></li>\n            </ul>\n        </div>\n    </div>\n    <div class=\"control\">\n        <div class=\"label\">Zoom</div>\n        <div class=\"zoom dropdown-menu\">\n            <div><span class=\"value\">1 bar</span><span class=\"fa fa-caret-down\"></span></div>\n            <ul>\n            <li class=\"menu-item\" data-value=\"1m\">1 bar</li>\n            <li class=\"menu-item\" data-value=\"2m\">2 bars</li>\n            <li class=\"menu-item\" data-value=\"4m\">4 bars</li>\n            <li class=\"menu-item\" data-value=\"8m\">8 bars</li>\n            </ul>\n        </div>\n    </div>\n</subsection>\n<subsection class=\"transport-control\">\n    <div class=\"play-control\"><button class=\"play\"><i class=\"fa fa-play\"></i></button><button class=\"stop\"><i class=\"fa fa-stop\"></i></button></div>\n    <div class=\"counter\">00:00:00</div>\n</subsection>\n<subsection class=\"loop-control\">\n    <div class=\"control\">\n        <div><span class=\"tempo value\" data-min=\"40\" data-max=\"250\">120 bpm</span></div>\n        <div class=\"label\">Tempo</div>\n    </div>\n    <div class=\"control\">\n        <div class=\"loop-length dropdown-menu\">\n            <div><span class=\"fa fa-caret-down\"></span><span class=\"value\">1 bar</span></div>\n            <ul>\n            <li class=\"menu-item\" data-value=\"1m\">1 bar</li>\n            <li class=\"menu-item\" data-value=\"2m\">2 bars</li>\n            <li class=\"menu-item\" data-value=\"4m\">4 bars</li>\n            <li class=\"menu-item\" data-value=\"8m\">8 bars</li>\n            </ul>\n        </div>\n        <div class=\"label\">Loop length</div>\n    </div>\n</subsection>";
 
 /***/ },
 /* 32 */
 /***/ function(module, exports) {
 
-	module.exports = {
-	    id : 'noop',
-	    name: 'None',
-	    createInstrument : function() { 
-	        return { 
-	            play : function() {},
-	            dispose : function() {}
-	        };
-	    }
-	}
+	module.exports = "<h1 class=\"title\"></h1>\n<input class=\"edit\">\n<div class=\"row-container\"></div>";
+
+/***/ },
+/* 33 */
+/***/ function(module, exports, __webpack_require__) {
+
+	const Backbone = __webpack_require__(4);
+	
+	/**
+	 * @module Intrument
+	 * @class
+	 *
+	 * An `Instrument` encapsulates the instrument playing the sequence. It has no attributes of its
+	 * own, but acts as a proxy for parameters of the audio instruments.
+	 *
+	 * @property {string}       id          - The id of the instrument
+	 *
+	 * @extends Backbone.Model
+	 */
+	module.exports = Backbone.Model.extend({
+	});
 
 /***/ }
 /******/ ]);

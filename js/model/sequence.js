@@ -1,6 +1,7 @@
 const Backbone = require('backbone-nested-models');
 
 const ChordList = require('model/chord-list.js');
+const Instrument = require('model/instrument.js');
 
 /**
  * @module Sequence
@@ -16,13 +17,14 @@ const ChordList = require('model/chord-list.js');
  * @property {ChordList}    chordList   - The actual list of {@link Chord} events in the sequence.
  * @property {string}       grid        - The current grid subdivision in Tone.js musical time notation.
  * @property {string}       zoom        - The length of the part displayed in the chord sequencer in Tone.js musical time notation.
- * @property {string}       instrument  - Id of the instrument the song plays.
+ * @property {Instrument}   instrument  - Id of the instrument the song plays.
  *
  * @extends Backbone.Model
  */
 module.exports = Backbone.Model.extend({
     relations : {
-        'chordList' : ChordList
+        'chordList' : ChordList,
+        'instrument' : Instrument
     },
 
     defaults : {

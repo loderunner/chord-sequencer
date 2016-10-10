@@ -6,5 +6,8 @@ module.exports = {
             play : function() {},
             dispose : function() {}
         };
+    },
+    createView : function() {
+        return '<div></div>';
     }
 }

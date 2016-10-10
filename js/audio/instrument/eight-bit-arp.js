@@ -2,6 +2,9 @@ const Tone = require('tone');
 
 function EightBitArp() {
 
+    this.octaves = 4;
+    this.subdivisions = '64n';
+
     this.bassSynth = new Tone.MonoSynth().toMaster();
     this.bassSynth.set({
         oscillator : {
@@ -75,8 +78,9 @@ EightBitArp.prototype.play = function(controller, time, event) {
     var i = 0;
     do {
         note = controller.scale.add(rootNote, intervals[i % intervals.length]);
-        this.arpSynth.triggerAttackRelease(note.toString(), '64n', time);
-        time.add('64n');
+        note.octave = ((note.octave - rootNote.octave) % this.octaves) + rootNote.octave;
+        this.arpSynth.triggerAttackRelease(note.toString(), this.subdivisions, time);
+        time.add(this.subdivisions);
         i++;
     } while (time.toSeconds() < endTime);
 }
@@ -86,9 +90,47 @@ EightBitArp.prototype.dispose = function() {
     this.arpSynth.dispose();
 }
 
+EightBitArp.prototype.set = function(param, value) {
+    if (param === 'octaves') {
+        this.octaves = value;
+    } else if (param === 'subdivisions') {
+        this.subdivisions = value;
+    }
+}
+
+EightBitArp.prototype.get = function(param) {
+    if (param === 'octaves') {
+        return this.octaves;
+    } else if (param === 'subdivisions') {
+        return this.subdivisions;
+    }
+}
+
+EightBitArp.prototype.getParams = function() {
+    return { 'octaves' : this.octaves, 'subdivisions' : this.subdivisions }
+}
+
+function EightBitArpView() {
+    this.element = document.createElement('div');
+    this.element.innerHTML =                                                                     
+        '<div class="dropdown-menu">                                                               \
+            <div><span class="value">1/16</span><span class="fa fa-caret-down"></span></div>       \
+            <ul>                                                                                   \
+            <li class="menu-item" data-value="64n">64n</li>                                        \
+            <li class="menu-item" data-value="32n">32n</li>                                        \
+            <li class="menu-item" data-value="16n">16n</li>                                        \
+            <li class="menu-item" data-value="8n">8n</li>                                          \
+            </ul>                                                                                  \
+        </div>';
+
+    return this.element;
+}
+
 module.exports = {
     id : 'eight-bit-arp',
     name : '8-bit arpeggiator',
-    createInstrument : function() { return new EightBitArp(); }
+    params : ['octaves', 'subdivisions'],
+    createInstrument : function() { return new EightBitArp(); },
+    createView : function() { return new EightBitArpView(); }
 }
    

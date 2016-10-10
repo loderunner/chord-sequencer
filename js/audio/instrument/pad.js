@@ -118,6 +118,9 @@ PandaPad.prototype.dispose = function() {
 module.exports = {
     id : 'panda-pad',
     name: 'Panda Pad',
-    createInstrument : function() { return new PandaPad(); }
+    createInstrument : function() { return new PandaPad(); },
+    createView : function() {
+        return '<div></div>';
+    }
 }
    
