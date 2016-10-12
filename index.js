@@ -48,19 +48,19 @@
 	
 	const $ = __webpack_require__(2);
 	const Song = __webpack_require__(3);
-	const SongView = __webpack_require__(10);
-	const Audio = __webpack_require__(12);
-	const Tonality = __webpack_require__(13);
+	const SongView = __webpack_require__(11);
+	const Audio = __webpack_require__(13);
+	const Tonality = __webpack_require__(14);
 	
 	
 	
 	var song = new Song();
 	
-	const audio = new Audio(song);
-	
 	const songView = new SongView({
 	    model : song
 	});
+	
+	const audio = new Audio(song);
 	
 	$('body').prepend(songView.$el);
 	
@@ -78,7 +78,7 @@
 	    //         zoom : '1m'
 	    //     }
 	    // });
-	    song.set({"sequence":{"chordList":[{"step":0,"seventh":false,"start":"0","duration":"4n + 16n"},{"step":"3","seventh":false,"start":"4n + 8n","duration":"2n + 16n"},{"step":"2","seventh":false,"start":"1m","duration":"4n + 16n"},{"step":"4","seventh":false,"start":"1m + 4n + 8n","duration":"2n + 16n"}],"key":"A","mode":"Minor","tempo":137,"loopLength":"2m","grid":"16n","zoom":"2m"},"title":"New Song","instrument":{}})
+	    song.set({"sequence":{"instrument":{},"chordList":[{"step":0,"seventh":false,"start":"0","duration":"4n + 16n"},{"step":"3","seventh":false,"start":"4n + 8n","duration":"2n + 16n"},{"step":"2","seventh":false,"start":"1m","duration":"4n + 16n"},{"step":"4","seventh":false,"start":"1m + 4n + 8n","duration":"2n + 16n"}],"key":"A","mode":"Minor","tempo":137,"loopLength":"2m","grid":"16n","zoom":"2m"},"title":"New Song"})
 	
 	    this.song = song;
 	    this.Tonality = Tonality;
@@ -11696,6 +11696,1420 @@
 		Module(function (Tone) {
 		    
 		    /**
+			 *  @class  Tone.Event abstracts away Tone.Transport.schedule and provides a schedulable
+			 *          callback for a single or repeatable events along the timeline. 
+			 *
+			 *  @extends {Tone}
+			 *  @param {function} callback The callback to invoke at the time. 
+			 *  @param {*} value The value or values which should be passed to
+			 *                      the callback function on invocation.  
+			 *  @example
+			 * var chord = new Tone.Event(function(time, chord){
+			 * 	//the chord as well as the exact time of the event
+			 * 	//are passed in as arguments to the callback function
+			 * }, ["D4", "E4", "F4"]);
+			 * //start the chord at the beginning of the transport timeline
+			 * chord.start();
+			 * //loop it every measure for 8 measures
+			 * chord.loop = 8;
+			 * chord.loopEnd = "1m";
+			 */
+		    Tone.Event = function () {
+		        var options = this.optionsObject(arguments, [
+		            'callback',
+		            'value'
+		        ], Tone.Event.defaults);
+		        /**
+				 *  Loop value
+				 *  @type  {Boolean|Positive}
+				 *  @private
+				 */
+		        this._loop = options.loop;
+		        /**
+				 *  The callback to invoke. 
+				 *  @type  {Function}
+				 */
+		        this.callback = options.callback;
+		        /**
+				 *  The value which is passed to the
+				 *  callback function.
+				 *  @type  {*}
+				 *  @private
+				 */
+		        this.value = options.value;
+		        /**
+				 *  When the note is scheduled to start.
+				 *  @type  {Number}
+				 *  @private
+				 */
+		        this._loopStart = this.toTicks(options.loopStart);
+		        /**
+				 *  When the note is scheduled to start.
+				 *  @type  {Number}
+				 *  @private
+				 */
+		        this._loopEnd = this.toTicks(options.loopEnd);
+		        /**
+				 *  Tracks the scheduled events
+				 *  @type {Tone.TimelineState}
+				 *  @private
+				 */
+		        this._state = new Tone.TimelineState(Tone.State.Stopped);
+		        /**
+				 *  The playback speed of the note. A speed of 1
+				 *  is no change. 
+				 *  @private
+				 *  @type {Positive}
+				 */
+		        this._playbackRate = 1;
+		        /**
+				 *  A delay time from when the event is scheduled to start
+				 *  @type {Ticks}
+				 *  @private
+				 */
+		        this._startOffset = 0;
+		        /**
+				 *  The probability that the callback will be invoked
+				 *  at the scheduled time. 
+				 *  @type {NormalRange}
+				 *  @example
+				 * //the callback will be invoked 50% of the time
+				 * event.probability = 0.5;
+				 */
+		        this.probability = options.probability;
+		        /**
+				 *  If set to true, will apply small (+/-0.02 seconds) random variation
+				 *  to the callback time. If the value is given as a time, it will randomize
+				 *  by that amount.
+				 *  @example
+				 * event.humanize = true;
+				 *  @type {Boolean|Time}
+				 */
+		        this.humanize = options.humanize;
+		        /**
+				 *  If mute is true, the callback won't be
+				 *  invoked.
+				 *  @type {Boolean}
+				 */
+		        this.mute = options.mute;
+		        //set the initial values
+		        this.playbackRate = options.playbackRate;
+		    };
+		    Tone.extend(Tone.Event);
+		    /**
+			 *  The default values
+			 *  @type  {Object}
+			 *  @const
+			 */
+		    Tone.Event.defaults = {
+		        'callback': Tone.noOp,
+		        'loop': false,
+		        'loopEnd': '1m',
+		        'loopStart': 0,
+		        'playbackRate': 1,
+		        'value': null,
+		        'probability': 1,
+		        'mute': false,
+		        'humanize': false
+		    };
+		    /**
+			 *  Reschedule all of the events along the timeline
+			 *  with the updated values.
+			 *  @param {Time} after Only reschedules events after the given time.
+			 *  @return  {Tone.Event}  this
+			 *  @private
+			 */
+		    Tone.Event.prototype._rescheduleEvents = function (after) {
+		        //if no argument is given, schedules all of the events
+		        after = this.defaultArg(after, -1);
+		        this._state.forEachFrom(after, function (event) {
+		            var duration;
+		            if (event.state === Tone.State.Started) {
+		                if (!this.isUndef(event.id)) {
+		                    Tone.Transport.clear(event.id);
+		                }
+		                var startTick = event.time + Math.round(this.startOffset / this._playbackRate);
+		                if (this._loop) {
+		                    duration = Infinity;
+		                    if (this.isNumber(this._loop)) {
+		                        duration = this._loop * this._getLoopDuration();
+		                    }
+		                    var nextEvent = this._state.getEventAfter(startTick);
+		                    if (nextEvent !== null) {
+		                        duration = Math.min(duration, nextEvent.time - startTick);
+		                    }
+		                    if (duration !== Infinity) {
+		                        //schedule a stop since it's finite duration
+		                        this._state.setStateAtTime(Tone.State.Stopped, startTick + duration + 1);
+		                        duration = Tone.Time(duration, 'i');
+		                    }
+		                    var interval = Tone.Time(this._getLoopDuration(), 'i');
+		                    event.id = Tone.Transport.scheduleRepeat(this._tick.bind(this), interval, Tone.TransportTime(startTick, 'i'), duration);
+		                } else {
+		                    event.id = Tone.Transport.schedule(this._tick.bind(this), startTick + 'i');
+		                }
+		            }
+		        }.bind(this));
+		        return this;
+		    };
+		    /**
+			 *  Returns the playback state of the note, either "started" or "stopped".
+			 *  @type {String}
+			 *  @readOnly
+			 *  @memberOf Tone.Event#
+			 *  @name state
+			 */
+		    Object.defineProperty(Tone.Event.prototype, 'state', {
+		        get: function () {
+		            return this._state.getStateAtTime(Tone.Transport.ticks);
+		        }
+		    });
+		    /**
+			 *  The start from the scheduled start time
+			 *  @type {Ticks}
+			 *  @memberOf Tone.Event#
+			 *  @name startOffset
+			 *  @private
+			 */
+		    Object.defineProperty(Tone.Event.prototype, 'startOffset', {
+		        get: function () {
+		            return this._startOffset;
+		        },
+		        set: function (offset) {
+		            this._startOffset = offset;
+		        }
+		    });
+		    /**
+			 *  Start the note at the given time. 
+			 *  @param  {TimelinePosition}  time  When the note should start.
+			 *  @return  {Tone.Event}  this
+			 */
+		    Tone.Event.prototype.start = function (time) {
+		        time = this.toTicks(time);
+		        if (this._state.getStateAtTime(time) === Tone.State.Stopped) {
+		            this._state.addEvent({
+		                'state': Tone.State.Started,
+		                'time': time,
+		                'id': undefined
+		            });
+		            this._rescheduleEvents(time);
+		        }
+		        return this;
+		    };
+		    /**
+			 *  Stop the Event at the given time.
+			 *  @param  {TimelinePosition}  time  When the note should stop.
+			 *  @return  {Tone.Event}  this
+			 */
+		    Tone.Event.prototype.stop = function (time) {
+		        this.cancel(time);
+		        time = this.toTicks(time);
+		        if (this._state.getStateAtTime(time) === Tone.State.Started) {
+		            this._state.setStateAtTime(Tone.State.Stopped, time);
+		            var previousEvent = this._state.getEventBefore(time);
+		            var reschedulTime = time;
+		            if (previousEvent !== null) {
+		                reschedulTime = previousEvent.time;
+		            }
+		            this._rescheduleEvents(reschedulTime);
+		        }
+		        return this;
+		    };
+		    /**
+			 *  Cancel all scheduled events greater than or equal to the given time
+			 *  @param  {TimelinePosition}  [time=0]  The time after which events will be cancel.
+			 *  @return  {Tone.Event}  this
+			 */
+		    Tone.Event.prototype.cancel = function (time) {
+		        time = this.defaultArg(time, -Infinity);
+		        time = this.toTicks(time);
+		        this._state.forEachFrom(time, function (event) {
+		            Tone.Transport.clear(event.id);
+		        });
+		        this._state.cancel(time);
+		        return this;
+		    };
+		    /**
+			 *  The callback function invoker. Also 
+			 *  checks if the Event is done playing
+			 *  @param  {Number}  time  The time of the event in seconds
+			 *  @private
+			 */
+		    Tone.Event.prototype._tick = function (time) {
+		        if (!this.mute && this._state.getStateAtTime(Tone.Transport.ticks) === Tone.State.Started) {
+		            if (this.probability < 1 && Math.random() > this.probability) {
+		                return;
+		            }
+		            if (this.humanize) {
+		                var variation = 0.02;
+		                if (!this.isBoolean(this.humanize)) {
+		                    variation = this.toSeconds(this.humanize);
+		                }
+		                time += (Math.random() * 2 - 1) * variation;
+		            }
+		            this.callback(time, this.value);
+		        }
+		    };
+		    /**
+			 *  Get the duration of the loop.
+			 *  @return  {Ticks}
+			 *  @private
+			 */
+		    Tone.Event.prototype._getLoopDuration = function () {
+		        return Math.round((this._loopEnd - this._loopStart) / this._playbackRate);
+		    };
+		    /**
+			 *  If the note should loop or not
+			 *  between Tone.Event.loopStart and 
+			 *  Tone.Event.loopEnd. An integer
+			 *  value corresponds to the number of
+			 *  loops the Event does after it starts.
+			 *  @memberOf Tone.Event#
+			 *  @type {Boolean|Positive}
+			 *  @name loop
+			 */
+		    Object.defineProperty(Tone.Event.prototype, 'loop', {
+		        get: function () {
+		            return this._loop;
+		        },
+		        set: function (loop) {
+		            this._loop = loop;
+		            this._rescheduleEvents();
+		        }
+		    });
+		    /**
+			 * 	The playback rate of the note. Defaults to 1.
+			 *  @memberOf Tone.Event#
+			 *  @type {Positive}
+			 *  @name playbackRate
+			 *  @example
+			 * note.loop = true;
+			 * //repeat the note twice as fast
+			 * note.playbackRate = 2;
+			 */
+		    Object.defineProperty(Tone.Event.prototype, 'playbackRate', {
+		        get: function () {
+		            return this._playbackRate;
+		        },
+		        set: function (rate) {
+		            this._playbackRate = rate;
+		            this._rescheduleEvents();
+		        }
+		    });
+		    /**
+			 *  The loopEnd point is the time the event will loop
+			 *  if Tone.Event.loop is true.
+			 *  @memberOf Tone.Event#
+			 *  @type {TransportTime}
+			 *  @name loopEnd
+			 */
+		    Object.defineProperty(Tone.Event.prototype, 'loopEnd', {
+		        get: function () {
+		            return Tone.TransportTime(this._loopEnd, 'i').toNotation();
+		        },
+		        set: function (loopEnd) {
+		            this._loopEnd = this.toTicks(loopEnd);
+		            if (this._loop) {
+		                this._rescheduleEvents();
+		            }
+		        }
+		    });
+		    /**
+			 *  The time when the loop should start. 
+			 *  @memberOf Tone.Event#
+			 *  @type {TransportTime}
+			 *  @name loopStart
+			 */
+		    Object.defineProperty(Tone.Event.prototype, 'loopStart', {
+		        get: function () {
+		            return Tone.TransportTime(this._loopStart, 'i').toNotation();
+		        },
+		        set: function (loopStart) {
+		            this._loopStart = this.toTicks(loopStart);
+		            if (this._loop) {
+		                this._rescheduleEvents();
+		            }
+		        }
+		    });
+		    /**
+			 *  The current progress of the loop interval.
+			 *  Returns 0 if the event is not started yet or
+			 *  it is not set to loop.
+			 *  @memberOf Tone.Event#
+			 *  @type {NormalRange}
+			 *  @name progress
+			 *  @readOnly
+			 */
+		    Object.defineProperty(Tone.Event.prototype, 'progress', {
+		        get: function () {
+		            if (this._loop) {
+		                var ticks = Tone.Transport.ticks;
+		                var lastEvent = this._state.getEvent(ticks);
+		                if (lastEvent !== null && lastEvent.state === Tone.State.Started) {
+		                    var loopDuration = this._getLoopDuration();
+		                    var progress = (ticks - lastEvent.time) % loopDuration;
+		                    return progress / loopDuration;
+		                } else {
+		                    return 0;
+		                }
+		            } else {
+		                return 0;
+		            }
+		        }
+		    });
+		    /**
+			 *  Clean up
+			 *  @return  {Tone.Event}  this
+			 */
+		    Tone.Event.prototype.dispose = function () {
+		        this.cancel();
+		        this._state.dispose();
+		        this._state = null;
+		        this.callback = null;
+		        this.value = null;
+		    };
+		    return Tone.Event;
+		});
+		Module(function (Tone) {
+		    /**
+			 *  @class Tone.Loop creates a looped callback at the 
+			 *         specified interval. The callback can be 
+			 *         started, stopped and scheduled along
+			 *         the Transport's timeline. 
+			 *  @example
+			 * var loop = new Tone.Loop(function(time){
+			 * 	//triggered every eighth note. 
+			 * 	console.log(time);
+			 * }, "8n").start(0);
+			 * Tone.Transport.start();
+			 *  @extends {Tone}
+			 *  @param {Function} callback The callback to invoke with the event.
+			 *  @param {Time} interval The time between successive callback calls. 
+			 */
+		    Tone.Loop = function () {
+		        var options = this.optionsObject(arguments, [
+		            'callback',
+		            'interval'
+		        ], Tone.Loop.defaults);
+		        /**
+				 *  The event which produces the callbacks
+				 */
+		        this._event = new Tone.Event({
+		            'callback': this._tick.bind(this),
+		            'loop': true,
+		            'loopEnd': options.interval,
+		            'playbackRate': options.playbackRate,
+		            'probability': options.probability
+		        });
+		        /**
+				 *  The callback to invoke with the next event in the pattern
+				 *  @type {Function}
+				 */
+		        this.callback = options.callback;
+		        //set the iterations
+		        this.iterations = options.iterations;
+		    };
+		    Tone.extend(Tone.Loop);
+		    /**
+			 *  The defaults
+			 *  @const
+			 *  @type  {Object}
+			 */
+		    Tone.Loop.defaults = {
+		        'interval': '4n',
+		        'callback': Tone.noOp,
+		        'playbackRate': 1,
+		        'iterations': Infinity,
+		        'probability': true,
+		        'mute': false
+		    };
+		    /**
+			 *  Start the loop at the specified time along the Transport's
+			 *  timeline.
+			 *  @param  {TimelinePosition=}  time  When to start the Loop.
+			 *  @return  {Tone.Loop}  this
+			 */
+		    Tone.Loop.prototype.start = function (time) {
+		        this._event.start(time);
+		        return this;
+		    };
+		    /**
+			 *  Stop the loop at the given time.
+			 *  @param  {TimelinePosition=}  time  When to stop the Arpeggio
+			 *  @return  {Tone.Loop}  this
+			 */
+		    Tone.Loop.prototype.stop = function (time) {
+		        this._event.stop(time);
+		        return this;
+		    };
+		    /**
+			 *  Cancel all scheduled events greater than or equal to the given time
+			 *  @param  {TimelinePosition}  [time=0]  The time after which events will be cancel.
+			 *  @return  {Tone.Loop}  this
+			 */
+		    Tone.Loop.prototype.cancel = function (time) {
+		        this._event.cancel(time);
+		        return this;
+		    };
+		    /**
+			 *  Internal function called when the notes should be called
+			 *  @param  {Number}  time  The time the event occurs
+			 *  @private
+			 */
+		    Tone.Loop.prototype._tick = function (time) {
+		        this.callback(time);
+		    };
+		    /**
+			 *  The state of the Loop, either started or stopped.
+			 *  @memberOf Tone.Loop#
+			 *  @type {String}
+			 *  @name state
+			 *  @readOnly
+			 */
+		    Object.defineProperty(Tone.Loop.prototype, 'state', {
+		        get: function () {
+		            return this._event.state;
+		        }
+		    });
+		    /**
+			 *  The progress of the loop as a value between 0-1. 0, when
+			 *  the loop is stopped or done iterating. 
+			 *  @memberOf Tone.Loop#
+			 *  @type {NormalRange}
+			 *  @name progress
+			 *  @readOnly
+			 */
+		    Object.defineProperty(Tone.Loop.prototype, 'progress', {
+		        get: function () {
+		            return this._event.progress;
+		        }
+		    });
+		    /**
+			 *  The time between successive callbacks. 
+			 *  @example
+			 * loop.interval = "8n"; //loop every 8n
+			 *  @memberOf Tone.Loop#
+			 *  @type {Time}
+			 *  @name interval
+			 */
+		    Object.defineProperty(Tone.Loop.prototype, 'interval', {
+		        get: function () {
+		            return this._event.loopEnd;
+		        },
+		        set: function (interval) {
+		            this._event.loopEnd = interval;
+		        }
+		    });
+		    /**
+			 *  The playback rate of the loop. The normal playback rate is 1 (no change). 
+			 *  A `playbackRate` of 2 would be twice as fast. 
+			 *  @memberOf Tone.Loop#
+			 *  @type {Time}
+			 *  @name playbackRate
+			 */
+		    Object.defineProperty(Tone.Loop.prototype, 'playbackRate', {
+		        get: function () {
+		            return this._event.playbackRate;
+		        },
+		        set: function (rate) {
+		            this._event.playbackRate = rate;
+		        }
+		    });
+		    /**
+			 *  Random variation +/-0.01s to the scheduled time. 
+			 *  Or give it a time value which it will randomize by.
+			 *  @type {Boolean|Time}
+			 *  @memberOf Tone.Loop#
+			 *  @name humanize
+			 */
+		    Object.defineProperty(Tone.Loop.prototype, 'humanize', {
+		        get: function () {
+		            return this._event.humanize;
+		        },
+		        set: function (variation) {
+		            this._event.humanize = variation;
+		        }
+		    });
+		    /**
+			 *  The probably of the callback being invoked.
+			 *  @memberOf Tone.Loop#
+			 *  @type {NormalRange}
+			 *  @name probability
+			 */
+		    Object.defineProperty(Tone.Loop.prototype, 'probability', {
+		        get: function () {
+		            return this._event.probability;
+		        },
+		        set: function (prob) {
+		            this._event.probability = prob;
+		        }
+		    });
+		    /**
+			 *  Muting the Loop means that no callbacks are invoked.
+			 *  @memberOf Tone.Loop#
+			 *  @type {Boolean}
+			 *  @name mute
+			 */
+		    Object.defineProperty(Tone.Loop.prototype, 'mute', {
+		        get: function () {
+		            return this._event.mute;
+		        },
+		        set: function (mute) {
+		            this._event.mute = mute;
+		        }
+		    });
+		    /**
+			 *  The number of iterations of the loop. The default
+			 *  value is Infinity (loop forever).
+			 *  @memberOf Tone.Loop#
+			 *  @type {Positive}
+			 *  @name iterations
+			 */
+		    Object.defineProperty(Tone.Loop.prototype, 'iterations', {
+		        get: function () {
+		            if (this._event.loop === true) {
+		                return Infinity;
+		            } else {
+		                return this._event.loop;
+		            }
+		            return this._pattern.index;
+		        },
+		        set: function (iters) {
+		            if (iters === Infinity) {
+		                this._event.loop = true;
+		            } else {
+		                this._event.loop = iters;
+		            }
+		        }
+		    });
+		    /**
+			 *  Clean up
+			 *  @return  {Tone.Loop}  this
+			 */
+		    Tone.Loop.prototype.dispose = function () {
+		        this._event.dispose();
+		        this._event = null;
+		        this.callback = null;
+		    };
+		    return Tone.Loop;
+		});
+		Module(function (Tone) {
+		    
+		    /**
+			 *  @class Tone.Part is a collection Tone.Events which can be
+			 *         started/stoped and looped as a single unit.
+			 *
+			 *  @extends {Tone.Event}
+			 *  @param {Function} callback The callback to invoke on each event
+			 *  @param {Array} events the array of events
+			 *  @example
+			 * var part = new Tone.Part(function(time, note){
+			 * 	//the notes given as the second element in the array
+			 * 	//will be passed in as the second argument
+			 * 	synth.triggerAttackRelease(note, "8n", time);
+			 * }, [[0, "C2"], ["0:2", "C3"], ["0:3:2", "G2"]]);
+			 *  @example
+			 * //use an array of objects as long as the object has a "time" attribute
+			 * var part = new Tone.Part(function(time, value){
+			 * 	//the value is an object which contains both the note and the velocity
+			 * 	synth.triggerAttackRelease(value.note, "8n", time, value.velocity);
+			 * }, [{"time" : 0, "note" : "C3", "velocity": 0.9}, 
+			 * 	   {"time" : "0:2", "note" : "C4", "velocity": 0.5}
+			 * ]).start(0);
+			 */
+		    Tone.Part = function () {
+		        var options = this.optionsObject(arguments, [
+		            'callback',
+		            'events'
+		        ], Tone.Part.defaults);
+		        /**
+				 *  If the part is looping or not
+				 *  @type  {Boolean|Positive}
+				 *  @private
+				 */
+		        this._loop = options.loop;
+		        /**
+				 *  When the note is scheduled to start.
+				 *  @type  {Ticks}
+				 *  @private
+				 */
+		        this._loopStart = this.toTicks(options.loopStart);
+		        /**
+				 *  When the note is scheduled to start.
+				 *  @type  {Ticks}
+				 *  @private
+				 */
+		        this._loopEnd = this.toTicks(options.loopEnd);
+		        /**
+				 *  The playback rate of the part
+				 *  @type  {Positive}
+				 *  @private
+				 */
+		        this._playbackRate = options.playbackRate;
+		        /**
+				 *  private holder of probability value
+				 *  @type {NormalRange}
+				 *  @private
+				 */
+		        this._probability = options.probability;
+		        /**
+				 *  the amount of variation from the
+				 *  given time. 
+				 *  @type {Boolean|Time}
+				 *  @private
+				 */
+		        this._humanize = options.humanize;
+		        /**
+				 *  The start offset
+				 *  @type {Ticks}
+				 *  @private
+				 */
+		        this._startOffset = 0;
+		        /**
+				 *  Keeps track of the current state
+				 *  @type {Tone.TimelineState}
+				 *  @private
+				 */
+		        this._state = new Tone.TimelineState(Tone.State.Stopped);
+		        /**
+				 *  An array of Objects. 
+				 *  @type  {Array}
+				 *  @private
+				 */
+		        this._events = [];
+		        /**
+				 *  The callback to invoke at all the scheduled events.
+				 *  @type {Function}
+				 */
+		        this.callback = options.callback;
+		        /**
+				 *  If mute is true, the callback won't be
+				 *  invoked.
+				 *  @type {Boolean}
+				 */
+		        this.mute = options.mute;
+		        //add the events
+		        var events = this.defaultArg(options.events, []);
+		        if (!this.isUndef(options.events)) {
+		            for (var i = 0; i < events.length; i++) {
+		                if (Array.isArray(events[i])) {
+		                    this.add(events[i][0], events[i][1]);
+		                } else {
+		                    this.add(events[i]);
+		                }
+		            }
+		        }
+		    };
+		    Tone.extend(Tone.Part, Tone.Event);
+		    /**
+			 *  The default values
+			 *  @type  {Object}
+			 *  @const
+			 */
+		    Tone.Part.defaults = {
+		        'callback': Tone.noOp,
+		        'loop': false,
+		        'loopEnd': '1m',
+		        'loopStart': 0,
+		        'playbackRate': 1,
+		        'probability': 1,
+		        'humanize': false,
+		        'mute': false
+		    };
+		    /**
+			 *  Start the part at the given time. 
+			 *  @param  {TransportTime}  time    When to start the part.
+			 *  @param  {Time=}  offset  The offset from the start of the part
+			 *                           to begin playing at.
+			 *  @return  {Tone.Part}  this
+			 */
+		    Tone.Part.prototype.start = function (time, offset) {
+		        var ticks = this.toTicks(time);
+		        if (this._state.getStateAtTime(ticks) !== Tone.State.Started) {
+		            if (this._loop) {
+		                offset = this.defaultArg(offset, this._loopStart);
+		            } else {
+		                offset = this.defaultArg(offset, 0);
+		            }
+		            offset = this.toTicks(offset);
+		            this._state.addEvent({
+		                'state': Tone.State.Started,
+		                'time': ticks,
+		                'offset': offset
+		            });
+		            this._forEach(function (event) {
+		                this._startNote(event, ticks, offset);
+		            });
+		        }
+		        return this;
+		    };
+		    /**
+			 *  Start the event in the given event at the correct time given
+			 *  the ticks and offset and looping.
+			 *  @param  {Tone.Event}  event 
+			 *  @param  {Ticks}  ticks
+			 *  @param  {Ticks}  offset
+			 *  @private
+			 */
+		    Tone.Part.prototype._startNote = function (event, ticks, offset) {
+		        ticks -= offset;
+		        if (this._loop) {
+		            if (event.startOffset >= this._loopStart && event.startOffset < this._loopEnd) {
+		                if (event.startOffset < offset) {
+		                    //start it on the next loop
+		                    ticks += this._getLoopDuration();
+		                }
+		                event.start(Tone.TransportTime(ticks, 'i'));
+		            } else if (event.startOffset < this._loopStart && event.startOffset >= offset) {
+		                event.loop = false;
+		                event.start(Tone.TransportTime(ticks, 'i'));
+		            }
+		        } else {
+		            if (event.startOffset >= offset) {
+		                event.start(Tone.TransportTime(ticks, 'i'));
+		            }
+		        }
+		    };
+		    /**
+			 *  The start from the scheduled start time
+			 *  @type {Ticks}
+			 *  @memberOf Tone.Part#
+			 *  @name startOffset
+			 *  @private
+			 */
+		    Object.defineProperty(Tone.Part.prototype, 'startOffset', {
+		        get: function () {
+		            return this._startOffset;
+		        },
+		        set: function (offset) {
+		            this._startOffset = offset;
+		            this._forEach(function (event) {
+		                event.startOffset += this._startOffset;
+		            });
+		        }
+		    });
+		    /**
+			 *  Stop the part at the given time.
+			 *  @param  {TimelinePosition}  time  When to stop the part.
+			 *  @return  {Tone.Part}  this
+			 */
+		    Tone.Part.prototype.stop = function (time) {
+		        var ticks = this.toTicks(time);
+		        this._state.cancel(ticks);
+		        this._state.setStateAtTime(Tone.State.Stopped, ticks);
+		        this._forEach(function (event) {
+		            event.stop(time);
+		        });
+		        return this;
+		    };
+		    /**
+			 *  Get/Set an Event's value at the given time. 
+			 *  If a value is passed in and no event exists at
+			 *  the given time, one will be created with that value. 
+			 *  If two events are at the same time, the first one will
+			 *  be returned.
+			 *  @example
+			 * part.at("1m"); //returns the part at the first measure
+			 *
+			 * part.at("2m", "C2"); //set the value at "2m" to C2. 
+			 * //if an event didn't exist at that time, it will be created.
+			 *  @param {TransportTime} time The time of the event to get or set.
+			 *  @param {*=} value If a value is passed in, the value of the
+			 *                    event at the given time will be set to it.
+			 *  @return {Tone.Event} the event at the time
+			 */
+		    Tone.Part.prototype.at = function (time, value) {
+		        time = Tone.TransportTime(time);
+		        var tickTime = Tone.Time(1, 'i').toSeconds();
+		        for (var i = 0; i < this._events.length; i++) {
+		            var event = this._events[i];
+		            if (Math.abs(time.toTicks() - event.startOffset) < tickTime) {
+		                if (!this.isUndef(value)) {
+		                    event.value = value;
+		                }
+		                return event;
+		            }
+		        }
+		        //if there was no event at that time, create one
+		        if (!this.isUndef(value)) {
+		            this.add(time, value);
+		            //return the new event
+		            return this._events[this._events.length - 1];
+		        } else {
+		            return null;
+		        }
+		    };
+		    /**
+			 *  Add a an event to the part. 
+			 *  @param {Time} time The time the note should start.
+			 *                            If an object is passed in, it should
+			 *                            have a 'time' attribute and the rest
+			 *                            of the object will be used as the 'value'.
+			 *  @param  {Tone.Event|*}  value 
+			 *  @returns {Tone.Part} this
+			 *  @example
+			 * part.add("1m", "C#+11");
+			 */
+		    Tone.Part.prototype.add = function (time, value) {
+		        //extract the parameters
+		        if (this.isObject(time) && time.hasOwnProperty('time')) {
+		            value = time;
+		            time = value.time;
+		            delete value.time;
+		        }
+		        time = this.toTicks(time);
+		        var event;
+		        if (value instanceof Tone.Event) {
+		            event = value;
+		            event.callback = this._tick.bind(this);
+		        } else {
+		            event = new Tone.Event({
+		                'callback': this._tick.bind(this),
+		                'value': value
+		            });
+		        }
+		        //the start offset
+		        event.startOffset = time;
+		        //initialize the values
+		        event.set({
+		            'loopEnd': this.loopEnd,
+		            'loopStart': this.loopStart,
+		            'loop': this.loop,
+		            'humanize': this.humanize,
+		            'playbackRate': this.playbackRate,
+		            'probability': this.probability
+		        });
+		        this._events.push(event);
+		        //start the note if it should be played right now
+		        this._restartEvent(event);
+		        return this;
+		    };
+		    /**
+			 *  Restart the given event
+			 *  @param  {Tone.Event}  event 
+			 *  @private
+			 */
+		    Tone.Part.prototype._restartEvent = function (event) {
+		        var stateEvent = this._state.getEvent(this.now());
+		        if (stateEvent && stateEvent.state === Tone.State.Started) {
+		            this._startNote(event, stateEvent.time, stateEvent.offset);
+		        }
+		    };
+		    /**
+			 *  Remove an event from the part. Will recursively iterate
+			 *  into nested parts to find the event.
+			 *  @param {Time} time The time of the event
+			 *  @param {*} value Optionally select only a specific event value
+			 */
+		    Tone.Part.prototype.remove = function (time, value) {
+		        //extract the parameters
+		        if (this.isObject(time) && time.hasOwnProperty('time')) {
+		            value = time;
+		            time = value.time;
+		        }
+		        time = this.toTicks(time);
+		        for (var i = this._events.length - 1; i >= 0; i--) {
+		            var event = this._events[i];
+		            if (event instanceof Tone.Part) {
+		                event.remove(time, value);
+		            } else {
+		                if (event.startOffset === time) {
+		                    if (this.isUndef(value) || !this.isUndef(value) && event.value === value) {
+		                        this._events.splice(i, 1);
+		                        event.dispose();
+		                    }
+		                }
+		            }
+		        }
+		        return this;
+		    };
+		    /**
+			 *  Remove all of the notes from the group. 
+			 *  @return  {Tone.Part}  this
+			 */
+		    Tone.Part.prototype.removeAll = function () {
+		        this._forEach(function (event) {
+		            event.dispose();
+		        });
+		        this._events = [];
+		        return this;
+		    };
+		    /**
+			 *  Cancel scheduled state change events: i.e. "start" and "stop".
+			 *  @param {TimelinePosition} after The time after which to cancel the scheduled events.
+			 *  @return  {Tone.Part}  this
+			 */
+		    Tone.Part.prototype.cancel = function (after) {
+		        this._forEach(function (event) {
+		            event.cancel(after);
+		        });
+		        this._state.cancel(after);
+		        return this;
+		    };
+		    /**
+			 *  Iterate over all of the events
+			 *  @param {Function} callback
+			 *  @param {Object} ctx The context
+			 *  @private
+			 */
+		    Tone.Part.prototype._forEach = function (callback, ctx) {
+		        ctx = this.defaultArg(ctx, this);
+		        for (var i = this._events.length - 1; i >= 0; i--) {
+		            var e = this._events[i];
+		            if (e instanceof Tone.Part) {
+		                e._forEach(callback, ctx);
+		            } else {
+		                callback.call(ctx, e);
+		            }
+		        }
+		        return this;
+		    };
+		    /**
+			 *  Set the attribute of all of the events
+			 *  @param  {String}  attr  the attribute to set
+			 *  @param  {*}  value      The value to set it to
+			 *  @private
+			 */
+		    Tone.Part.prototype._setAll = function (attr, value) {
+		        this._forEach(function (event) {
+		            event[attr] = value;
+		        });
+		    };
+		    /**
+			 *  Internal tick method
+			 *  @param  {Number}  time  The time of the event in seconds
+			 *  @private
+			 */
+		    Tone.Part.prototype._tick = function (time, value) {
+		        if (!this.mute) {
+		            this.callback(time, value);
+		        }
+		    };
+		    /**
+			 *  Determine if the event should be currently looping
+			 *  given the loop boundries of this Part.
+			 *  @param  {Tone.Event}  event  The event to test
+			 *  @private
+			 */
+		    Tone.Part.prototype._testLoopBoundries = function (event) {
+		        if (event.startOffset < this._loopStart || event.startOffset >= this._loopEnd) {
+		            event.cancel();
+		        } else {
+		            //reschedule it if it's stopped
+		            if (event.state === Tone.State.Stopped) {
+		                this._restartEvent(event);
+		            }
+		        }
+		    };
+		    /**
+			 *  The probability of the notes being triggered.
+			 *  @memberOf Tone.Part#
+			 *  @type {NormalRange}
+			 *  @name probability
+			 */
+		    Object.defineProperty(Tone.Part.prototype, 'probability', {
+		        get: function () {
+		            return this._probability;
+		        },
+		        set: function (prob) {
+		            this._probability = prob;
+		            this._setAll('probability', prob);
+		        }
+		    });
+		    /**
+			 *  If set to true, will apply small random variation
+			 *  to the callback time. If the value is given as a time, it will randomize
+			 *  by that amount.
+			 *  @example
+			 * event.humanize = true;
+			 *  @type {Boolean|Time}
+			 *  @name humanize
+			 */
+		    Object.defineProperty(Tone.Part.prototype, 'humanize', {
+		        get: function () {
+		            return this._humanize;
+		        },
+		        set: function (variation) {
+		            this._humanize = variation;
+		            this._setAll('humanize', variation);
+		        }
+		    });
+		    /**
+			 *  If the part should loop or not
+			 *  between Tone.Part.loopStart and 
+			 *  Tone.Part.loopEnd. An integer
+			 *  value corresponds to the number of
+			 *  loops the Part does after it starts.
+			 *  @memberOf Tone.Part#
+			 *  @type {Boolean|Positive}
+			 *  @name loop
+			 *  @example
+			 * //loop the part 8 times
+			 * part.loop = 8;
+			 */
+		    Object.defineProperty(Tone.Part.prototype, 'loop', {
+		        get: function () {
+		            return this._loop;
+		        },
+		        set: function (loop) {
+		            this._loop = loop;
+		            this._forEach(function (event) {
+		                event._loopStart = this._loopStart;
+		                event._loopEnd = this._loopEnd;
+		                event.loop = loop;
+		                this._testLoopBoundries(event);
+		            });
+		        }
+		    });
+		    /**
+			 *  The loopEnd point determines when it will 
+			 *  loop if Tone.Part.loop is true.
+			 *  @memberOf Tone.Part#
+			 *  @type {TransportTime}
+			 *  @name loopEnd
+			 */
+		    Object.defineProperty(Tone.Part.prototype, 'loopEnd', {
+		        get: function () {
+		            return Tone.TransportTime(this._loopEnd, 'i').toNotation();
+		        },
+		        set: function (loopEnd) {
+		            this._loopEnd = this.toTicks(loopEnd);
+		            if (this._loop) {
+		                this._forEach(function (event) {
+		                    event.loopEnd = this.loopEnd;
+		                    this._testLoopBoundries(event);
+		                });
+		            }
+		        }
+		    });
+		    /**
+			 *  The loopStart point determines when it will 
+			 *  loop if Tone.Part.loop is true.
+			 *  @memberOf Tone.Part#
+			 *  @type {TransportTime}
+			 *  @name loopStart
+			 */
+		    Object.defineProperty(Tone.Part.prototype, 'loopStart', {
+		        get: function () {
+		            return Tone.TransportTime(this._loopStart, 'i').toNotation();
+		        },
+		        set: function (loopStart) {
+		            this._loopStart = this.toTicks(loopStart);
+		            if (this._loop) {
+		                this._forEach(function (event) {
+		                    event.loopStart = this.loopStart;
+		                    this._testLoopBoundries(event);
+		                });
+		            }
+		        }
+		    });
+		    /**
+			 * 	The playback rate of the part
+			 *  @memberOf Tone.Part#
+			 *  @type {Positive}
+			 *  @name playbackRate
+			 */
+		    Object.defineProperty(Tone.Part.prototype, 'playbackRate', {
+		        get: function () {
+		            return this._playbackRate;
+		        },
+		        set: function (rate) {
+		            this._playbackRate = rate;
+		            this._setAll('playbackRate', rate);
+		        }
+		    });
+		    /**
+			 * 	The number of scheduled notes in the part. 
+			 *  @memberOf Tone.Part#
+			 *  @type {Positive}
+			 *  @name length
+			 *  @readOnly
+			 */
+		    Object.defineProperty(Tone.Part.prototype, 'length', {
+		        get: function () {
+		            return this._events.length;
+		        }
+		    });
+		    /**
+			 *  Clean up
+			 *  @return  {Tone.Part}  this
+			 */
+		    Tone.Part.prototype.dispose = function () {
+		        this.removeAll();
+		        this._state.dispose();
+		        this._state = null;
+		        this.callback = null;
+		        this._events = null;
+		        return this;
+		    };
+		    return Tone.Part;
+		});
+		Module(function (Tone) {
+		    /**
+			 *  @class Tone.Pattern arpeggiates between the given notes
+			 *         in a number of patterns. See Tone.CtrlPattern for
+			 *         a full list of patterns.
+			 *  @example
+			 * var pattern = new Tone.Pattern(function(time, note){
+			 *   //the order of the notes passed in depends on the pattern
+			 * }, ["C2", "D4", "E5", "A6"], "upDown");
+			 *  @extends {Tone.Loop}
+			 *  @param {Function} callback The callback to invoke with the
+			 *                             event.
+			 *  @param {Array} values The values to arpeggiate over.
+			 */
+		    Tone.Pattern = function () {
+		        var options = this.optionsObject(arguments, [
+		            'callback',
+		            'values',
+		            'pattern'
+		        ], Tone.Pattern.defaults);
+		        Tone.Loop.call(this, options);
+		        /**
+				 *  The pattern manager
+				 *  @type {Tone.CtrlPattern}
+				 *  @private
+				 */
+		        this._pattern = new Tone.CtrlPattern({
+		            'values': options.values,
+		            'type': options.pattern,
+		            'index': options.index
+		        });
+		    };
+		    Tone.extend(Tone.Pattern, Tone.Loop);
+		    /**
+			 *  The defaults
+			 *  @const
+			 *  @type  {Object}
+			 */
+		    Tone.Pattern.defaults = {
+		        'pattern': Tone.CtrlPattern.Type.Up,
+		        'values': []
+		    };
+		    /**
+			 *  Internal function called when the notes should be called
+			 *  @param  {Number}  time  The time the event occurs
+			 *  @private
+			 */
+		    Tone.Pattern.prototype._tick = function (time) {
+		        this.callback(time, this._pattern.value);
+		        this._pattern.next();
+		    };
+		    /**
+			 *  The current index in the values array.
+			 *  @memberOf Tone.Pattern#
+			 *  @type {Positive}
+			 *  @name index
+			 */
+		    Object.defineProperty(Tone.Pattern.prototype, 'index', {
+		        get: function () {
+		            return this._pattern.index;
+		        },
+		        set: function (i) {
+		            this._pattern.index = i;
+		        }
+		    });
+		    /**
+			 *  The array of events.
+			 *  @memberOf Tone.Pattern#
+			 *  @type {Array}
+			 *  @name values
+			 */
+		    Object.defineProperty(Tone.Pattern.prototype, 'values', {
+		        get: function () {
+		            return this._pattern.values;
+		        },
+		        set: function (vals) {
+		            this._pattern.values = vals;
+		        }
+		    });
+		    /**
+			 *  The current value of the pattern.
+			 *  @memberOf Tone.Pattern#
+			 *  @type {*}
+			 *  @name value
+			 *  @readOnly
+			 */
+		    Object.defineProperty(Tone.Pattern.prototype, 'value', {
+		        get: function () {
+		            return this._pattern.value;
+		        }
+		    });
+		    /**
+			 *  The pattern type. See Tone.CtrlPattern for the full list of patterns.
+			 *  @memberOf Tone.Pattern#
+			 *  @type {String}
+			 *  @name pattern
+			 */
+		    Object.defineProperty(Tone.Pattern.prototype, 'pattern', {
+		        get: function () {
+		            return this._pattern.type;
+		        },
+		        set: function (pattern) {
+		            this._pattern.type = pattern;
+		        }
+		    });
+		    /**
+			 *  Clean up
+			 *  @return  {Tone.Pattern}  this
+			 */
+		    Tone.Pattern.prototype.dispose = function () {
+		        Tone.Loop.prototype.dispose.call(this);
+		        this._pattern.dispose();
+		        this._pattern = null;
+		    };
+		    return Tone.Pattern;
+		});
+		Module(function (Tone) {
+		    
+		    /**
+			 *  @class A sequence is an alternate notation of a part. Instead
+			 *         of passing in an array of [time, event] pairs, pass
+			 *         in an array of events which will be spaced at the
+			 *         given subdivision. Sub-arrays will subdivide that beat
+			 *         by the number of items are in the array. 
+			 *         Sequence notation inspiration from [Tidal](http://yaxu.org/tidal/)
+			 *  @param  {Function}  callback  The callback to invoke with every note
+			 *  @param  {Array}    events  The sequence
+			 *  @param  {Time} subdivision  The subdivision between which events are placed. 
+			 *  @extends {Tone.Part}
+			 *  @example
+			 * var seq = new Tone.Sequence(function(time, note){
+			 * 	console.log(note);
+			 * //straight quater notes
+			 * }, ["C4", "E4", "G4", "A4"], "4n");
+			 *  @example
+			 * var seq = new Tone.Sequence(function(time, note){
+			 * 	console.log(note);
+			 * //subdivisions are given as subarrays
+			 * }, ["C4", ["E4", "D4", "E4"], "G4", ["A4", "G4"]]);
+			 */
+		    Tone.Sequence = function () {
+		        var options = this.optionsObject(arguments, [
+		            'callback',
+		            'events',
+		            'subdivision'
+		        ], Tone.Sequence.defaults);
+		        //remove the events
+		        var events = options.events;
+		        delete options.events;
+		        Tone.Part.call(this, options);
+		        /**
+				 *  The subdivison of each note
+				 *  @type  {Ticks}
+				 *  @private
+				 */
+		        this._subdivision = this.toTicks(options.subdivision);
+		        //if no time was passed in, the loop end is the end of the cycle
+		        if (this.isUndef(options.loopEnd) && !this.isUndef(events)) {
+		            this._loopEnd = events.length * this._subdivision;
+		        }
+		        //defaults to looping
+		        this._loop = true;
+		        //add all of the events
+		        if (!this.isUndef(events)) {
+		            for (var i = 0; i < events.length; i++) {
+		                this.add(i, events[i]);
+		            }
+		        }
+		    };
+		    Tone.extend(Tone.Sequence, Tone.Part);
+		    /**
+			 *  The default values.
+			 *  @type  {Object}
+			 */
+		    Tone.Sequence.defaults = { 'subdivision': '4n' };
+		    /**
+			 *  The subdivision of the sequence. This can only be 
+			 *  set in the constructor. The subdivision is the 
+			 *  interval between successive steps. 
+			 *  @type {Time}
+			 *  @memberOf Tone.Sequence#
+			 *  @name subdivision
+			 *  @readOnly
+			 */
+		    Object.defineProperty(Tone.Sequence.prototype, 'subdivision', {
+		        get: function () {
+		            return Tone.Time(this._subdivision, 'i').toNotation();
+		        }
+		    });
+		    /**
+			 *  Get/Set an index of the sequence. If the index contains a subarray, 
+			 *  a Tone.Sequence representing that sub-array will be returned. 
+			 *  @example
+			 * var sequence = new Tone.Sequence(playNote, ["E4", "C4", "F#4", ["A4", "Bb3"]])
+			 * sequence.at(0)// => returns "E4"
+			 * //set a value
+			 * sequence.at(0, "G3");
+			 * //get a nested sequence
+			 * sequence.at(3).at(1)// => returns "Bb3"
+			 * @param {Positive} index The index to get or set
+			 * @param {*} value Optionally pass in the value to set at the given index.
+			 */
+		    Tone.Sequence.prototype.at = function (index, value) {
+		        //if the value is an array, 
+		        if (this.isArray(value)) {
+		            //remove the current event at that index
+		            this.remove(index);
+		        }
+		        //call the parent's method
+		        return Tone.Part.prototype.at.call(this, this._indexTime(index), value);
+		    };
+		    /**
+			 *  Add an event at an index, if there's already something
+			 *  at that index, overwrite it. If `value` is an array, 
+			 *  it will be parsed as a subsequence.
+			 *  @param {Number} index The index to add the event to
+			 *  @param {*} value The value to add at that index
+			 *  @returns {Tone.Sequence} this
+			 */
+		    Tone.Sequence.prototype.add = function (index, value) {
+		        if (value === null) {
+		            return this;
+		        }
+		        if (this.isArray(value)) {
+		            //make a subsequence and add that to the sequence
+		            var subSubdivision = Math.round(this._subdivision / value.length);
+		            value = new Tone.Sequence(this._tick.bind(this), value, Tone.Time(subSubdivision, 'i'));
+		        }
+		        Tone.Part.prototype.add.call(this, this._indexTime(index), value);
+		        return this;
+		    };
+		    /**
+			 *  Remove a value from the sequence by index
+			 *  @param {Number} index The index of the event to remove
+			 *  @returns {Tone.Sequence} this
+			 */
+		    Tone.Sequence.prototype.remove = function (index, value) {
+		        Tone.Part.prototype.remove.call(this, this._indexTime(index), value);
+		        return this;
+		    };
+		    /**
+			 *  Get the time of the index given the Sequence's subdivision
+			 *  @param  {Number}  index 
+			 *  @return  {Time}  The time of that index
+			 *  @private
+			 */
+		    Tone.Sequence.prototype._indexTime = function (index) {
+		        if (index instanceof Tone.TransportTime) {
+		            return index;
+		        } else {
+		            return Tone.TransportTime(index * this._subdivision + this.startOffset, 'i');
+		        }
+		    };
+		    /**
+			 *  Clean up.
+			 *  @return {Tone.Sequence} this
+			 */
+		    Tone.Sequence.prototype.dispose = function () {
+		        Tone.Part.prototype.dispose.call(this);
+		        return this;
+		    };
+		    return Tone.Sequence;
+		});
+		Module(function (Tone) {
+		    
+		    /**
 			 * 	@class  Tone.Effect is the base class for effects. Connect the effect between
 			 * 	        the effectSend and effectReturn GainNodes, then control the amount of
 			 * 	        effect which goes to the output using the wet control.
@@ -14448,1548 +15862,6 @@
 		        this.depth = null;
 		    };
 		    return Tone.Vibrato;
-		});
-		Module(function (Tone) {
-		    
-		    /**
-			 *  @class  Tone.Event abstracts away Tone.Transport.schedule and provides a schedulable
-			 *          callback for a single or repeatable events along the timeline. 
-			 *
-			 *  @extends {Tone}
-			 *  @param {function} callback The callback to invoke at the time. 
-			 *  @param {*} value The value or values which should be passed to
-			 *                      the callback function on invocation.  
-			 *  @example
-			 * var chord = new Tone.Event(function(time, chord){
-			 * 	//the chord as well as the exact time of the event
-			 * 	//are passed in as arguments to the callback function
-			 * }, ["D4", "E4", "F4"]);
-			 * //start the chord at the beginning of the transport timeline
-			 * chord.start();
-			 * //loop it every measure for 8 measures
-			 * chord.loop = 8;
-			 * chord.loopEnd = "1m";
-			 */
-		    Tone.Event = function () {
-		        var options = this.optionsObject(arguments, [
-		            'callback',
-		            'value'
-		        ], Tone.Event.defaults);
-		        /**
-				 *  Loop value
-				 *  @type  {Boolean|Positive}
-				 *  @private
-				 */
-		        this._loop = options.loop;
-		        /**
-				 *  The callback to invoke. 
-				 *  @type  {Function}
-				 */
-		        this.callback = options.callback;
-		        /**
-				 *  The value which is passed to the
-				 *  callback function.
-				 *  @type  {*}
-				 *  @private
-				 */
-		        this.value = options.value;
-		        /**
-				 *  When the note is scheduled to start.
-				 *  @type  {Number}
-				 *  @private
-				 */
-		        this._loopStart = this.toTicks(options.loopStart);
-		        /**
-				 *  When the note is scheduled to start.
-				 *  @type  {Number}
-				 *  @private
-				 */
-		        this._loopEnd = this.toTicks(options.loopEnd);
-		        /**
-				 *  Tracks the scheduled events
-				 *  @type {Tone.TimelineState}
-				 *  @private
-				 */
-		        this._state = new Tone.TimelineState(Tone.State.Stopped);
-		        /**
-				 *  The playback speed of the note. A speed of 1
-				 *  is no change. 
-				 *  @private
-				 *  @type {Positive}
-				 */
-		        this._playbackRate = 1;
-		        /**
-				 *  A delay time from when the event is scheduled to start
-				 *  @type {Ticks}
-				 *  @private
-				 */
-		        this._startOffset = 0;
-		        /**
-				 *  The probability that the callback will be invoked
-				 *  at the scheduled time. 
-				 *  @type {NormalRange}
-				 *  @example
-				 * //the callback will be invoked 50% of the time
-				 * event.probability = 0.5;
-				 */
-		        this.probability = options.probability;
-		        /**
-				 *  If set to true, will apply small (+/-0.02 seconds) random variation
-				 *  to the callback time. If the value is given as a time, it will randomize
-				 *  by that amount.
-				 *  @example
-				 * event.humanize = true;
-				 *  @type {Boolean|Time}
-				 */
-		        this.humanize = options.humanize;
-		        /**
-				 *  If mute is true, the callback won't be
-				 *  invoked.
-				 *  @type {Boolean}
-				 */
-		        this.mute = options.mute;
-		        //set the initial values
-		        this.playbackRate = options.playbackRate;
-		    };
-		    Tone.extend(Tone.Event);
-		    /**
-			 *  The default values
-			 *  @type  {Object}
-			 *  @const
-			 */
-		    Tone.Event.defaults = {
-		        'callback': Tone.noOp,
-		        'loop': false,
-		        'loopEnd': '1m',
-		        'loopStart': 0,
-		        'playbackRate': 1,
-		        'value': null,
-		        'probability': 1,
-		        'mute': false,
-		        'humanize': false
-		    };
-		    /**
-			 *  Reschedule all of the events along the timeline
-			 *  with the updated values.
-			 *  @param {Time} after Only reschedules events after the given time.
-			 *  @return  {Tone.Event}  this
-			 *  @private
-			 */
-		    Tone.Event.prototype._rescheduleEvents = function (after) {
-		        //if no argument is given, schedules all of the events
-		        after = this.defaultArg(after, -1);
-		        this._state.forEachFrom(after, function (event) {
-		            var duration;
-		            if (event.state === Tone.State.Started) {
-		                if (!this.isUndef(event.id)) {
-		                    Tone.Transport.clear(event.id);
-		                }
-		                var startTick = event.time + Math.round(this.startOffset / this._playbackRate);
-		                if (this._loop) {
-		                    duration = Infinity;
-		                    if (this.isNumber(this._loop)) {
-		                        duration = this._loop * this._getLoopDuration();
-		                    }
-		                    var nextEvent = this._state.getEventAfter(startTick);
-		                    if (nextEvent !== null) {
-		                        duration = Math.min(duration, nextEvent.time - startTick);
-		                    }
-		                    if (duration !== Infinity) {
-		                        //schedule a stop since it's finite duration
-		                        this._state.setStateAtTime(Tone.State.Stopped, startTick + duration + 1);
-		                        duration = Tone.Time(duration, 'i');
-		                    }
-		                    var interval = Tone.Time(this._getLoopDuration(), 'i');
-		                    event.id = Tone.Transport.scheduleRepeat(this._tick.bind(this), interval, Tone.TransportTime(startTick, 'i'), duration);
-		                } else {
-		                    event.id = Tone.Transport.schedule(this._tick.bind(this), startTick + 'i');
-		                }
-		            }
-		        }.bind(this));
-		        return this;
-		    };
-		    /**
-			 *  Returns the playback state of the note, either "started" or "stopped".
-			 *  @type {String}
-			 *  @readOnly
-			 *  @memberOf Tone.Event#
-			 *  @name state
-			 */
-		    Object.defineProperty(Tone.Event.prototype, 'state', {
-		        get: function () {
-		            return this._state.getStateAtTime(Tone.Transport.ticks);
-		        }
-		    });
-		    /**
-			 *  The start from the scheduled start time
-			 *  @type {Ticks}
-			 *  @memberOf Tone.Event#
-			 *  @name startOffset
-			 *  @private
-			 */
-		    Object.defineProperty(Tone.Event.prototype, 'startOffset', {
-		        get: function () {
-		            return this._startOffset;
-		        },
-		        set: function (offset) {
-		            this._startOffset = offset;
-		        }
-		    });
-		    /**
-			 *  Start the note at the given time. 
-			 *  @param  {TimelinePosition}  time  When the note should start.
-			 *  @return  {Tone.Event}  this
-			 */
-		    Tone.Event.prototype.start = function (time) {
-		        time = this.toTicks(time);
-		        if (this._state.getStateAtTime(time) === Tone.State.Stopped) {
-		            this._state.addEvent({
-		                'state': Tone.State.Started,
-		                'time': time,
-		                'id': undefined
-		            });
-		            this._rescheduleEvents(time);
-		        }
-		        return this;
-		    };
-		    /**
-			 *  Stop the Event at the given time.
-			 *  @param  {TimelinePosition}  time  When the note should stop.
-			 *  @return  {Tone.Event}  this
-			 */
-		    Tone.Event.prototype.stop = function (time) {
-		        this.cancel(time);
-		        time = this.toTicks(time);
-		        if (this._state.getStateAtTime(time) === Tone.State.Started) {
-		            this._state.setStateAtTime(Tone.State.Stopped, time);
-		            var previousEvent = this._state.getEventBefore(time);
-		            var reschedulTime = time;
-		            if (previousEvent !== null) {
-		                reschedulTime = previousEvent.time;
-		            }
-		            this._rescheduleEvents(reschedulTime);
-		        }
-		        return this;
-		    };
-		    /**
-			 *  Cancel all scheduled events greater than or equal to the given time
-			 *  @param  {TimelinePosition}  [time=0]  The time after which events will be cancel.
-			 *  @return  {Tone.Event}  this
-			 */
-		    Tone.Event.prototype.cancel = function (time) {
-		        time = this.defaultArg(time, -Infinity);
-		        time = this.toTicks(time);
-		        this._state.forEachFrom(time, function (event) {
-		            Tone.Transport.clear(event.id);
-		        });
-		        this._state.cancel(time);
-		        return this;
-		    };
-		    /**
-			 *  The callback function invoker. Also 
-			 *  checks if the Event is done playing
-			 *  @param  {Number}  time  The time of the event in seconds
-			 *  @private
-			 */
-		    Tone.Event.prototype._tick = function (time) {
-		        if (!this.mute && this._state.getStateAtTime(Tone.Transport.ticks) === Tone.State.Started) {
-		            if (this.probability < 1 && Math.random() > this.probability) {
-		                return;
-		            }
-		            if (this.humanize) {
-		                var variation = 0.02;
-		                if (!this.isBoolean(this.humanize)) {
-		                    variation = this.toSeconds(this.humanize);
-		                }
-		                time += (Math.random() * 2 - 1) * variation;
-		            }
-		            this.callback(time, this.value);
-		        }
-		    };
-		    /**
-			 *  Get the duration of the loop.
-			 *  @return  {Ticks}
-			 *  @private
-			 */
-		    Tone.Event.prototype._getLoopDuration = function () {
-		        return Math.round((this._loopEnd - this._loopStart) / this._playbackRate);
-		    };
-		    /**
-			 *  If the note should loop or not
-			 *  between Tone.Event.loopStart and 
-			 *  Tone.Event.loopEnd. An integer
-			 *  value corresponds to the number of
-			 *  loops the Event does after it starts.
-			 *  @memberOf Tone.Event#
-			 *  @type {Boolean|Positive}
-			 *  @name loop
-			 */
-		    Object.defineProperty(Tone.Event.prototype, 'loop', {
-		        get: function () {
-		            return this._loop;
-		        },
-		        set: function (loop) {
-		            this._loop = loop;
-		            this._rescheduleEvents();
-		        }
-		    });
-		    /**
-			 * 	The playback rate of the note. Defaults to 1.
-			 *  @memberOf Tone.Event#
-			 *  @type {Positive}
-			 *  @name playbackRate
-			 *  @example
-			 * note.loop = true;
-			 * //repeat the note twice as fast
-			 * note.playbackRate = 2;
-			 */
-		    Object.defineProperty(Tone.Event.prototype, 'playbackRate', {
-		        get: function () {
-		            return this._playbackRate;
-		        },
-		        set: function (rate) {
-		            this._playbackRate = rate;
-		            this._rescheduleEvents();
-		        }
-		    });
-		    /**
-			 *  The loopEnd point is the time the event will loop
-			 *  if Tone.Event.loop is true.
-			 *  @memberOf Tone.Event#
-			 *  @type {TransportTime}
-			 *  @name loopEnd
-			 */
-		    Object.defineProperty(Tone.Event.prototype, 'loopEnd', {
-		        get: function () {
-		            return Tone.TransportTime(this._loopEnd, 'i').toNotation();
-		        },
-		        set: function (loopEnd) {
-		            this._loopEnd = this.toTicks(loopEnd);
-		            if (this._loop) {
-		                this._rescheduleEvents();
-		            }
-		        }
-		    });
-		    /**
-			 *  The time when the loop should start. 
-			 *  @memberOf Tone.Event#
-			 *  @type {TransportTime}
-			 *  @name loopStart
-			 */
-		    Object.defineProperty(Tone.Event.prototype, 'loopStart', {
-		        get: function () {
-		            return Tone.TransportTime(this._loopStart, 'i').toNotation();
-		        },
-		        set: function (loopStart) {
-		            this._loopStart = this.toTicks(loopStart);
-		            if (this._loop) {
-		                this._rescheduleEvents();
-		            }
-		        }
-		    });
-		    /**
-			 *  The current progress of the loop interval.
-			 *  Returns 0 if the event is not started yet or
-			 *  it is not set to loop.
-			 *  @memberOf Tone.Event#
-			 *  @type {NormalRange}
-			 *  @name progress
-			 *  @readOnly
-			 */
-		    Object.defineProperty(Tone.Event.prototype, 'progress', {
-		        get: function () {
-		            if (this._loop) {
-		                var ticks = Tone.Transport.ticks;
-		                var lastEvent = this._state.getEvent(ticks);
-		                if (lastEvent !== null && lastEvent.state === Tone.State.Started) {
-		                    var loopDuration = this._getLoopDuration();
-		                    var progress = (ticks - lastEvent.time) % loopDuration;
-		                    return progress / loopDuration;
-		                } else {
-		                    return 0;
-		                }
-		            } else {
-		                return 0;
-		            }
-		        }
-		    });
-		    /**
-			 *  Clean up
-			 *  @return  {Tone.Event}  this
-			 */
-		    Tone.Event.prototype.dispose = function () {
-		        this.cancel();
-		        this._state.dispose();
-		        this._state = null;
-		        this.callback = null;
-		        this.value = null;
-		    };
-		    return Tone.Event;
-		});
-		Module(function (Tone) {
-		    /**
-			 *  @class Tone.Loop creates a looped callback at the 
-			 *         specified interval. The callback can be 
-			 *         started, stopped and scheduled along
-			 *         the Transport's timeline. 
-			 *  @example
-			 * var loop = new Tone.Loop(function(time){
-			 * 	//triggered every eighth note. 
-			 * 	console.log(time);
-			 * }, "8n").start(0);
-			 * Tone.Transport.start();
-			 *  @extends {Tone}
-			 *  @param {Function} callback The callback to invoke with the event.
-			 *  @param {Time} interval The time between successive callback calls. 
-			 */
-		    Tone.Loop = function () {
-		        var options = this.optionsObject(arguments, [
-		            'callback',
-		            'interval'
-		        ], Tone.Loop.defaults);
-		        /**
-				 *  The event which produces the callbacks
-				 */
-		        this._event = new Tone.Event({
-		            'callback': this._tick.bind(this),
-		            'loop': true,
-		            'loopEnd': options.interval,
-		            'playbackRate': options.playbackRate,
-		            'probability': options.probability
-		        });
-		        /**
-				 *  The callback to invoke with the next event in the pattern
-				 *  @type {Function}
-				 */
-		        this.callback = options.callback;
-		        //set the iterations
-		        this.iterations = options.iterations;
-		    };
-		    Tone.extend(Tone.Loop);
-		    /**
-			 *  The defaults
-			 *  @const
-			 *  @type  {Object}
-			 */
-		    Tone.Loop.defaults = {
-		        'interval': '4n',
-		        'callback': Tone.noOp,
-		        'playbackRate': 1,
-		        'iterations': Infinity,
-		        'probability': true,
-		        'mute': false
-		    };
-		    /**
-			 *  Start the loop at the specified time along the Transport's
-			 *  timeline.
-			 *  @param  {TimelinePosition=}  time  When to start the Loop.
-			 *  @return  {Tone.Loop}  this
-			 */
-		    Tone.Loop.prototype.start = function (time) {
-		        this._event.start(time);
-		        return this;
-		    };
-		    /**
-			 *  Stop the loop at the given time.
-			 *  @param  {TimelinePosition=}  time  When to stop the Arpeggio
-			 *  @return  {Tone.Loop}  this
-			 */
-		    Tone.Loop.prototype.stop = function (time) {
-		        this._event.stop(time);
-		        return this;
-		    };
-		    /**
-			 *  Cancel all scheduled events greater than or equal to the given time
-			 *  @param  {TimelinePosition}  [time=0]  The time after which events will be cancel.
-			 *  @return  {Tone.Loop}  this
-			 */
-		    Tone.Loop.prototype.cancel = function (time) {
-		        this._event.cancel(time);
-		        return this;
-		    };
-		    /**
-			 *  Internal function called when the notes should be called
-			 *  @param  {Number}  time  The time the event occurs
-			 *  @private
-			 */
-		    Tone.Loop.prototype._tick = function (time) {
-		        this.callback(time);
-		    };
-		    /**
-			 *  The state of the Loop, either started or stopped.
-			 *  @memberOf Tone.Loop#
-			 *  @type {String}
-			 *  @name state
-			 *  @readOnly
-			 */
-		    Object.defineProperty(Tone.Loop.prototype, 'state', {
-		        get: function () {
-		            return this._event.state;
-		        }
-		    });
-		    /**
-			 *  The progress of the loop as a value between 0-1. 0, when
-			 *  the loop is stopped or done iterating. 
-			 *  @memberOf Tone.Loop#
-			 *  @type {NormalRange}
-			 *  @name progress
-			 *  @readOnly
-			 */
-		    Object.defineProperty(Tone.Loop.prototype, 'progress', {
-		        get: function () {
-		            return this._event.progress;
-		        }
-		    });
-		    /**
-			 *  The time between successive callbacks. 
-			 *  @example
-			 * loop.interval = "8n"; //loop every 8n
-			 *  @memberOf Tone.Loop#
-			 *  @type {Time}
-			 *  @name interval
-			 */
-		    Object.defineProperty(Tone.Loop.prototype, 'interval', {
-		        get: function () {
-		            return this._event.loopEnd;
-		        },
-		        set: function (interval) {
-		            this._event.loopEnd = interval;
-		        }
-		    });
-		    /**
-			 *  The playback rate of the loop. The normal playback rate is 1 (no change). 
-			 *  A `playbackRate` of 2 would be twice as fast. 
-			 *  @memberOf Tone.Loop#
-			 *  @type {Time}
-			 *  @name playbackRate
-			 */
-		    Object.defineProperty(Tone.Loop.prototype, 'playbackRate', {
-		        get: function () {
-		            return this._event.playbackRate;
-		        },
-		        set: function (rate) {
-		            this._event.playbackRate = rate;
-		        }
-		    });
-		    /**
-			 *  Random variation +/-0.01s to the scheduled time. 
-			 *  Or give it a time value which it will randomize by.
-			 *  @type {Boolean|Time}
-			 *  @memberOf Tone.Loop#
-			 *  @name humanize
-			 */
-		    Object.defineProperty(Tone.Loop.prototype, 'humanize', {
-		        get: function () {
-		            return this._event.humanize;
-		        },
-		        set: function (variation) {
-		            this._event.humanize = variation;
-		        }
-		    });
-		    /**
-			 *  The probably of the callback being invoked.
-			 *  @memberOf Tone.Loop#
-			 *  @type {NormalRange}
-			 *  @name probability
-			 */
-		    Object.defineProperty(Tone.Loop.prototype, 'probability', {
-		        get: function () {
-		            return this._event.probability;
-		        },
-		        set: function (prob) {
-		            this._event.probability = prob;
-		        }
-		    });
-		    /**
-			 *  Muting the Loop means that no callbacks are invoked.
-			 *  @memberOf Tone.Loop#
-			 *  @type {Boolean}
-			 *  @name mute
-			 */
-		    Object.defineProperty(Tone.Loop.prototype, 'mute', {
-		        get: function () {
-		            return this._event.mute;
-		        },
-		        set: function (mute) {
-		            this._event.mute = mute;
-		        }
-		    });
-		    /**
-			 *  The number of iterations of the loop. The default
-			 *  value is Infinity (loop forever).
-			 *  @memberOf Tone.Loop#
-			 *  @type {Positive}
-			 *  @name iterations
-			 */
-		    Object.defineProperty(Tone.Loop.prototype, 'iterations', {
-		        get: function () {
-		            if (this._event.loop === true) {
-		                return Infinity;
-		            } else {
-		                return this._event.loop;
-		            }
-		            return this._pattern.index;
-		        },
-		        set: function (iters) {
-		            if (iters === Infinity) {
-		                this._event.loop = true;
-		            } else {
-		                this._event.loop = iters;
-		            }
-		        }
-		    });
-		    /**
-			 *  Clean up
-			 *  @return  {Tone.Loop}  this
-			 */
-		    Tone.Loop.prototype.dispose = function () {
-		        this._event.dispose();
-		        this._event = null;
-		        this.callback = null;
-		    };
-		    return Tone.Loop;
-		});
-		Module(function (Tone) {
-		    
-		    /**
-			 *  @class Tone.Part is a collection Tone.Events which can be
-			 *         started/stoped and looped as a single unit.
-			 *
-			 *  @extends {Tone.Event}
-			 *  @param {Function} callback The callback to invoke on each event
-			 *  @param {Array} events the array of events
-			 *  @example
-			 * var part = new Tone.Part(function(time, note){
-			 * 	//the notes given as the second element in the array
-			 * 	//will be passed in as the second argument
-			 * 	synth.triggerAttackRelease(note, "8n", time);
-			 * }, [[0, "C2"], ["0:2", "C3"], ["0:3:2", "G2"]]);
-			 *  @example
-			 * //use an array of objects as long as the object has a "time" attribute
-			 * var part = new Tone.Part(function(time, value){
-			 * 	//the value is an object which contains both the note and the velocity
-			 * 	synth.triggerAttackRelease(value.note, "8n", time, value.velocity);
-			 * }, [{"time" : 0, "note" : "C3", "velocity": 0.9}, 
-			 * 	   {"time" : "0:2", "note" : "C4", "velocity": 0.5}
-			 * ]).start(0);
-			 */
-		    Tone.Part = function () {
-		        var options = this.optionsObject(arguments, [
-		            'callback',
-		            'events'
-		        ], Tone.Part.defaults);
-		        /**
-				 *  If the part is looping or not
-				 *  @type  {Boolean|Positive}
-				 *  @private
-				 */
-		        this._loop = options.loop;
-		        /**
-				 *  When the note is scheduled to start.
-				 *  @type  {Ticks}
-				 *  @private
-				 */
-		        this._loopStart = this.toTicks(options.loopStart);
-		        /**
-				 *  When the note is scheduled to start.
-				 *  @type  {Ticks}
-				 *  @private
-				 */
-		        this._loopEnd = this.toTicks(options.loopEnd);
-		        /**
-				 *  The playback rate of the part
-				 *  @type  {Positive}
-				 *  @private
-				 */
-		        this._playbackRate = options.playbackRate;
-		        /**
-				 *  private holder of probability value
-				 *  @type {NormalRange}
-				 *  @private
-				 */
-		        this._probability = options.probability;
-		        /**
-				 *  the amount of variation from the
-				 *  given time. 
-				 *  @type {Boolean|Time}
-				 *  @private
-				 */
-		        this._humanize = options.humanize;
-		        /**
-				 *  The start offset
-				 *  @type {Ticks}
-				 *  @private
-				 */
-		        this._startOffset = 0;
-		        /**
-				 *  Keeps track of the current state
-				 *  @type {Tone.TimelineState}
-				 *  @private
-				 */
-		        this._state = new Tone.TimelineState(Tone.State.Stopped);
-		        /**
-				 *  An array of Objects. 
-				 *  @type  {Array}
-				 *  @private
-				 */
-		        this._events = [];
-		        /**
-				 *  The callback to invoke at all the scheduled events.
-				 *  @type {Function}
-				 */
-		        this.callback = options.callback;
-		        /**
-				 *  If mute is true, the callback won't be
-				 *  invoked.
-				 *  @type {Boolean}
-				 */
-		        this.mute = options.mute;
-		        //add the events
-		        var events = this.defaultArg(options.events, []);
-		        if (!this.isUndef(options.events)) {
-		            for (var i = 0; i < events.length; i++) {
-		                if (Array.isArray(events[i])) {
-		                    this.add(events[i][0], events[i][1]);
-		                } else {
-		                    this.add(events[i]);
-		                }
-		            }
-		        }
-		    };
-		    Tone.extend(Tone.Part, Tone.Event);
-		    /**
-			 *  The default values
-			 *  @type  {Object}
-			 *  @const
-			 */
-		    Tone.Part.defaults = {
-		        'callback': Tone.noOp,
-		        'loop': false,
-		        'loopEnd': '1m',
-		        'loopStart': 0,
-		        'playbackRate': 1,
-		        'probability': 1,
-		        'humanize': false,
-		        'mute': false
-		    };
-		    /**
-			 *  Start the part at the given time. 
-			 *  @param  {TransportTime}  time    When to start the part.
-			 *  @param  {Time=}  offset  The offset from the start of the part
-			 *                           to begin playing at.
-			 *  @return  {Tone.Part}  this
-			 */
-		    Tone.Part.prototype.start = function (time, offset) {
-		        var ticks = this.toTicks(time);
-		        if (this._state.getStateAtTime(ticks) !== Tone.State.Started) {
-		            if (this._loop) {
-		                offset = this.defaultArg(offset, this._loopStart);
-		            } else {
-		                offset = this.defaultArg(offset, 0);
-		            }
-		            offset = this.toTicks(offset);
-		            this._state.addEvent({
-		                'state': Tone.State.Started,
-		                'time': ticks,
-		                'offset': offset
-		            });
-		            this._forEach(function (event) {
-		                this._startNote(event, ticks, offset);
-		            });
-		        }
-		        return this;
-		    };
-		    /**
-			 *  Start the event in the given event at the correct time given
-			 *  the ticks and offset and looping.
-			 *  @param  {Tone.Event}  event 
-			 *  @param  {Ticks}  ticks
-			 *  @param  {Ticks}  offset
-			 *  @private
-			 */
-		    Tone.Part.prototype._startNote = function (event, ticks, offset) {
-		        ticks -= offset;
-		        if (this._loop) {
-		            if (event.startOffset >= this._loopStart && event.startOffset < this._loopEnd) {
-		                if (event.startOffset < offset) {
-		                    //start it on the next loop
-		                    ticks += this._getLoopDuration();
-		                }
-		                event.start(Tone.TransportTime(ticks, 'i'));
-		            } else if (event.startOffset < this._loopStart && event.startOffset >= offset) {
-		                event.loop = false;
-		                event.start(Tone.TransportTime(ticks, 'i'));
-		            }
-		        } else {
-		            if (event.startOffset >= offset) {
-		                event.start(Tone.TransportTime(ticks, 'i'));
-		            }
-		        }
-		    };
-		    /**
-			 *  The start from the scheduled start time
-			 *  @type {Ticks}
-			 *  @memberOf Tone.Part#
-			 *  @name startOffset
-			 *  @private
-			 */
-		    Object.defineProperty(Tone.Part.prototype, 'startOffset', {
-		        get: function () {
-		            return this._startOffset;
-		        },
-		        set: function (offset) {
-		            this._startOffset = offset;
-		            this._forEach(function (event) {
-		                event.startOffset += this._startOffset;
-		            });
-		        }
-		    });
-		    /**
-			 *  Stop the part at the given time.
-			 *  @param  {TimelinePosition}  time  When to stop the part.
-			 *  @return  {Tone.Part}  this
-			 */
-		    Tone.Part.prototype.stop = function (time) {
-		        var ticks = this.toTicks(time);
-		        this._state.cancel(ticks);
-		        this._state.setStateAtTime(Tone.State.Stopped, ticks);
-		        this._forEach(function (event) {
-		            event.stop(time);
-		        });
-		        return this;
-		    };
-		    /**
-			 *  Get/Set an Event's value at the given time. 
-			 *  If a value is passed in and no event exists at
-			 *  the given time, one will be created with that value. 
-			 *  If two events are at the same time, the first one will
-			 *  be returned.
-			 *  @example
-			 * part.at("1m"); //returns the part at the first measure
-			 *
-			 * part.at("2m", "C2"); //set the value at "2m" to C2. 
-			 * //if an event didn't exist at that time, it will be created.
-			 *  @param {TransportTime} time The time of the event to get or set.
-			 *  @param {*=} value If a value is passed in, the value of the
-			 *                    event at the given time will be set to it.
-			 *  @return {Tone.Event} the event at the time
-			 */
-		    Tone.Part.prototype.at = function (time, value) {
-		        time = Tone.TransportTime(time);
-		        var tickTime = Tone.Time(1, 'i').toSeconds();
-		        for (var i = 0; i < this._events.length; i++) {
-		            var event = this._events[i];
-		            if (Math.abs(time.toTicks() - event.startOffset) < tickTime) {
-		                if (!this.isUndef(value)) {
-		                    event.value = value;
-		                }
-		                return event;
-		            }
-		        }
-		        //if there was no event at that time, create one
-		        if (!this.isUndef(value)) {
-		            this.add(time, value);
-		            //return the new event
-		            return this._events[this._events.length - 1];
-		        } else {
-		            return null;
-		        }
-		    };
-		    /**
-			 *  Add a an event to the part. 
-			 *  @param {Time} time The time the note should start.
-			 *                            If an object is passed in, it should
-			 *                            have a 'time' attribute and the rest
-			 *                            of the object will be used as the 'value'.
-			 *  @param  {Tone.Event|*}  value 
-			 *  @returns {Tone.Part} this
-			 *  @example
-			 * part.add("1m", "C#+11");
-			 */
-		    Tone.Part.prototype.add = function (time, value) {
-		        //extract the parameters
-		        if (this.isObject(time) && time.hasOwnProperty('time')) {
-		            value = time;
-		            time = value.time;
-		            delete value.time;
-		        }
-		        time = this.toTicks(time);
-		        var event;
-		        if (value instanceof Tone.Event) {
-		            event = value;
-		            event.callback = this._tick.bind(this);
-		        } else {
-		            event = new Tone.Event({
-		                'callback': this._tick.bind(this),
-		                'value': value
-		            });
-		        }
-		        //the start offset
-		        event.startOffset = time;
-		        //initialize the values
-		        event.set({
-		            'loopEnd': this.loopEnd,
-		            'loopStart': this.loopStart,
-		            'loop': this.loop,
-		            'humanize': this.humanize,
-		            'playbackRate': this.playbackRate,
-		            'probability': this.probability
-		        });
-		        this._events.push(event);
-		        //start the note if it should be played right now
-		        this._restartEvent(event);
-		        return this;
-		    };
-		    /**
-			 *  Restart the given event
-			 *  @param  {Tone.Event}  event 
-			 *  @private
-			 */
-		    Tone.Part.prototype._restartEvent = function (event) {
-		        var stateEvent = this._state.getEvent(this.now());
-		        if (stateEvent && stateEvent.state === Tone.State.Started) {
-		            this._startNote(event, stateEvent.time, stateEvent.offset);
-		        }
-		    };
-		    /**
-			 *  Remove an event from the part. Will recursively iterate
-			 *  into nested parts to find the event.
-			 *  @param {Time} time The time of the event
-			 *  @param {*} value Optionally select only a specific event value
-			 */
-		    Tone.Part.prototype.remove = function (time, value) {
-		        //extract the parameters
-		        if (this.isObject(time) && time.hasOwnProperty('time')) {
-		            value = time;
-		            time = value.time;
-		        }
-		        time = this.toTicks(time);
-		        for (var i = this._events.length - 1; i >= 0; i--) {
-		            var event = this._events[i];
-		            if (event instanceof Tone.Part) {
-		                event.remove(time, value);
-		            } else {
-		                if (event.startOffset === time) {
-		                    if (this.isUndef(value) || !this.isUndef(value) && event.value === value) {
-		                        this._events.splice(i, 1);
-		                        event.dispose();
-		                    }
-		                }
-		            }
-		        }
-		        return this;
-		    };
-		    /**
-			 *  Remove all of the notes from the group. 
-			 *  @return  {Tone.Part}  this
-			 */
-		    Tone.Part.prototype.removeAll = function () {
-		        this._forEach(function (event) {
-		            event.dispose();
-		        });
-		        this._events = [];
-		        return this;
-		    };
-		    /**
-			 *  Cancel scheduled state change events: i.e. "start" and "stop".
-			 *  @param {TimelinePosition} after The time after which to cancel the scheduled events.
-			 *  @return  {Tone.Part}  this
-			 */
-		    Tone.Part.prototype.cancel = function (after) {
-		        this._forEach(function (event) {
-		            event.cancel(after);
-		        });
-		        this._state.cancel(after);
-		        return this;
-		    };
-		    /**
-			 *  Iterate over all of the events
-			 *  @param {Function} callback
-			 *  @param {Object} ctx The context
-			 *  @private
-			 */
-		    Tone.Part.prototype._forEach = function (callback, ctx) {
-		        ctx = this.defaultArg(ctx, this);
-		        for (var i = this._events.length - 1; i >= 0; i--) {
-		            var e = this._events[i];
-		            if (e instanceof Tone.Part) {
-		                e._forEach(callback, ctx);
-		            } else {
-		                callback.call(ctx, e);
-		            }
-		        }
-		        return this;
-		    };
-		    /**
-			 *  Set the attribute of all of the events
-			 *  @param  {String}  attr  the attribute to set
-			 *  @param  {*}  value      The value to set it to
-			 *  @private
-			 */
-		    Tone.Part.prototype._setAll = function (attr, value) {
-		        this._forEach(function (event) {
-		            event[attr] = value;
-		        });
-		    };
-		    /**
-			 *  Internal tick method
-			 *  @param  {Number}  time  The time of the event in seconds
-			 *  @private
-			 */
-		    Tone.Part.prototype._tick = function (time, value) {
-		        if (!this.mute) {
-		            this.callback(time, value);
-		        }
-		    };
-		    /**
-			 *  Determine if the event should be currently looping
-			 *  given the loop boundries of this Part.
-			 *  @param  {Tone.Event}  event  The event to test
-			 *  @private
-			 */
-		    Tone.Part.prototype._testLoopBoundries = function (event) {
-		        if (event.startOffset < this._loopStart || event.startOffset >= this._loopEnd) {
-		            event.cancel();
-		        } else {
-		            //reschedule it if it's stopped
-		            if (event.state === Tone.State.Stopped) {
-		                this._restartEvent(event);
-		            }
-		        }
-		    };
-		    /**
-			 *  The probability of the notes being triggered.
-			 *  @memberOf Tone.Part#
-			 *  @type {NormalRange}
-			 *  @name probability
-			 */
-		    Object.defineProperty(Tone.Part.prototype, 'probability', {
-		        get: function () {
-		            return this._probability;
-		        },
-		        set: function (prob) {
-		            this._probability = prob;
-		            this._setAll('probability', prob);
-		        }
-		    });
-		    /**
-			 *  If set to true, will apply small random variation
-			 *  to the callback time. If the value is given as a time, it will randomize
-			 *  by that amount.
-			 *  @example
-			 * event.humanize = true;
-			 *  @type {Boolean|Time}
-			 *  @name humanize
-			 */
-		    Object.defineProperty(Tone.Part.prototype, 'humanize', {
-		        get: function () {
-		            return this._humanize;
-		        },
-		        set: function (variation) {
-		            this._humanize = variation;
-		            this._setAll('humanize', variation);
-		        }
-		    });
-		    /**
-			 *  If the part should loop or not
-			 *  between Tone.Part.loopStart and 
-			 *  Tone.Part.loopEnd. An integer
-			 *  value corresponds to the number of
-			 *  loops the Part does after it starts.
-			 *  @memberOf Tone.Part#
-			 *  @type {Boolean|Positive}
-			 *  @name loop
-			 *  @example
-			 * //loop the part 8 times
-			 * part.loop = 8;
-			 */
-		    Object.defineProperty(Tone.Part.prototype, 'loop', {
-		        get: function () {
-		            return this._loop;
-		        },
-		        set: function (loop) {
-		            this._loop = loop;
-		            this._forEach(function (event) {
-		                event._loopStart = this._loopStart;
-		                event._loopEnd = this._loopEnd;
-		                event.loop = loop;
-		                this._testLoopBoundries(event);
-		            });
-		        }
-		    });
-		    /**
-			 *  The loopEnd point determines when it will 
-			 *  loop if Tone.Part.loop is true.
-			 *  @memberOf Tone.Part#
-			 *  @type {TransportTime}
-			 *  @name loopEnd
-			 */
-		    Object.defineProperty(Tone.Part.prototype, 'loopEnd', {
-		        get: function () {
-		            return Tone.TransportTime(this._loopEnd, 'i').toNotation();
-		        },
-		        set: function (loopEnd) {
-		            this._loopEnd = this.toTicks(loopEnd);
-		            if (this._loop) {
-		                this._forEach(function (event) {
-		                    event.loopEnd = this.loopEnd;
-		                    this._testLoopBoundries(event);
-		                });
-		            }
-		        }
-		    });
-		    /**
-			 *  The loopStart point determines when it will 
-			 *  loop if Tone.Part.loop is true.
-			 *  @memberOf Tone.Part#
-			 *  @type {TransportTime}
-			 *  @name loopStart
-			 */
-		    Object.defineProperty(Tone.Part.prototype, 'loopStart', {
-		        get: function () {
-		            return Tone.TransportTime(this._loopStart, 'i').toNotation();
-		        },
-		        set: function (loopStart) {
-		            this._loopStart = this.toTicks(loopStart);
-		            if (this._loop) {
-		                this._forEach(function (event) {
-		                    event.loopStart = this.loopStart;
-		                    this._testLoopBoundries(event);
-		                });
-		            }
-		        }
-		    });
-		    /**
-			 * 	The playback rate of the part
-			 *  @memberOf Tone.Part#
-			 *  @type {Positive}
-			 *  @name playbackRate
-			 */
-		    Object.defineProperty(Tone.Part.prototype, 'playbackRate', {
-		        get: function () {
-		            return this._playbackRate;
-		        },
-		        set: function (rate) {
-		            this._playbackRate = rate;
-		            this._setAll('playbackRate', rate);
-		        }
-		    });
-		    /**
-			 * 	The number of scheduled notes in the part. 
-			 *  @memberOf Tone.Part#
-			 *  @type {Positive}
-			 *  @name length
-			 *  @readOnly
-			 */
-		    Object.defineProperty(Tone.Part.prototype, 'length', {
-		        get: function () {
-		            return this._events.length;
-		        }
-		    });
-		    /**
-			 *  Clean up
-			 *  @return  {Tone.Part}  this
-			 */
-		    Tone.Part.prototype.dispose = function () {
-		        this.removeAll();
-		        this._state.dispose();
-		        this._state = null;
-		        this.callback = null;
-		        this._events = null;
-		        return this;
-		    };
-		    return Tone.Part;
-		});
-		Module(function (Tone) {
-		    /**
-			 *  @class Tone.Pattern arpeggiates between the given notes
-			 *         in a number of patterns. See Tone.CtrlPattern for
-			 *         a full list of patterns.
-			 *  @example
-			 * var pattern = new Tone.Pattern(function(time, note){
-			 *   //the order of the notes passed in depends on the pattern
-			 * }, ["C2", "D4", "E5", "A6"], "upDown");
-			 *  @extends {Tone.Loop}
-			 *  @param {Function} callback The callback to invoke with the
-			 *                             event.
-			 *  @param {Array} values The values to arpeggiate over.
-			 */
-		    Tone.Pattern = function () {
-		        var options = this.optionsObject(arguments, [
-		            'callback',
-		            'values',
-		            'pattern'
-		        ], Tone.Pattern.defaults);
-		        Tone.Loop.call(this, options);
-		        /**
-				 *  The pattern manager
-				 *  @type {Tone.CtrlPattern}
-				 *  @private
-				 */
-		        this._pattern = new Tone.CtrlPattern({
-		            'values': options.values,
-		            'type': options.pattern,
-		            'index': options.index
-		        });
-		    };
-		    Tone.extend(Tone.Pattern, Tone.Loop);
-		    /**
-			 *  The defaults
-			 *  @const
-			 *  @type  {Object}
-			 */
-		    Tone.Pattern.defaults = {
-		        'pattern': Tone.CtrlPattern.Type.Up,
-		        'values': []
-		    };
-		    /**
-			 *  Internal function called when the notes should be called
-			 *  @param  {Number}  time  The time the event occurs
-			 *  @private
-			 */
-		    Tone.Pattern.prototype._tick = function (time) {
-		        this.callback(time, this._pattern.value);
-		        this._pattern.next();
-		    };
-		    /**
-			 *  The current index in the values array.
-			 *  @memberOf Tone.Pattern#
-			 *  @type {Positive}
-			 *  @name index
-			 */
-		    Object.defineProperty(Tone.Pattern.prototype, 'index', {
-		        get: function () {
-		            return this._pattern.index;
-		        },
-		        set: function (i) {
-		            this._pattern.index = i;
-		        }
-		    });
-		    /**
-			 *  The array of events.
-			 *  @memberOf Tone.Pattern#
-			 *  @type {Array}
-			 *  @name values
-			 */
-		    Object.defineProperty(Tone.Pattern.prototype, 'values', {
-		        get: function () {
-		            return this._pattern.values;
-		        },
-		        set: function (vals) {
-		            this._pattern.values = vals;
-		        }
-		    });
-		    /**
-			 *  The current value of the pattern.
-			 *  @memberOf Tone.Pattern#
-			 *  @type {*}
-			 *  @name value
-			 *  @readOnly
-			 */
-		    Object.defineProperty(Tone.Pattern.prototype, 'value', {
-		        get: function () {
-		            return this._pattern.value;
-		        }
-		    });
-		    /**
-			 *  The pattern type. See Tone.CtrlPattern for the full list of patterns.
-			 *  @memberOf Tone.Pattern#
-			 *  @type {String}
-			 *  @name pattern
-			 */
-		    Object.defineProperty(Tone.Pattern.prototype, 'pattern', {
-		        get: function () {
-		            return this._pattern.type;
-		        },
-		        set: function (pattern) {
-		            this._pattern.type = pattern;
-		        }
-		    });
-		    /**
-			 *  Clean up
-			 *  @return  {Tone.Pattern}  this
-			 */
-		    Tone.Pattern.prototype.dispose = function () {
-		        Tone.Loop.prototype.dispose.call(this);
-		        this._pattern.dispose();
-		        this._pattern = null;
-		    };
-		    return Tone.Pattern;
-		});
-		Module(function (Tone) {
-		    
-		    /**
-			 *  @class A sequence is an alternate notation of a part. Instead
-			 *         of passing in an array of [time, event] pairs, pass
-			 *         in an array of events which will be spaced at the
-			 *         given subdivision. Sub-arrays will subdivide that beat
-			 *         by the number of items are in the array. 
-			 *         Sequence notation inspiration from [Tidal](http://yaxu.org/tidal/)
-			 *  @param  {Function}  callback  The callback to invoke with every note
-			 *  @param  {Array}    events  The sequence
-			 *  @param  {Time} subdivision  The subdivision between which events are placed. 
-			 *  @extends {Tone.Part}
-			 *  @example
-			 * var seq = new Tone.Sequence(function(time, note){
-			 * 	console.log(note);
-			 * //straight quater notes
-			 * }, ["C4", "E4", "G4", "A4"], "4n");
-			 *  @example
-			 * var seq = new Tone.Sequence(function(time, note){
-			 * 	console.log(note);
-			 * //subdivisions are given as subarrays
-			 * }, ["C4", ["E4", "D4", "E4"], "G4", ["A4", "G4"]]);
-			 */
-		    Tone.Sequence = function () {
-		        var options = this.optionsObject(arguments, [
-		            'callback',
-		            'events',
-		            'subdivision'
-		        ], Tone.Sequence.defaults);
-		        //remove the events
-		        var events = options.events;
-		        delete options.events;
-		        Tone.Part.call(this, options);
-		        /**
-				 *  The subdivison of each note
-				 *  @type  {Ticks}
-				 *  @private
-				 */
-		        this._subdivision = this.toTicks(options.subdivision);
-		        //if no time was passed in, the loop end is the end of the cycle
-		        if (this.isUndef(options.loopEnd) && !this.isUndef(events)) {
-		            this._loopEnd = events.length * this._subdivision;
-		        }
-		        //defaults to looping
-		        this._loop = true;
-		        //add all of the events
-		        if (!this.isUndef(events)) {
-		            for (var i = 0; i < events.length; i++) {
-		                this.add(i, events[i]);
-		            }
-		        }
-		    };
-		    Tone.extend(Tone.Sequence, Tone.Part);
-		    /**
-			 *  The default values.
-			 *  @type  {Object}
-			 */
-		    Tone.Sequence.defaults = { 'subdivision': '4n' };
-		    /**
-			 *  The subdivision of the sequence. This can only be 
-			 *  set in the constructor. The subdivision is the 
-			 *  interval between successive steps. 
-			 *  @type {Time}
-			 *  @memberOf Tone.Sequence#
-			 *  @name subdivision
-			 *  @readOnly
-			 */
-		    Object.defineProperty(Tone.Sequence.prototype, 'subdivision', {
-		        get: function () {
-		            return Tone.Time(this._subdivision, 'i').toNotation();
-		        }
-		    });
-		    /**
-			 *  Get/Set an index of the sequence. If the index contains a subarray, 
-			 *  a Tone.Sequence representing that sub-array will be returned. 
-			 *  @example
-			 * var sequence = new Tone.Sequence(playNote, ["E4", "C4", "F#4", ["A4", "Bb3"]])
-			 * sequence.at(0)// => returns "E4"
-			 * //set a value
-			 * sequence.at(0, "G3");
-			 * //get a nested sequence
-			 * sequence.at(3).at(1)// => returns "Bb3"
-			 * @param {Positive} index The index to get or set
-			 * @param {*} value Optionally pass in the value to set at the given index.
-			 */
-		    Tone.Sequence.prototype.at = function (index, value) {
-		        //if the value is an array, 
-		        if (this.isArray(value)) {
-		            //remove the current event at that index
-		            this.remove(index);
-		        }
-		        //call the parent's method
-		        return Tone.Part.prototype.at.call(this, this._indexTime(index), value);
-		    };
-		    /**
-			 *  Add an event at an index, if there's already something
-			 *  at that index, overwrite it. If `value` is an array, 
-			 *  it will be parsed as a subsequence.
-			 *  @param {Number} index The index to add the event to
-			 *  @param {*} value The value to add at that index
-			 *  @returns {Tone.Sequence} this
-			 */
-		    Tone.Sequence.prototype.add = function (index, value) {
-		        if (value === null) {
-		            return this;
-		        }
-		        if (this.isArray(value)) {
-		            //make a subsequence and add that to the sequence
-		            var subSubdivision = Math.round(this._subdivision / value.length);
-		            value = new Tone.Sequence(this._tick.bind(this), value, Tone.Time(subSubdivision, 'i'));
-		        }
-		        Tone.Part.prototype.add.call(this, this._indexTime(index), value);
-		        return this;
-		    };
-		    /**
-			 *  Remove a value from the sequence by index
-			 *  @param {Number} index The index of the event to remove
-			 *  @returns {Tone.Sequence} this
-			 */
-		    Tone.Sequence.prototype.remove = function (index, value) {
-		        Tone.Part.prototype.remove.call(this, this._indexTime(index), value);
-		        return this;
-		    };
-		    /**
-			 *  Get the time of the index given the Sequence's subdivision
-			 *  @param  {Number}  index 
-			 *  @return  {Time}  The time of that index
-			 *  @private
-			 */
-		    Tone.Sequence.prototype._indexTime = function (index) {
-		        if (index instanceof Tone.TransportTime) {
-		            return index;
-		        } else {
-		            return Tone.TransportTime(index * this._subdivision + this.startOffset, 'i');
-		        }
-		    };
-		    /**
-			 *  Clean up.
-			 *  @return {Tone.Sequence} this
-			 */
-		    Tone.Sequence.prototype.dispose = function () {
-		        Tone.Part.prototype.dispose.call(this);
-		        return this;
-		    };
-		    return Tone.Sequence;
-		});
-		Module(function (Tone) {
-		    
-		    /**
-			 *  @class Maps a NormalRange [0, 1] to an AudioRange [-1, 1]. 
-			 *         See also Tone.AudioToGain. 
-			 *
-			 *  @extends {Tone.SignalBase}
-			 *  @constructor
-			 *  @example
-			 * var g2a = new Tone.GainToAudio();
-			 */
-		    Tone.GainToAudio = function () {
-		        /**
-				 *  @type {WaveShaperNode}
-				 *  @private
-				 */
-		        this._norm = this.input = this.output = new Tone.WaveShaper(function (x) {
-		            return Math.abs(x) * 2 - 1;
-		        });
-		    };
-		    Tone.extend(Tone.GainToAudio, Tone.SignalBase);
-		    /**
-			 *  clean up
-			 *  @returns {Tone.GainToAudio} this
-			 */
-		    Tone.GainToAudio.prototype.dispose = function () {
-		        Tone.prototype.dispose.call(this);
-		        this._norm.dispose();
-		        this._norm = null;
-		        return this;
-		    };
-		    return Tone.GainToAudio;
-		});
-		Module(function (Tone) {
-		    
-		    /**
-			 *  @class Normalize takes an input min and max and maps it linearly to NormalRange [0,1]
-			 *
-			 *  @extends {Tone.SignalBase}
-			 *  @constructor
-			 *  @param {number} inputMin the min input value
-			 *  @param {number} inputMax the max input value
-			 *  @example
-			 * var norm = new Tone.Normalize(2, 4);
-			 * var sig = new Tone.Signal(3).connect(norm);
-			 * //output of norm is 0.5. 
-			 */
-		    Tone.Normalize = function (inputMin, inputMax) {
-		        /**
-				 *  the min input value
-				 *  @type {number}
-				 *  @private
-				 */
-		        this._inputMin = this.defaultArg(inputMin, 0);
-		        /**
-				 *  the max input value
-				 *  @type {number}
-				 *  @private
-				 */
-		        this._inputMax = this.defaultArg(inputMax, 1);
-		        /**
-				 *  subtract the min from the input
-				 *  @type {Tone.Add}
-				 *  @private
-				 */
-		        this._sub = this.input = new Tone.Add(0);
-		        /**
-				 *  divide by the difference between the input and output
-				 *  @type {Tone.Multiply}
-				 *  @private
-				 */
-		        this._div = this.output = new Tone.Multiply(1);
-		        this._sub.connect(this._div);
-		        this._setRange();
-		    };
-		    Tone.extend(Tone.Normalize, Tone.SignalBase);
-		    /**
-			 * The minimum value the input signal will reach.
-			 * @memberOf Tone.Normalize#
-			 * @type {number}
-			 * @name min
-			 */
-		    Object.defineProperty(Tone.Normalize.prototype, 'min', {
-		        get: function () {
-		            return this._inputMin;
-		        },
-		        set: function (min) {
-		            this._inputMin = min;
-		            this._setRange();
-		        }
-		    });
-		    /**
-			 * The maximum value the input signal will reach.
-			 * @memberOf Tone.Normalize#
-			 * @type {number}
-			 * @name max
-			 */
-		    Object.defineProperty(Tone.Normalize.prototype, 'max', {
-		        get: function () {
-		            return this._inputMax;
-		        },
-		        set: function (max) {
-		            this._inputMax = max;
-		            this._setRange();
-		        }
-		    });
-		    /**
-			 *  set the values
-			 *  @private
-			 */
-		    Tone.Normalize.prototype._setRange = function () {
-		        this._sub.value = -this._inputMin;
-		        this._div.value = 1 / (this._inputMax - this._inputMin);
-		    };
-		    /**
-			 *  clean up
-			 *  @returns {Tone.Normalize} this
-			 */
-		    Tone.Normalize.prototype.dispose = function () {
-		        Tone.prototype.dispose.call(this);
-		        this._sub.dispose();
-		        this._sub = null;
-		        this._div.dispose();
-		        this._div = null;
-		        return this;
-		    };
-		    return Tone.Normalize;
 		});
 		Module(function (Tone) {
 		    
@@ -19990,6 +19862,134 @@
 		    return Tone.SimpleSynth;
 		});
 		Module(function (Tone) {
+		    
+		    /**
+			 *  @class Maps a NormalRange [0, 1] to an AudioRange [-1, 1]. 
+			 *         See also Tone.AudioToGain. 
+			 *
+			 *  @extends {Tone.SignalBase}
+			 *  @constructor
+			 *  @example
+			 * var g2a = new Tone.GainToAudio();
+			 */
+		    Tone.GainToAudio = function () {
+		        /**
+				 *  @type {WaveShaperNode}
+				 *  @private
+				 */
+		        this._norm = this.input = this.output = new Tone.WaveShaper(function (x) {
+		            return Math.abs(x) * 2 - 1;
+		        });
+		    };
+		    Tone.extend(Tone.GainToAudio, Tone.SignalBase);
+		    /**
+			 *  clean up
+			 *  @returns {Tone.GainToAudio} this
+			 */
+		    Tone.GainToAudio.prototype.dispose = function () {
+		        Tone.prototype.dispose.call(this);
+		        this._norm.dispose();
+		        this._norm = null;
+		        return this;
+		    };
+		    return Tone.GainToAudio;
+		});
+		Module(function (Tone) {
+		    
+		    /**
+			 *  @class Normalize takes an input min and max and maps it linearly to NormalRange [0,1]
+			 *
+			 *  @extends {Tone.SignalBase}
+			 *  @constructor
+			 *  @param {number} inputMin the min input value
+			 *  @param {number} inputMax the max input value
+			 *  @example
+			 * var norm = new Tone.Normalize(2, 4);
+			 * var sig = new Tone.Signal(3).connect(norm);
+			 * //output of norm is 0.5. 
+			 */
+		    Tone.Normalize = function (inputMin, inputMax) {
+		        /**
+				 *  the min input value
+				 *  @type {number}
+				 *  @private
+				 */
+		        this._inputMin = this.defaultArg(inputMin, 0);
+		        /**
+				 *  the max input value
+				 *  @type {number}
+				 *  @private
+				 */
+		        this._inputMax = this.defaultArg(inputMax, 1);
+		        /**
+				 *  subtract the min from the input
+				 *  @type {Tone.Add}
+				 *  @private
+				 */
+		        this._sub = this.input = new Tone.Add(0);
+		        /**
+				 *  divide by the difference between the input and output
+				 *  @type {Tone.Multiply}
+				 *  @private
+				 */
+		        this._div = this.output = new Tone.Multiply(1);
+		        this._sub.connect(this._div);
+		        this._setRange();
+		    };
+		    Tone.extend(Tone.Normalize, Tone.SignalBase);
+		    /**
+			 * The minimum value the input signal will reach.
+			 * @memberOf Tone.Normalize#
+			 * @type {number}
+			 * @name min
+			 */
+		    Object.defineProperty(Tone.Normalize.prototype, 'min', {
+		        get: function () {
+		            return this._inputMin;
+		        },
+		        set: function (min) {
+		            this._inputMin = min;
+		            this._setRange();
+		        }
+		    });
+		    /**
+			 * The maximum value the input signal will reach.
+			 * @memberOf Tone.Normalize#
+			 * @type {number}
+			 * @name max
+			 */
+		    Object.defineProperty(Tone.Normalize.prototype, 'max', {
+		        get: function () {
+		            return this._inputMax;
+		        },
+		        set: function (max) {
+		            this._inputMax = max;
+		            this._setRange();
+		        }
+		    });
+		    /**
+			 *  set the values
+			 *  @private
+			 */
+		    Tone.Normalize.prototype._setRange = function () {
+		        this._sub.value = -this._inputMin;
+		        this._div.value = 1 / (this._inputMax - this._inputMin);
+		    };
+		    /**
+			 *  clean up
+			 *  @returns {Tone.Normalize} this
+			 */
+		    Tone.Normalize.prototype.dispose = function () {
+		        Tone.prototype.dispose.call(this);
+		        this._sub.dispose();
+		        this._sub = null;
+		        this._div.dispose();
+		        this._div = null;
+		        return this;
+		    };
+		    return Tone.Normalize;
+		});
+		Module(function (Tone) {
 		    /**
 			 *  @class Wrapper around the native BufferSourceNode.
 			 *  @param  {AudioBuffer|Tone.Buffer}  buffer   The buffer to play
@@ -21063,9 +21063,8 @@
 /* 2 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*eslint-disable no-unused-vars*/
-	/*!
-	 * jQuery JavaScript Library v3.1.0
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
+	 * jQuery JavaScript Library v3.1.1
 	 * https://jquery.com/
 	 *
 	 * Includes Sizzle.js
@@ -21075,7 +21074,7 @@
 	 * Released under the MIT license
 	 * https://jquery.org/license
 	 *
-	 * Date: 2016-07-07T21:44Z
+	 * Date: 2016-09-22T22:30Z
 	 */
 	( function( global, factory ) {
 	
@@ -21148,13 +21147,13 @@
 			doc.head.appendChild( script ).parentNode.removeChild( script );
 		}
 	/* global Symbol */
-	// Defining this global in .eslintrc would create a danger of using the global
+	// Defining this global in .eslintrc.json would create a danger of using the global
 	// unguarded in another place, it seems safer to define global only for this module
 	
 	
 	
 	var
-		version = "3.1.0",
+		version = "3.1.1",
 	
 		// Define a local copy of jQuery
 		jQuery = function( selector, context ) {
@@ -21194,13 +21193,14 @@
 		// Get the Nth element in the matched element set OR
 		// Get the whole matched element set as a clean array
 		get: function( num ) {
-			return num != null ?
 	
-				// Return just the one element from the set
-				( num < 0 ? this[ num + this.length ] : this[ num ] ) :
+			// Return all the elements in a clean array
+			if ( num == null ) {
+				return slice.call( this );
+			}
 	
-				// Return all the elements in a clean array
-				slice.call( this );
+			// Return just the one element from the set
+			return num < 0 ? this[ num + this.length ] : this[ num ];
 		},
 	
 		// Take an array of elements and push it onto the stack
@@ -21608,14 +21608,14 @@
 	}
 	var Sizzle =
 	/*!
-	 * Sizzle CSS Selector Engine v2.3.0
+	 * Sizzle CSS Selector Engine v2.3.3
 	 * https://sizzlejs.com/
 	 *
 	 * Copyright jQuery Foundation and other contributors
 	 * Released under the MIT license
 	 * http://jquery.org/license
 	 *
-	 * Date: 2016-01-04
+	 * Date: 2016-08-08
 	 */
 	(function( window ) {
 	
@@ -21761,7 +21761,7 @@
 	
 		// CSS string/identifier serialization
 		// https://drafts.csswg.org/cssom/#common-serializing-idioms
-		rcssescape = /([\0-\x1f\x7f]|^-?\d)|^-$|[^\x80-\uFFFF\w-]/g,
+		rcssescape = /([\0-\x1f\x7f]|^-?\d)|^-$|[^\0-\x1f\x7f-\uFFFF\w-]/g,
 		fcssescape = function( ch, asCodePoint ) {
 			if ( asCodePoint ) {
 	
@@ -21788,7 +21788,7 @@
 	
 		disabledAncestor = addCombinator(
 			function( elem ) {
-				return elem.disabled === true;
+				return elem.disabled === true && ("form" in elem || "label" in elem);
 			},
 			{ dir: "parentNode", next: "legend" }
 		);
@@ -22074,26 +22074,54 @@
 	 * @param {Boolean} disabled true for :disabled; false for :enabled
 	 */
 	function createDisabledPseudo( disabled ) {
-		// Known :disabled false positives:
-		// IE: *[disabled]:not(button, input, select, textarea, optgroup, option, menuitem, fieldset)
-		// not IE: fieldset[disabled] > legend:nth-of-type(n+2) :can-disable
+	
+		// Known :disabled false positives: fieldset[disabled] > legend:nth-of-type(n+2) :can-disable
 		return function( elem ) {
 	
-			// Check form elements and option elements for explicit disabling
-			return "label" in elem && elem.disabled === disabled ||
-				"form" in elem && elem.disabled === disabled ||
+			// Only certain elements can match :enabled or :disabled
+			// https://html.spec.whatwg.org/multipage/scripting.html#selector-enabled
+			// https://html.spec.whatwg.org/multipage/scripting.html#selector-disabled
+			if ( "form" in elem ) {
 	
-				// Check non-disabled form elements for fieldset[disabled] ancestors
-				"form" in elem && elem.disabled === false && (
-					// Support: IE6-11+
-					// Ancestry is covered for us
-					elem.isDisabled === disabled ||
+				// Check for inherited disabledness on relevant non-disabled elements:
+				// * listed form-associated elements in a disabled fieldset
+				//   https://html.spec.whatwg.org/multipage/forms.html#category-listed
+				//   https://html.spec.whatwg.org/multipage/forms.html#concept-fe-disabled
+				// * option elements in a disabled optgroup
+				//   https://html.spec.whatwg.org/multipage/forms.html#concept-option-disabled
+				// All such elements have a "form" property.
+				if ( elem.parentNode && elem.disabled === false ) {
 	
-					// Otherwise, assume any non-<option> under fieldset[disabled] is disabled
-					/* jshint -W018 */
-					elem.isDisabled !== !disabled &&
-						("label" in elem || !disabledAncestor( elem )) !== disabled
-				);
+					// Option elements defer to a parent optgroup if present
+					if ( "label" in elem ) {
+						if ( "label" in elem.parentNode ) {
+							return elem.parentNode.disabled === disabled;
+						} else {
+							return elem.disabled === disabled;
+						}
+					}
+	
+					// Support: IE 6 - 11
+					// Use the isDisabled shortcut property to check for disabled fieldset ancestors
+					return elem.isDisabled === disabled ||
+	
+						// Where there is no isDisabled, check manually
+						/* jshint -W018 */
+						elem.isDisabled !== !disabled &&
+							disabledAncestor( elem ) === disabled;
+				}
+	
+				return elem.disabled === disabled;
+	
+			// Try to winnow out elements that can't be disabled before trusting the disabled property.
+			// Some victims get caught in our net (label, legend, menu, track), but it shouldn't
+			// even exist on them, let alone have a boolean value.
+			} else if ( "label" in elem ) {
+				return elem.disabled === disabled;
+			}
+	
+			// Remaining elements are neither :enabled nor :disabled
+			return false;
 		};
 	}
 	
@@ -22209,25 +22237,21 @@
 			return !document.getElementsByName || !document.getElementsByName( expando ).length;
 		});
 	
-		// ID find and filter
+		// ID filter and find
 		if ( support.getById ) {
-			Expr.find["ID"] = function( id, context ) {
-				if ( typeof context.getElementById !== "undefined" && documentIsHTML ) {
-					var m = context.getElementById( id );
-					return m ? [ m ] : [];
-				}
-			};
 			Expr.filter["ID"] = function( id ) {
 				var attrId = id.replace( runescape, funescape );
 				return function( elem ) {
 					return elem.getAttribute("id") === attrId;
 				};
 			};
+			Expr.find["ID"] = function( id, context ) {
+				if ( typeof context.getElementById !== "undefined" && documentIsHTML ) {
+					var elem = context.getElementById( id );
+					return elem ? [ elem ] : [];
+				}
+			};
 		} else {
-			// Support: IE6/7
-			// getElementById is not reliable as a find shortcut
-			delete Expr.find["ID"];
-	
 			Expr.filter["ID"] =  function( id ) {
 				var attrId = id.replace( runescape, funescape );
 				return function( elem ) {
@@ -22235,6 +22259,36 @@
 						elem.getAttributeNode("id");
 					return node && node.value === attrId;
 				};
+			};
+	
+			// Support: IE 6 - 7 only
+			// getElementById is not reliable as a find shortcut
+			Expr.find["ID"] = function( id, context ) {
+				if ( typeof context.getElementById !== "undefined" && documentIsHTML ) {
+					var node, i, elems,
+						elem = context.getElementById( id );
+	
+					if ( elem ) {
+	
+						// Verify the id attribute
+						node = elem.getAttributeNode("id");
+						if ( node && node.value === id ) {
+							return [ elem ];
+						}
+	
+						// Fall back on getElementsByName
+						elems = context.getElementsByName( id );
+						i = 0;
+						while ( (elem = elems[i++]) ) {
+							node = elem.getAttributeNode("id");
+							if ( node && node.value === id ) {
+								return [ elem ];
+							}
+						}
+					}
+	
+					return [];
+				}
 			};
 		}
 	
@@ -23276,6 +23330,7 @@
 						return matcher( elem, context, xml );
 					}
 				}
+				return false;
 			} :
 	
 			// Check against all ancestor/preceding elements
@@ -23320,6 +23375,7 @@
 						}
 					}
 				}
+				return false;
 			};
 	}
 	
@@ -23682,8 +23738,7 @@
 			// Reduce context if the leading compound selector is an ID
 			tokens = match[0] = match[0].slice( 0 );
 			if ( tokens.length > 2 && (token = tokens[0]).type === "ID" &&
-					support.getById && context.nodeType === 9 && documentIsHTML &&
-					Expr.relative[ tokens[1].type ] ) {
+					context.nodeType === 9 && documentIsHTML && Expr.relative[ tokens[1].type ] ) {
 	
 				context = ( Expr.find["ID"]( token.matches[0].replace(runescape, funescape), context ) || [] )[0];
 				if ( !context ) {
@@ -23865,24 +23920,29 @@
 			return jQuery.grep( elements, function( elem, i ) {
 				return !!qualifier.call( elem, i, elem ) !== not;
 			} );
-	
 		}
 	
+		// Single element
 		if ( qualifier.nodeType ) {
 			return jQuery.grep( elements, function( elem ) {
 				return ( elem === qualifier ) !== not;
 			} );
-	
 		}
 	
-		if ( typeof qualifier === "string" ) {
-			if ( risSimple.test( qualifier ) ) {
-				return jQuery.filter( qualifier, elements, not );
-			}
-	
-			qualifier = jQuery.filter( qualifier, elements );
+		// Arraylike of elements (jQuery, arguments, Array)
+		if ( typeof qualifier !== "string" ) {
+			return jQuery.grep( elements, function( elem ) {
+				return ( indexOf.call( qualifier, elem ) > -1 ) !== not;
+			} );
 		}
 	
+		// Simple selector that can be filtered directly, removing non-Elements
+		if ( risSimple.test( qualifier ) ) {
+			return jQuery.filter( qualifier, elements, not );
+		}
+	
+		// Complex selector, compare the two sets, removing non-Elements
+		qualifier = jQuery.filter( qualifier, elements );
 		return jQuery.grep( elements, function( elem ) {
 			return ( indexOf.call( qualifier, elem ) > -1 ) !== not && elem.nodeType === 1;
 		} );
@@ -23895,11 +23955,13 @@
 			expr = ":not(" + expr + ")";
 		}
 	
-		return elems.length === 1 && elem.nodeType === 1 ?
-			jQuery.find.matchesSelector( elem, expr ) ? [ elem ] : [] :
-			jQuery.find.matches( expr, jQuery.grep( elems, function( elem ) {
-				return elem.nodeType === 1;
-			} ) );
+		if ( elems.length === 1 && elem.nodeType === 1 ) {
+			return jQuery.find.matchesSelector( elem, expr ) ? [ elem ] : [];
+		}
+	
+		return jQuery.find.matches( expr, jQuery.grep( elems, function( elem ) {
+			return elem.nodeType === 1;
+		} ) );
 	};
 	
 	jQuery.fn.extend( {
@@ -24227,14 +24289,14 @@
 			return this.pushStack( matched );
 		};
 	} );
-	var rnotwhite = ( /\S+/g );
+	var rnothtmlwhite = ( /[^\x20\t\r\n\f]+/g );
 	
 	
 	
 	// Convert String-formatted options into Object-formatted ones
 	function createOptions( options ) {
 		var object = {};
-		jQuery.each( options.match( rnotwhite ) || [], function( _, flag ) {
+		jQuery.each( options.match( rnothtmlwhite ) || [], function( _, flag ) {
 			object[ flag ] = true;
 		} );
 		return object;
@@ -24999,13 +25061,16 @@
 			}
 		}
 	
-		return chainable ?
-			elems :
+		if ( chainable ) {
+			return elems;
+		}
 	
-			// Gets
-			bulk ?
-				fn.call( elems ) :
-				len ? fn( elems[ 0 ], key ) : emptyGet;
+		// Gets
+		if ( bulk ) {
+			return fn.call( elems );
+		}
+	
+		return len ? fn( elems[ 0 ], key ) : emptyGet;
 	};
 	var acceptData = function( owner ) {
 	
@@ -25142,7 +25207,7 @@
 					// Otherwise, create an array by matching non-whitespace
 					key = key in cache ?
 						[ key ] :
-						( key.match( rnotwhite ) || [] );
+						( key.match( rnothtmlwhite ) || [] );
 				}
 	
 				i = key.length;
@@ -25190,6 +25255,31 @@
 	var rbrace = /^(?:\{[\w\W]*\}|\[[\w\W]*\])$/,
 		rmultiDash = /[A-Z]/g;
 	
+	function getData( data ) {
+		if ( data === "true" ) {
+			return true;
+		}
+	
+		if ( data === "false" ) {
+			return false;
+		}
+	
+		if ( data === "null" ) {
+			return null;
+		}
+	
+		// Only convert to a number if it doesn't change the string
+		if ( data === +data + "" ) {
+			return +data;
+		}
+	
+		if ( rbrace.test( data ) ) {
+			return JSON.parse( data );
+		}
+	
+		return data;
+	}
+	
 	function dataAttr( elem, key, data ) {
 		var name;
 	
@@ -25201,14 +25291,7 @@
 	
 			if ( typeof data === "string" ) {
 				try {
-					data = data === "true" ? true :
-						data === "false" ? false :
-						data === "null" ? null :
-	
-						// Only convert to a number if it doesn't change the string
-						+data + "" === data ? +data :
-						rbrace.test( data ) ? JSON.parse( data ) :
-						data;
+					data = getData( data );
 				} catch ( e ) {}
 	
 				// Make sure we set the data so it isn't changed later
@@ -25585,7 +25668,7 @@
 			return display;
 		}
 	
-		temp = doc.body.appendChild( doc.createElement( nodeName ) ),
+		temp = doc.body.appendChild( doc.createElement( nodeName ) );
 		display = jQuery.css( temp, "display" );
 	
 		temp.parentNode.removeChild( temp );
@@ -25703,15 +25786,23 @@
 	
 		// Support: IE <=9 - 11 only
 		// Use typeof to avoid zero-argument method invocation on host objects (#15151)
-		var ret = typeof context.getElementsByTagName !== "undefined" ?
-				context.getElementsByTagName( tag || "*" ) :
-				typeof context.querySelectorAll !== "undefined" ?
-					context.querySelectorAll( tag || "*" ) :
-				[];
+		var ret;
 	
-		return tag === undefined || tag && jQuery.nodeName( context, tag ) ?
-			jQuery.merge( [ context ], ret ) :
-			ret;
+		if ( typeof context.getElementsByTagName !== "undefined" ) {
+			ret = context.getElementsByTagName( tag || "*" );
+	
+		} else if ( typeof context.querySelectorAll !== "undefined" ) {
+			ret = context.querySelectorAll( tag || "*" );
+	
+		} else {
+			ret = [];
+		}
+	
+		if ( tag === undefined || tag && jQuery.nodeName( context, tag ) ) {
+			return jQuery.merge( [ context ], ret );
+		}
+	
+		return ret;
 	}
 	
 	
@@ -25985,7 +26076,7 @@
 			}
 	
 			// Handle multiple events separated by a space
-			types = ( types || "" ).match( rnotwhite ) || [ "" ];
+			types = ( types || "" ).match( rnothtmlwhite ) || [ "" ];
 			t = types.length;
 			while ( t-- ) {
 				tmp = rtypenamespace.exec( types[ t ] ) || [];
@@ -26067,7 +26158,7 @@
 			}
 	
 			// Once for each type.namespace in types; type may be omitted
-			types = ( types || "" ).match( rnotwhite ) || [ "" ];
+			types = ( types || "" ).match( rnothtmlwhite ) || [ "" ];
 			t = types.length;
 			while ( t-- ) {
 				tmp = rtypenamespace.exec( types[ t ] ) || [];
@@ -26193,51 +26284,58 @@
 		},
 	
 		handlers: function( event, handlers ) {
-			var i, matches, sel, handleObj,
+			var i, handleObj, sel, matchedHandlers, matchedSelectors,
 				handlerQueue = [],
 				delegateCount = handlers.delegateCount,
 				cur = event.target;
 	
-			// Support: IE <=9
 			// Find delegate handlers
-			// Black-hole SVG <use> instance trees (#13180)
-			//
-			// Support: Firefox <=42
-			// Avoid non-left-click in FF but don't block IE radio events (#3861, gh-2343)
-			if ( delegateCount && cur.nodeType &&
-				( event.type !== "click" || isNaN( event.button ) || event.button < 1 ) ) {
+			if ( delegateCount &&
+	
+				// Support: IE <=9
+				// Black-hole SVG <use> instance trees (trac-13180)
+				cur.nodeType &&
+	
+				// Support: Firefox <=42
+				// Suppress spec-violating clicks indicating a non-primary pointer button (trac-3861)
+				// https://www.w3.org/TR/DOM-Level-3-Events/#event-type-click
+				// Support: IE 11 only
+				// ...but not arrow key "clicks" of radio inputs, which can have `button` -1 (gh-2343)
+				!( event.type === "click" && event.button >= 1 ) ) {
 	
 				for ( ; cur !== this; cur = cur.parentNode || this ) {
 	
 					// Don't check non-elements (#13208)
 					// Don't process clicks on disabled elements (#6911, #8165, #11382, #11764)
-					if ( cur.nodeType === 1 && ( cur.disabled !== true || event.type !== "click" ) ) {
-						matches = [];
+					if ( cur.nodeType === 1 && !( event.type === "click" && cur.disabled === true ) ) {
+						matchedHandlers = [];
+						matchedSelectors = {};
 						for ( i = 0; i < delegateCount; i++ ) {
 							handleObj = handlers[ i ];
 	
 							// Don't conflict with Object.prototype properties (#13203)
 							sel = handleObj.selector + " ";
 	
-							if ( matches[ sel ] === undefined ) {
-								matches[ sel ] = handleObj.needsContext ?
+							if ( matchedSelectors[ sel ] === undefined ) {
+								matchedSelectors[ sel ] = handleObj.needsContext ?
 									jQuery( sel, this ).index( cur ) > -1 :
 									jQuery.find( sel, this, null, [ cur ] ).length;
 							}
-							if ( matches[ sel ] ) {
-								matches.push( handleObj );
+							if ( matchedSelectors[ sel ] ) {
+								matchedHandlers.push( handleObj );
 							}
 						}
-						if ( matches.length ) {
-							handlerQueue.push( { elem: cur, handlers: matches } );
+						if ( matchedHandlers.length ) {
+							handlerQueue.push( { elem: cur, handlers: matchedHandlers } );
 						}
 					}
 				}
 			}
 	
 			// Add the remaining (directly-bound) handlers
+			cur = this;
 			if ( delegateCount < handlers.length ) {
-				handlerQueue.push( { elem: this, handlers: handlers.slice( delegateCount ) } );
+				handlerQueue.push( { elem: cur, handlers: handlers.slice( delegateCount ) } );
 			}
 	
 			return handlerQueue;
@@ -26471,7 +26569,19 @@
 	
 			// Add which for click: 1 === left; 2 === middle; 3 === right
 			if ( !event.which && button !== undefined && rmouseEvent.test( event.type ) ) {
-				return ( button & 1 ? 1 : ( button & 2 ? 3 : ( button & 4 ? 2 : 0 ) ) );
+				if ( button & 1 ) {
+					return 1;
+				}
+	
+				if ( button & 2 ) {
+					return 3;
+				}
+	
+				if ( button & 4 ) {
+					return 2;
+				}
+	
+				return 0;
 			}
 	
 			return event.which;
@@ -27227,15 +27337,17 @@
 	}
 	
 	function augmentWidthOrHeight( elem, name, extra, isBorderBox, styles ) {
-		var i = extra === ( isBorderBox ? "border" : "content" ) ?
-	
-			// If we already have the right measurement, avoid augmentation
-			4 :
-	
-			// Otherwise initialize for horizontal or vertical properties
-			name === "width" ? 1 : 0,
-	
+		var i,
 			val = 0;
+	
+		// If we already have the right measurement, avoid augmentation
+		if ( extra === ( isBorderBox ? "border" : "content" ) ) {
+			i = 4;
+	
+		// Otherwise initialize for horizontal or vertical properties
+		} else {
+			i = name === "width" ? 1 : 0;
+		}
 	
 		for ( ; i < 4; i += 2 ) {
 	
@@ -28089,7 +28201,7 @@
 				callback = props;
 				props = [ "*" ];
 			} else {
-				props = props.match( rnotwhite );
+				props = props.match( rnothtmlwhite );
 			}
 	
 			var prop,
@@ -28127,9 +28239,14 @@
 			opt.duration = 0;
 	
 		} else {
-			opt.duration = typeof opt.duration === "number" ?
-				opt.duration : opt.duration in jQuery.fx.speeds ?
-					jQuery.fx.speeds[ opt.duration ] : jQuery.fx.speeds._default;
+			if ( typeof opt.duration !== "number" ) {
+				if ( opt.duration in jQuery.fx.speeds ) {
+					opt.duration = jQuery.fx.speeds[ opt.duration ];
+	
+				} else {
+					opt.duration = jQuery.fx.speeds._default;
+				}
+			}
 		}
 	
 		// Normalize opt.queue - true/undefined/null -> "fx"
@@ -28479,7 +28596,10 @@
 		removeAttr: function( elem, value ) {
 			var name,
 				i = 0,
-				attrNames = value && value.match( rnotwhite );
+	
+				// Attribute names can contain non-HTML whitespace characters
+				// https://html.spec.whatwg.org/multipage/syntax.html#attributes-2
+				attrNames = value && value.match( rnothtmlwhite );
 	
 			if ( attrNames && elem.nodeType === 1 ) {
 				while ( ( name = attrNames[ i++ ] ) ) {
@@ -28586,12 +28706,19 @@
 					// Use proper attribute retrieval(#12072)
 					var tabindex = jQuery.find.attr( elem, "tabindex" );
 	
-					return tabindex ?
-						parseInt( tabindex, 10 ) :
+					if ( tabindex ) {
+						return parseInt( tabindex, 10 );
+					}
+	
+					if (
 						rfocusable.test( elem.nodeName ) ||
-							rclickable.test( elem.nodeName ) && elem.href ?
-								0 :
-								-1;
+						rclickable.test( elem.nodeName ) &&
+						elem.href
+					) {
+						return 0;
+					}
+	
+					return -1;
 				}
 			}
 		},
@@ -28608,9 +28735,14 @@
 	// on the option
 	// The getter ensures a default option is selected
 	// when in an optgroup
+	// eslint rule "no-unused-expressions" is disabled for this code
+	// since it considers such accessions noop
 	if ( !support.optSelected ) {
 		jQuery.propHooks.selected = {
 			get: function( elem ) {
+	
+				/* eslint no-unused-expressions: "off" */
+	
 				var parent = elem.parentNode;
 				if ( parent && parent.parentNode ) {
 					parent.parentNode.selectedIndex;
@@ -28618,6 +28750,9 @@
 				return null;
 			},
 			set: function( elem ) {
+	
+				/* eslint no-unused-expressions: "off" */
+	
 				var parent = elem.parentNode;
 				if ( parent ) {
 					parent.selectedIndex;
@@ -28648,7 +28783,13 @@
 	
 	
 	
-	var rclass = /[\t\r\n\f]/g;
+		// Strip and collapse whitespace according to HTML spec
+		// https://html.spec.whatwg.org/multipage/infrastructure.html#strip-and-collapse-whitespace
+		function stripAndCollapse( value ) {
+			var tokens = value.match( rnothtmlwhite ) || [];
+			return tokens.join( " " );
+		}
+	
 	
 	function getClass( elem ) {
 		return elem.getAttribute && elem.getAttribute( "class" ) || "";
@@ -28666,12 +28807,11 @@
 			}
 	
 			if ( typeof value === "string" && value ) {
-				classes = value.match( rnotwhite ) || [];
+				classes = value.match( rnothtmlwhite ) || [];
 	
 				while ( ( elem = this[ i++ ] ) ) {
 					curValue = getClass( elem );
-					cur = elem.nodeType === 1 &&
-						( " " + curValue + " " ).replace( rclass, " " );
+					cur = elem.nodeType === 1 && ( " " + stripAndCollapse( curValue ) + " " );
 	
 					if ( cur ) {
 						j = 0;
@@ -28682,7 +28822,7 @@
 						}
 	
 						// Only assign if different to avoid unneeded rendering.
-						finalValue = jQuery.trim( cur );
+						finalValue = stripAndCollapse( cur );
 						if ( curValue !== finalValue ) {
 							elem.setAttribute( "class", finalValue );
 						}
@@ -28708,14 +28848,13 @@
 			}
 	
 			if ( typeof value === "string" && value ) {
-				classes = value.match( rnotwhite ) || [];
+				classes = value.match( rnothtmlwhite ) || [];
 	
 				while ( ( elem = this[ i++ ] ) ) {
 					curValue = getClass( elem );
 	
 					// This expression is here for better compressibility (see addClass)
-					cur = elem.nodeType === 1 &&
-						( " " + curValue + " " ).replace( rclass, " " );
+					cur = elem.nodeType === 1 && ( " " + stripAndCollapse( curValue ) + " " );
 	
 					if ( cur ) {
 						j = 0;
@@ -28728,7 +28867,7 @@
 						}
 	
 						// Only assign if different to avoid unneeded rendering.
-						finalValue = jQuery.trim( cur );
+						finalValue = stripAndCollapse( cur );
 						if ( curValue !== finalValue ) {
 							elem.setAttribute( "class", finalValue );
 						}
@@ -28763,7 +28902,7 @@
 					// Toggle individual class names
 					i = 0;
 					self = jQuery( this );
-					classNames = value.match( rnotwhite ) || [];
+					classNames = value.match( rnothtmlwhite ) || [];
 	
 					while ( ( className = classNames[ i++ ] ) ) {
 	
@@ -28806,10 +28945,8 @@
 			className = " " + selector + " ";
 			while ( ( elem = this[ i++ ] ) ) {
 				if ( elem.nodeType === 1 &&
-					( " " + getClass( elem ) + " " ).replace( rclass, " " )
-						.indexOf( className ) > -1
-				) {
-					return true;
+					( " " + stripAndCollapse( getClass( elem ) ) + " " ).indexOf( className ) > -1 ) {
+						return true;
 				}
 			}
 	
@@ -28820,8 +28957,7 @@
 	
 	
 	
-	var rreturn = /\r/g,
-		rspaces = /[\x20\t\r\n\f]+/g;
+	var rreturn = /\r/g;
 	
 	jQuery.fn.extend( {
 		val: function( value ) {
@@ -28842,13 +28978,13 @@
 	
 					ret = elem.value;
 	
-					return typeof ret === "string" ?
+					// Handle most common string cases
+					if ( typeof ret === "string" ) {
+						return ret.replace( rreturn, "" );
+					}
 	
-						// Handle most common string cases
-						ret.replace( rreturn, "" ) :
-	
-						// Handle cases where value is null/undef or number
-						ret == null ? "" : ret;
+					// Handle cases where value is null/undef or number
+					return ret == null ? "" : ret;
 				}
 	
 				return;
@@ -28905,20 +29041,24 @@
 						// option.text throws exceptions (#14686, #14858)
 						// Strip and collapse whitespace
 						// https://html.spec.whatwg.org/#strip-and-collapse-whitespace
-						jQuery.trim( jQuery.text( elem ) ).replace( rspaces, " " );
+						stripAndCollapse( jQuery.text( elem ) );
 				}
 			},
 			select: {
 				get: function( elem ) {
-					var value, option,
+					var value, option, i,
 						options = elem.options,
 						index = elem.selectedIndex,
 						one = elem.type === "select-one",
 						values = one ? null : [],
-						max = one ? index + 1 : options.length,
-						i = index < 0 ?
-							max :
-							one ? index : 0;
+						max = one ? index + 1 : options.length;
+	
+					if ( index < 0 ) {
+						i = max;
+	
+					} else {
+						i = one ? index : 0;
+					}
 	
 					// Loop through all the selected options
 					for ( ; i < max; i++ ) {
@@ -29372,13 +29512,17 @@
 			.map( function( i, elem ) {
 				var val = jQuery( this ).val();
 	
-				return val == null ?
-					null :
-					jQuery.isArray( val ) ?
-						jQuery.map( val, function( val ) {
-							return { name: elem.name, value: val.replace( rCRLF, "\r\n" ) };
-						} ) :
-						{ name: elem.name, value: val.replace( rCRLF, "\r\n" ) };
+				if ( val == null ) {
+					return null;
+				}
+	
+				if ( jQuery.isArray( val ) ) {
+					return jQuery.map( val, function( val ) {
+						return { name: elem.name, value: val.replace( rCRLF, "\r\n" ) };
+					} );
+				}
+	
+				return { name: elem.name, value: val.replace( rCRLF, "\r\n" ) };
 			} ).get();
 		}
 	} );
@@ -29387,7 +29531,7 @@
 	var
 		r20 = /%20/g,
 		rhash = /#.*$/,
-		rts = /([?&])_=[^&]*/,
+		rantiCache = /([?&])_=[^&]*/,
 		rheaders = /^(.*?):[ \t]*([^\r\n]*)$/mg,
 	
 		// #7653, #8125, #8152: local protocol detection
@@ -29433,7 +29577,7 @@
 	
 			var dataType,
 				i = 0,
-				dataTypes = dataTypeExpression.toLowerCase().match( rnotwhite ) || [];
+				dataTypes = dataTypeExpression.toLowerCase().match( rnothtmlwhite ) || [];
 	
 			if ( jQuery.isFunction( func ) ) {
 	
@@ -29901,7 +30045,7 @@
 			s.type = options.method || options.type || s.method || s.type;
 	
 			// Extract dataTypes list
-			s.dataTypes = ( s.dataType || "*" ).toLowerCase().match( rnotwhite ) || [ "" ];
+			s.dataTypes = ( s.dataType || "*" ).toLowerCase().match( rnothtmlwhite ) || [ "" ];
 	
 			// A cross-domain request is in order when the origin doesn't match the current origin.
 			if ( s.crossDomain == null ) {
@@ -29973,9 +30117,9 @@
 					delete s.data;
 				}
 	
-				// Add anti-cache in uncached url if needed
+				// Add or update anti-cache param if needed
 				if ( s.cache === false ) {
-					cacheURL = cacheURL.replace( rts, "" );
+					cacheURL = cacheURL.replace( rantiCache, "$1" );
 					uncached = ( rquery.test( cacheURL ) ? "&" : "?" ) + "_=" + ( nonce++ ) + uncached;
 				}
 	
@@ -30714,7 +30858,7 @@
 			off = url.indexOf( " " );
 	
 		if ( off > -1 ) {
-			selector = jQuery.trim( url.slice( off ) );
+			selector = stripAndCollapse( url.slice( off ) );
 			url = url.slice( 0, off );
 		}
 	
@@ -31106,7 +31250,6 @@
 	
 	
 	
-	
 	var
 	
 		// Map over jQuery in case of overwrite
@@ -31133,6 +31276,9 @@
 	if ( !noGlobal ) {
 		window.jQuery = window.$ = jQuery;
 	}
+	
+	
+	
 	
 	
 	return jQuery;
@@ -34855,7 +35001,7 @@
 	const Backbone = __webpack_require__(4);
 	
 	const ChordList = __webpack_require__(8);
-	const Instrument = __webpack_require__(33);
+	const Instrument = __webpack_require__(10);
 	
 	/**
 	 * @module Sequence
@@ -34882,7 +35028,8 @@
 	    },
 	
 	    defaults : {
-	        chordList : []
+	        chordList : [],
+	        instrument : {}
 	    }
 	});
 
@@ -35115,15 +35262,35 @@
 /* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
+	const Backbone = __webpack_require__(4);
+	
+	/**
+	 * @module Intrument
+	 * @class
+	 *
+	 * An `Instrument` encapsulates the instrument playing the sequence. It has no attributes of its
+	 * own, but acts as a proxy for parameters of the audio instruments.
+	 *
+	 * @property {string}       id          - The id of the instrument
+	 *
+	 * @extends Backbone.Model
+	 */
+	module.exports = Backbone.Model.extend({
+	});
+
+/***/ },
+/* 11 */
+/***/ function(module, exports, __webpack_require__) {
+
 	const $ = __webpack_require__(2);
 	const _ = __webpack_require__(6);
 	const Backbone = __webpack_require__(4);
 	
-	const InstrumentView = __webpack_require__(11);
-	const SequencerView = __webpack_require__(20);
-	const KeyView = __webpack_require__(27);
-	const ModeView = __webpack_require__(28);
-	const TransportView = __webpack_require__(29);
+	const InstrumentView = __webpack_require__(12);
+	const SequencerView = __webpack_require__(23);
+	const KeyView = __webpack_require__(30);
+	const ModeView = __webpack_require__(31);
+	const TransportView = __webpack_require__(32);
 	
 	module.exports = Backbone.View.extend({
 	    tagName : 'div',
@@ -35137,7 +35304,7 @@
 	    },
 	
 	    create : function() {
-	        const html = __webpack_require__(32);
+	        const html = __webpack_require__(34);
 	        this.$el.append(html);
 	
 	        this.$title = this.$('.title');
@@ -35151,7 +35318,7 @@
 	        const modeView = new ModeView({ model : sequence });
 	        container.append(modeView.$el);
 	
-	        const instrumentView = new InstrumentView({ model : sequence });
+	        const instrumentView = new InstrumentView({ model : sequence.get('instrument') });
 	        container.before(instrumentView.$el);
 	
 	        const sequencerView = new SequencerView({ model : sequence });
@@ -35212,14 +35379,14 @@
 	});
 
 /***/ },
-/* 11 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
 	const $ = __webpack_require__(2);
 	const _ = __webpack_require__(6);
 	const Backbone = __webpack_require__(4);
 	
-	const Audio = __webpack_require__(12);
+	const Audio = __webpack_require__(13);
 	
 	module.exports = Backbone.View.extend({
 	    tagName : 'section',
@@ -35268,18 +35435,24 @@
 	        e.stopPropagation();
 	        
 	        this.model.set('id', $(e.currentTarget).attr('data-value'));
+	    },
+	
+	    changeParam : function(e) {
+	        e.stopPropagation();
+	
+	        this.model.set(e.originalEvent.param, e.originalEvent.value);
 	    }
 	});
 
 /***/ },
-/* 12 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
 	const _ = __webpack_require__(6);
 	const Backbone = __webpack_require__(4);
 	const Tone = __webpack_require__(1);
 	
-	const Tonality = __webpack_require__(13);
+	const Tonality = __webpack_require__(14);
 	
 	
 	function AudioController(song) {
@@ -35287,8 +35460,8 @@
 	
 	    const self = this;
 	    this.part = new Tone.Part(function(time, event) {
-	        if (self.instrument) {
-	            self.instrument.play(self, time, event);
+	        if (self.instrumentAudio) {
+	            self.instrumentAudio.play(self, time, event);
 	        }
 	    });
 	    this.part.start('0m');
@@ -35303,7 +35476,6 @@
 	    this.song = song;
 	
 	    this.sequence = song.get('sequence');
-	    this.listenTo(this.sequence, 'change:instrument', this.updateInstrument);
 	    this.listenTo(this.sequence, 'change:tempo', this.updateTempo);
 	    this.listenTo(this.sequence, 'change:loopLength', this.updateLoopLength);
 	    this.listenTo(this.sequence, 'change:key', this.updateKeyMode);
@@ -35313,25 +35485,38 @@
 	    this.listenTo(this.chordList, 'update', this.updateChordList);
 	    this.listenTo(this.chordList, 'change', this.updateChord);
 	
+	    this.instrument = this.sequence.get('instrument');
+	    this.listenTo(this.instrument, 'change', this.updateInstrument);
+	
 	    return this;
 	}
 	
 	AudioController.Instruments = {};
 	
-	var instrument = __webpack_require__(17);
-	AudioController.Instruments[instrument.id] = instrument;
-	
-	instrument = __webpack_require__(18);
+	var instrument = __webpack_require__(18);
 	AudioController.Instruments[instrument.id] = instrument;
 	
 	instrument = __webpack_require__(19);
 	AudioController.Instruments[instrument.id] = instrument;
 	
-	AudioController.prototype.updateInstrument = function(sequence) {
-	    if (this.instrument) {
-	        this.instrument.dispose();
+	instrument = __webpack_require__(20);
+	AudioController.Instruments[instrument.id] = instrument;
+	
+	AudioController.prototype.updateInstrument = function(instrument) {
+	    const instrumentClass = AudioController.Instruments[instrument.get('id')];
+	
+	    if (instrument.hasChanged('id')) {
+	        if (this.instrumentAudio) {
+	            this.instrumentAudio.dispose();
+	        }
+	        this.instrumentAudio = instrumentClass.createInstrument();
 	    }
-	    this.instrument = AudioController.Instruments[sequence.get('instrument')].createInstrument();
+	
+	    for (var param of instrumentClass.params) {
+	        if (instrument.hasChanged(param)) {
+	            this.instrumentAudio.set(param, instrument.get(param));
+	        }
+	    }
 	}
 	
 	AudioController.prototype.updateTempo = function(sequence) {
@@ -35367,11 +35552,11 @@
 	module.exports = AudioController;
 
 /***/ },
-/* 13 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
-	const Note = __webpack_require__(14);
-	const Scale = __webpack_require__(16);
+	const Note = __webpack_require__(15);
+	const Scale = __webpack_require__(17);
 	
 	const Tonality = {
 	    Note : function(val) { return new Note(val); },
@@ -35383,10 +35568,10 @@
 	module.exports = Tonality;
 
 /***/ },
-/* 14 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
-	const InvalidArgumentError = __webpack_require__(15);
+	const InvalidArgumentError = __webpack_require__(16);
 	
 	const letters = 'CDEFGAB';
 	const alterations = ['', '#', 'b', '##', 'bb'];
@@ -35734,7 +35919,7 @@
 	module.exports = Note;
 
 /***/ },
-/* 15 */
+/* 16 */
 /***/ function(module, exports) {
 
 	function InvalidArgumentError(message) {
@@ -35755,11 +35940,11 @@
 	module.exports = InvalidArgumentError;
 
 /***/ },
-/* 16 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
-	const InvalidArgumentError = __webpack_require__(15);
-	const Note = __webpack_require__(14);
+	const InvalidArgumentError = __webpack_require__(16);
+	const Note = __webpack_require__(15);
 	
 	const keys = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
 	const modes = {
@@ -35863,12 +36048,13 @@
 	module.exports = Scale;
 
 /***/ },
-/* 17 */
+/* 18 */
 /***/ function(module, exports) {
 
 	module.exports = {
 	    id : 'noop',
 	    name: 'None',
+	    params : [],
 	    createInstrument : function() { 
 	        return { 
 	            play : function() {},
@@ -35881,7 +36067,7 @@
 	}
 
 /***/ },
-/* 18 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
 	const Tone = __webpack_require__(1);
@@ -36004,6 +36190,7 @@
 	module.exports = {
 	    id : 'panda-pad',
 	    name: 'Panda Pad',
+	    params : [],
 	    createInstrument : function() { return new PandaPad(); },
 	    createView : function() {
 	        return '<div></div>';
@@ -36012,16 +36199,16 @@
 	   
 
 /***/ },
-/* 19 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
 	const Tone = __webpack_require__(1);
-	const DropdownMenu = __webpack_require__(30);
+	const DropdownMenu = __webpack_require__(21);
 	
 	function EightBitArp() {
 	
 	    this.octaves = 4;
-	    this.subdivisions = '64n';
+	    this.subdivision = '64n';
 	
 	    this.bassSynth = new Tone.MonoSynth().toMaster();
 	    this.bassSynth.set({
@@ -36097,8 +36284,8 @@
 	    do {
 	        note = controller.scale.add(rootNote, intervals[i % intervals.length]);
 	        note.octave = ((note.octave - rootNote.octave) % this.octaves) + rootNote.octave;
-	        this.arpSynth.triggerAttackRelease(note.toString(), this.subdivisions, time);
-	        time.add(this.subdivisions);
+	        this.arpSynth.triggerAttackRelease(note.toString(), this.subdivision, time);
+	        time.add(this.subdivision);
 	        i++;
 	    } while (time.toSeconds() < endTime);
 	}
@@ -36111,29 +36298,39 @@
 	EightBitArp.prototype.set = function(param, value) {
 	    if (param === 'octaves') {
 	        this.octaves = value;
-	    } else if (param === 'subdivisions') {
-	        this.subdivisions = value;
+	    } else if (param === 'subdivision') {
+	        this.subdivision = value;
 	    }
 	}
 	
 	EightBitArp.prototype.get = function(param) {
 	    if (param === 'octaves') {
 	        return this.octaves;
-	    } else if (param === 'subdivisions') {
-	        return this.subdivisions;
+	    } else if (param === 'subdivision') {
+	        return this.subdivision;
 	    }
 	}
 	
 	EightBitArp.prototype.getParams = function() {
-	    return { 'octaves' : this.octaves, 'subdivisions' : this.subdivisions }
+	    return { 'octaves' : this.octaves, 'subdivision' : this.subdivision }
 	}
 	
 	function EightBitArpView() {
 	    this.element = document.createElement('div');
-	    this.element.innerHTML = __webpack_require__(34);
+	    this.element.innerHTML = __webpack_require__(22);
 	
 	    for (var dropdown of this.element.querySelectorAll('.dropdown-menu')) {
 	        DropdownMenu(dropdown);
+	
+	        const self = this;
+	        dropdown.addEventListener('select', function(e) {
+	            e.stopPropagation();
+	
+	            const changeEvent = new Event('change', {"bubbles":true});
+	            changeEvent.param = e.currentTarget.parentNode.classList[0];
+	            changeEvent.value = e.target.getAttribute('data-value');
+	            self.element.dispatchEvent(changeEvent);
+	        })
 	    }
 	
 	    return this.element;
@@ -36142,23 +36339,70 @@
 	module.exports = {
 	    id : 'eight-bit-arp',
 	    name : '8-bit arpeggiator',
-	    params : ['octaves', 'subdivisions'],
+	    params : ['octaves', 'subdivision'],
 	    createInstrument : function() { return new EightBitArp(); },
 	    createView : function() { return new EightBitArpView(); }
 	}
 	   
 
 /***/ },
-/* 20 */
+/* 21 */
+/***/ function(module, exports) {
+
+	const onClickMenu = function(e) {
+	        e.stopPropagation();
+	
+	        const menu = e.currentTarget;
+	        if (menu.classList.contains('open')) {
+	            menu.classList.remove('open');
+	        } else {
+	            menu.classList.add('open');
+	            const list = menu.getElementsByTagName('ul')[0];
+	            const rect = list.getBoundingClientRect();
+	            const overlap = rect.bottom - window.innerHeight;
+	            if (overlap > 0) {
+	                list.style.top = 'calc(100% - ' + overlap + 'px)';
+	            }
+	            document.addEventListener('click', function(e) {
+	                    menu.classList.remove('open');
+	                },
+	                {once : true}
+	            );
+	        }
+	}
+	
+	const onClickItem = function(e) {
+	    const item = e.currentTarget;
+	    const selectEvent = new Event('select', {bubbles: true});
+	    item.dispatchEvent(selectEvent);
+	}
+	
+	module.exports = function(target) {
+	    target.classList.add('dropdown-menu');
+	    target.addEventListener('click', onClickMenu);
+	    const items = target.querySelectorAll('ul>li');
+	    for (item of items) {
+	        item.addEventListener('click', onClickItem);
+	    }
+	}
+
+/***/ },
+/* 22 */
+/***/ function(module, exports) {
+
+	module.exports = "<subsection class=\"subdivision-control\">\n    <div class=\"subdivision control\">\n        <div class=\"label\">Subdivision</div>\n        <div class=\"dropdown-menu\">\n            <div><span class=\"value\">64n</span><span class=\"fa fa-caret-down\"></span></div>\n            <ul>                                                                           \n            <li class=\"menu-item\" data-value=\"64n\">64n</li>                                \n            <li class=\"menu-item\" data-value=\"32n\">32n</li>                                \n            <li class=\"menu-item\" data-value=\"16n\">16n</li>                                \n            <li class=\"menu-item\" data-value=\"8n\">8n</li>                                  \n            </ul>                                                                          \n        </div>\n    </div> \n</subsection>";
+
+/***/ },
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
 	const $ = __webpack_require__(2);
-	const Easing = __webpack_require__(21);
+	const Easing = __webpack_require__(24);
 	const _ = __webpack_require__(6);
 	const Backbone = __webpack_require__(4);
 	const Tone = __webpack_require__(1);
 	
-	const ChordView = __webpack_require__(22);
+	const ChordView = __webpack_require__(25);
 	
 	module.exports = Backbone.View.extend({
 	    tagName : 'div',
@@ -36182,7 +36426,7 @@
 	    },
 	
 	    create : function() {
-	        const html = __webpack_require__(26);
+	        const html = __webpack_require__(29);
 	        this.$el.append(html);
 	
 	        this.$chordSequencer = this.$('.chord-sequencer');
@@ -36339,7 +36583,7 @@
 
 
 /***/ },
-/* 21 */
+/* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*
@@ -36511,17 +36755,17 @@
 
 
 /***/ },
-/* 22 */
+/* 25 */
 /***/ function(module, exports, __webpack_require__) {
 
 	const $ = __webpack_require__(2);
-	const Easing = __webpack_require__(21);
+	const Easing = __webpack_require__(24);
 	const _ = __webpack_require__(6);
 	const Backbone = __webpack_require__(4);
 	const Tone = __webpack_require__(1);
 	
-	const Utils = __webpack_require__(23);
-	const Draggable = __webpack_require__(24);
+	const Utils = __webpack_require__(26);
+	const Draggable = __webpack_require__(27);
 	
 	module.exports = Backbone.View.extend({
 	    tagName: 'chord',
@@ -36550,7 +36794,7 @@
 	    },
 	
 	    create : function() {
-	        const html = __webpack_require__(25);
+	        const html = __webpack_require__(28);
 	        this.$el.append(html);
 	
 	        this.$radioGroup = this.$('.radio-group');
@@ -36705,7 +36949,7 @@
 	});
 
 /***/ },
-/* 23 */
+/* 26 */
 /***/ function(module, exports) {
 
 	module.exports = {
@@ -36717,7 +36961,7 @@
 	}
 
 /***/ },
-/* 24 */
+/* 27 */
 /***/ function(module, exports) {
 
 	const DraggableEvent = function(type, e, target) {
@@ -36815,26 +37059,26 @@
 	}
 
 /***/ },
-/* 25 */
+/* 28 */
 /***/ function(module, exports) {
 
 	module.exports = "<div class=\"drag-zone drag-zone-left\"></div>\n<div class=\"drag-zone drag-zone-right\"></div>\n<div class=\"control seventh-control\"><span>7th </span><i class=\"checkbox fa fa-square-o\"></i></div>\n<div class=\"step-group radio-group\">\n    <span data-value=\"6\">VII</span>\n    <span data-value=\"5\">VI</span>\n    <span data-value=\"4\">V</span>\n    <span data-value=\"3\">IV</span>\n    <span data-value=\"2\">III</span>\n    <span data-value=\"1\">II</span>\n    <span data-value=\"0\">I</span>\n</div>";
 
 /***/ },
-/* 26 */
+/* 29 */
 /***/ function(module, exports) {
 
 	module.exports = "<div class=\"scroll-indicator scroll-indicator-left hidden\">\n  <i class=\"fa fa-chevron-left fa-4\"></i>\n</div>\n<div class=\"chord-sequencer\">\n  <div class=\"chord-background\">\n  </div>\n  <i class=\"position-indicator fa fa-caret-up fa-lg\"></i>\n</div>\n<div class=\"scroll-indicator scroll-indicator-right hidden\">\n  <i class=\"fa fa-chevron-right fa-4\"></i>\n</div>\n";
 
 /***/ },
-/* 27 */
+/* 30 */
 /***/ function(module, exports, __webpack_require__) {
 
 	const $ = __webpack_require__(2);
 	const _ = __webpack_require__(6);
 	const Backbone = __webpack_require__(4);
 	
-	const Tonality = __webpack_require__(13);
+	const Tonality = __webpack_require__(14);
 	
 	module.exports = Backbone.View.extend({
 	    tagName : 'section',
@@ -36875,14 +37119,14 @@
 	});
 
 /***/ },
-/* 28 */
+/* 31 */
 /***/ function(module, exports, __webpack_require__) {
 
 	const $ = __webpack_require__(2);
 	const _ = __webpack_require__(6);
 	const Backbone = __webpack_require__(4);
 	
-	const Tonality = __webpack_require__(13);
+	const Tonality = __webpack_require__(14);
 	
 	module.exports = Backbone.View.extend({
 	    tagName : 'section',
@@ -36922,7 +37166,7 @@
 	});
 
 /***/ },
-/* 29 */
+/* 32 */
 /***/ function(module, exports, __webpack_require__) {
 
 	const $ = __webpack_require__(2);
@@ -36930,8 +37174,8 @@
 	const Backbone = __webpack_require__(4);
 	const Tone = __webpack_require__(1);
 	
-	const Draggable = __webpack_require__(24);
-	const DropdownMenu = __webpack_require__(30);
+	const Draggable = __webpack_require__(27);
+	const DropdownMenu = __webpack_require__(21);
 	
 	module.exports = Backbone.View.extend({
 	    tagName : 'section',
@@ -36948,7 +37192,7 @@
 	    },
 	
 	    create : function() {
-	        const html = __webpack_require__(31);
+	        const html = __webpack_require__(33);
 	        this.$el.append(html);
 	        this.$viewControl = this.$('.view-control');
 	        this.counter = this.$('.transport-control .counter').get(0);
@@ -37040,83 +37284,16 @@
 	});
 
 /***/ },
-/* 30 */
-/***/ function(module, exports) {
-
-	const onClickMenu = function(e) {
-	        e.stopPropagation();
-	
-	        const menu = e.currentTarget;
-	        if (menu.classList.contains('open')) {
-	            menu.classList.remove('open');
-	        } else {
-	            menu.classList.add('open');
-	            const list = menu.getElementsByTagName('ul')[0];
-	            const rect = list.getBoundingClientRect();
-	            const overlap = rect.bottom - window.innerHeight;
-	            if (overlap > 0) {
-	                list.style.top = 'calc(100% - ' + overlap + 'px)';
-	            }
-	            document.addEventListener('click', function(e) {
-	                    menu.classList.remove('open');
-	                },
-	                {once : true}
-	            );
-	        }
-	}
-	
-	const onClickItem = function(e) {
-	    const item = e.currentTarget;
-	    const selectEvent = new Event('select', {bubbles: true});
-	    item.dispatchEvent(selectEvent);
-	}
-	
-	module.exports = function(target) {
-	    target.classList.add('dropdown-menu');
-	    target.addEventListener('click', onClickMenu);
-	    const items = target.querySelectorAll('ul>li');
-	    for (item of items) {
-	        item.addEventListener('click', onClickItem);
-	    }
-	}
-
-/***/ },
-/* 31 */
+/* 33 */
 /***/ function(module, exports) {
 
 	module.exports = "<subsection class=\"view-control\">\n    <div class=\"control\">\n        <div class=\"label\">Grid</div>\n        <div class=\"grid dropdown-menu\">\n            <div><span class=\"value\">1/16</span><span class=\"fa fa-caret-down\"></span></div>\n            <ul>\n            <li class=\"menu-item\" data-value=\"16n\"><i class=\"mn mn-lg mn-note-sixteenth\"></i></li>\n            <li class=\"menu-item\" data-value=\"8t\"><i class=\"mn mn-lg mn-note-eighth-triplet\"></i></li>\n            <li class=\"menu-item\" data-value=\"8n\"><i class=\"mn mn-lg mn-note-eighth\"></i></li>\n            <!-- <li class=\"menu-item\" data-value=\"8n + 16n\"><i class=\"mn mn-lg mn-note-eighth-dot\"></i></li> -->\n            <li class=\"menu-item\" data-value=\"4t\"><i class=\"mn mn-lg mn-note-quarter-triplet\"></i></li>\n            <li class=\"menu-item\" data-value=\"4n\"><i class=\"mn mn-lg mn-note-quarter\"></i></li>\n            <!-- <li class=\"menu-item\" data-value=\"4n + 8n\"><i class=\"mn mn-lg mn-note-quarter-dot\"></i></li> -->\n            <li class=\"menu-item\" data-value=\"2t\"><i class=\"mn mn-lg mn-note-half-triplet\"></i></li>\n            <li class=\"menu-item\" data-value=\"2n\"><i class=\"mn mn-lg mn-note-half\"></i></li>\n            <!-- <li class=\"menu-item\" data-value=\"2n + 4n\"><i class=\"mn mn-lg mn-note-half-dot\"></i></li> -->\n            <li class=\"menu-item\" data-value=\"1n\"><i class=\"mn mn-lg mn-note-whole\"></i></li>\n            </ul>\n        </div>\n    </div>\n    <div class=\"control\">\n        <div class=\"label\">Zoom</div>\n        <div class=\"zoom dropdown-menu\">\n            <div><span class=\"value\">1 bar</span><span class=\"fa fa-caret-down\"></span></div>\n            <ul>\n            <li class=\"menu-item\" data-value=\"1m\">1 bar</li>\n            <li class=\"menu-item\" data-value=\"2m\">2 bars</li>\n            <li class=\"menu-item\" data-value=\"4m\">4 bars</li>\n            <li class=\"menu-item\" data-value=\"8m\">8 bars</li>\n            </ul>\n        </div>\n    </div>\n</subsection>\n<subsection class=\"transport-control\">\n    <div class=\"play-control\"><button class=\"play\"><i class=\"fa fa-play\"></i></button><button class=\"stop\"><i class=\"fa fa-stop\"></i></button></div>\n    <div class=\"counter\">00:00:00</div>\n</subsection>\n<subsection class=\"loop-control\">\n    <div class=\"control\">\n        <div><span class=\"tempo value\" data-min=\"40\" data-max=\"250\">120 bpm</span></div>\n        <div class=\"label\">Tempo</div>\n    </div>\n    <div class=\"control\">\n        <div class=\"loop-length dropdown-menu\">\n            <div><span class=\"fa fa-caret-down\"></span><span class=\"value\">1 bar</span></div>\n            <ul>\n            <li class=\"menu-item\" data-value=\"1m\">1 bar</li>\n            <li class=\"menu-item\" data-value=\"2m\">2 bars</li>\n            <li class=\"menu-item\" data-value=\"4m\">4 bars</li>\n            <li class=\"menu-item\" data-value=\"8m\">8 bars</li>\n            </ul>\n        </div>\n        <div class=\"label\">Loop length</div>\n    </div>\n</subsection>";
 
 /***/ },
-/* 32 */
-/***/ function(module, exports) {
-
-	module.exports = "<h1 class=\"title\"></h1>\n<input class=\"edit\">\n<div class=\"row-container\"></div>";
-
-/***/ },
-/* 33 */
-/***/ function(module, exports, __webpack_require__) {
-
-	const Backbone = __webpack_require__(4);
-	
-	/**
-	 * @module Intrument
-	 * @class
-	 *
-	 * An `Instrument` encapsulates the instrument playing the sequence. It has no attributes of its
-	 * own, but acts as a proxy for parameters of the audio instruments.
-	 *
-	 * @property {string}       id          - The id of the instrument
-	 *
-	 * @extends Backbone.Model
-	 */
-	module.exports = Backbone.Model.extend({
-	});
-
-/***/ },
 /* 34 */
 /***/ function(module, exports) {
 
-	module.exports = "<subsection class=\"subdivision-control\">\n    <div class=\"control\">\n        <div class=\"label\">Subdivision</div><div class=\"dropdown-menu\">\n            <div><span class=\"value\">64n</span><span class=\"fa fa-caret-down\"></span></div>\n            <ul>                                                                           \n            <li class=\"menu-item\" data-value=\"64n\">64n</li>                                \n            <li class=\"menu-item\" data-value=\"32n\">32n</li>                                \n            <li class=\"menu-item\" data-value=\"16n\">16n</li>                                \n            <li class=\"menu-item\" data-value=\"8n\">8n</li>                                  \n            </ul>                                                                          \n        </div>\n    </div> \n</subsection>";
+	module.exports = "<h1 class=\"title\"></h1>\n<input class=\"edit\">\n<div class=\"row-container\"></div>";
 
 /***/ }
 /******/ ]);

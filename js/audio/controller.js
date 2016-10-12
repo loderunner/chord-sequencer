@@ -10,8 +10,8 @@ function AudioController(song) {
 
     const self = this;
     this.part = new Tone.Part(function(time, event) {
-        if (self.instrument) {
-            self.instrument.play(self, time, event);
+        if (self.instrumentAudio) {
+            self.instrumentAudio.play(self, time, event);
         }
     });
     this.part.start('0m');
@@ -26,7 +26,6 @@ function AudioController(song) {
     this.song = song;
 
     this.sequence = song.get('sequence');
-    this.listenTo(this.sequence, 'change:instrument', this.updateInstrument);
     this.listenTo(this.sequence, 'change:tempo', this.updateTempo);
     this.listenTo(this.sequence, 'change:loopLength', this.updateLoopLength);
     this.listenTo(this.sequence, 'change:key', this.updateKeyMode);
@@ -35,6 +34,9 @@ function AudioController(song) {
     this.chordList = this.sequence.get('chordList');
     this.listenTo(this.chordList, 'update', this.updateChordList);
     this.listenTo(this.chordList, 'change', this.updateChord);
+
+    this.instrument = this.sequence.get('instrument');
+    this.listenTo(this.instrument, 'change', this.updateInstrument);
 
     return this;
 }
@@ -50,11 +52,21 @@ AudioController.Instruments[instrument.id] = instrument;
 instrument = require('audio/instrument/eight-bit-arp.js');
 AudioController.Instruments[instrument.id] = instrument;
 
-AudioController.prototype.updateInstrument = function(sequence) {
-    if (this.instrument) {
-        this.instrument.dispose();
+AudioController.prototype.updateInstrument = function(instrument) {
+    const instrumentClass = AudioController.Instruments[instrument.get('id')];
+
+    if (instrument.hasChanged('id')) {
+        if (this.instrumentAudio) {
+            this.instrumentAudio.dispose();
+        }
+        this.instrumentAudio = instrumentClass.createInstrument();
     }
-    this.instrument = AudioController.Instruments[sequence.get('instrument')].createInstrument();
+
+    for (var param of instrumentClass.params) {
+        if (instrument.hasChanged(param)) {
+            this.instrumentAudio.set(param, instrument.get(param));
+        }
+    }
 }
 
 AudioController.prototype.updateTempo = function(sequence) {

@@ -28,6 +28,7 @@ module.exports = Backbone.Model.extend({
     },
 
     defaults : {
-        chordList : []
+        chordList : [],
+        instrument : {}
     }
 });

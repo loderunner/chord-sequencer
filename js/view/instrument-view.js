@@ -51,5 +51,11 @@ module.exports = Backbone.View.extend({
         e.stopPropagation();
         
         this.model.set('id', $(e.currentTarget).attr('data-value'));
+    },
+
+    changeParam : function(e) {
+        e.stopPropagation();
+
+        this.model.set(e.originalEvent.param, e.originalEvent.value);
     }
 });

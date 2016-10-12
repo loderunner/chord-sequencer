@@ -34,7 +34,7 @@ module.exports = Backbone.View.extend({
         const modeView = new ModeView({ model : sequence });
         container.append(modeView.$el);
 
-        const instrumentView = new InstrumentView({ model : sequence });
+        const instrumentView = new InstrumentView({ model : sequence.get('instrument') });
         container.before(instrumentView.$el);
 
         const sequencerView = new SequencerView({ model : sequence });

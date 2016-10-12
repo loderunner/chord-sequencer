@@ -4,7 +4,7 @@ const DropdownMenu = require('view/dropdown-menu.js');
 function EightBitArp() {
 
     this.octaves = 4;
-    this.subdivisions = '64n';
+    this.subdivision = '64n';
 
     this.bassSynth = new Tone.MonoSynth().toMaster();
     this.bassSynth.set({
@@ -80,8 +80,8 @@ EightBitArp.prototype.play = function(controller, time, event) {
     do {
         note = controller.scale.add(rootNote, intervals[i % intervals.length]);
         note.octave = ((note.octave - rootNote.octave) % this.octaves) + rootNote.octave;
-        this.arpSynth.triggerAttackRelease(note.toString(), this.subdivisions, time);
-        time.add(this.subdivisions);
+        this.arpSynth.triggerAttackRelease(note.toString(), this.subdivision, time);
+        time.add(this.subdivision);
         i++;
     } while (time.toSeconds() < endTime);
 }
@@ -94,21 +94,21 @@ EightBitArp.prototype.dispose = function() {
 EightBitArp.prototype.set = function(param, value) {
     if (param === 'octaves') {
         this.octaves = value;
-    } else if (param === 'subdivisions') {
-        this.subdivisions = value;
+    } else if (param === 'subdivision') {
+        this.subdivision = value;
     }
 }
 
 EightBitArp.prototype.get = function(param) {
     if (param === 'octaves') {
         return this.octaves;
-    } else if (param === 'subdivisions') {
-        return this.subdivisions;
+    } else if (param === 'subdivision') {
+        return this.subdivision;
     }
 }
 
 EightBitArp.prototype.getParams = function() {
-    return { 'octaves' : this.octaves, 'subdivisions' : this.subdivisions }
+    return { 'octaves' : this.octaves, 'subdivision' : this.subdivision }
 }
 
 function EightBitArpView() {
@@ -117,6 +117,16 @@ function EightBitArpView() {
 
     for (var dropdown of this.element.querySelectorAll('.dropdown-menu')) {
         DropdownMenu(dropdown);
+
+        const self = this;
+        dropdown.addEventListener('select', function(e) {
+            e.stopPropagation();
+
+            const changeEvent = new Event('change', {"bubbles":true});
+            changeEvent.param = e.currentTarget.parentNode.classList[0];
+            changeEvent.value = e.target.getAttribute('data-value');
+            self.element.dispatchEvent(changeEvent);
+        })
     }
 
     return this.element;
@@ -125,7 +135,7 @@ function EightBitArpView() {
 module.exports = {
     id : 'eight-bit-arp',
     name : '8-bit arpeggiator',
-    params : ['octaves', 'subdivisions'],
+    params : ['octaves', 'subdivision'],
     createInstrument : function() { return new EightBitArp(); },
     createView : function() { return new EightBitArpView(); }
 }
