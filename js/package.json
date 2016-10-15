@@ -21,7 +21,7 @@
     "backbone-nested-models": "^2.0.4",
     "jquery": "^3.1.0",
     "jquery.easing": "^1.4.1",
-    "tone": "loderunner/Tone.js"
+    "tone": "tonejs/Tone.js"
   },
   "devDependencies": {
     "html-loader": "^0.4.3",
