@@ -61,7 +61,7 @@ function EightBitArp() {
     });
 
     this.pingPongDelay = new Tone.PingPongDelay("16n", 0.4).toMaster();
-    this.pingPongDelay.output.gain.value = .2;
+    this.pingPongDelay.output.gain.value = .1;
     this.arpSynth.connect(this.pingPongDelay);
 }
 
